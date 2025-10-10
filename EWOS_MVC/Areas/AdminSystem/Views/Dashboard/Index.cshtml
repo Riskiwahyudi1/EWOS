@@ -1,0 +1,140 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h5 class="my-3">Dashboard Admin</h5>
+
+<style>
+    .card-soft {
+        color: #333;
+        border: none;
+        border-radius: 10px;
+    }
+
+    .bg-soft-blue {
+        background-color: #a8d0e6;
+    }
+
+    .bg-soft-green {
+        background-color: #b8e0d2;
+    }
+
+    .bg-soft-yellow {
+        background-color: #fff3b0;
+    }
+
+    .bg-soft-red {
+        background-color: #f7a399;
+    }
+
+    .bg-soft-purple {
+        background-color: #d6c1e9;
+    }
+
+    .bg-soft-grey {
+        background-color: #e0e0e0;
+    }
+
+    .bg-no-7 {
+        background-color: #FBE9E7;
+    }
+
+    .bg-no-8 {
+        background-color: #EDE7F6;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row g-3">
+
+        <!-- Kotak 1 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card card-soft bg-no-7 shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Data Item</h5>
+                    <p class="display-6 fw-bold">843</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kotak 2 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card card-soft bg-no-8 shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Repeat Order</h5>
+                    <p class="display-6 fw-bold">1123</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kotak 3 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card card-soft bg-soft-blue shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">User</h5>
+                    <p class="display-6 fw-bold">123</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kotak 4 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card card-soft bg-soft-green shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Raw Material</h5>
+                    @* <p class="display-6 fw-bold">@Model.RawMaterialCount</p> *@
+                    <p class="display-6 fw-bold">123</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kotak 5 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card card-soft bg-soft-yellow shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Machine Fabrikasi</h5>
+                    @* <p class="display-6 fw-bold">@Model.MachineCount</p> *@
+                    <p class="display-6 fw-bold">123</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kotak 6 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card card-soft bg-soft-red shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Machine Category</h5>
+                    @* <p class="display-6 fw-bold">@Model.MachineCategoryCount</p> *@
+                    <p class="display-6 fw-bold">123</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kotak 7 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card card-soft bg-soft-purple shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Week Fabrikasi</h5>
+                    <p class="display-6 fw-bold">202</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kotak 8 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card card-soft bg-soft-grey shadow-sm text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Year</h5>
+                    @* <p class="display-6 fw-bold">@Model.YearsSettingCount</p> *@
+                    <p class="display-6 fw-bold">123</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
