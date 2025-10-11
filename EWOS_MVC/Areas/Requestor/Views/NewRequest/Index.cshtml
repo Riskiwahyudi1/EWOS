@@ -1,0 +1,157 @@
+﻿@{
+    ViewData["Title"] = "New Request";
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    /* Custom style for the form container */
+    .form-container {
+        border: 1px solid #dee2e6; /* light gray border */
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+        padding: 2rem 2.5rem;
+        background-color: #fff;
+    }
+
+        .form-container h3 {
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+    .form-label {
+        font-weight: 500;
+    }
+
+    .btn-submit {
+        min-width: 150px;
+    }
+</style>
+
+<div class="container py-2">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-7">
+            <div class="form-container">
+                <h3 class="text-center">Form New Request</h3>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success py-2">@TempData["Success"]</div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger py-2">@TempData["Error"]</div>
+                }
+
+                <form method="post" action="/NewRequest/CreateNewRequest" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-4 align-items-end">
+
+                        <!-- Part Name -->
+                        <div class="col-12 col-sm-6">
+                            <label for="PartName" class="form-label">
+                                <i class="bi bi-box-seam me-1"></i> Nama Item
+                            </label>
+
+                            <input type="text" class="form-control" id="PartName" name="PartName" placeholder="Masukan Nama Item" />
+                        </div>
+
+                        <!-- Quantity -->
+                        <div class="col-6 col-sm-3">
+                            <label for="Jumlah" class="form-label">
+                                <i class="bi bi-123 me-1"></i> Jumlah
+                            </label>
+                            <input type="number" class="form-control" id="quantity" value="1" readonly />
+                        </div>
+
+                        <!-- Unit -->
+                        <div class="col-6 col-sm-3">
+                            <label for="unit" class="form-label">
+                                <i class="bi bi-list me-1"></i> Unit
+                            </label>
+                            <select class="form-select" id="unit" name="unit">
+                                <option value="Pcs">Pcs</option>
+                                <option value="Set">Set</option>
+                            </select>
+                        </div>
+
+                        <!-- Target Selesai -->
+                        <div class="col-12 col-sm-6">
+                            <label for="crd" class="form-label">
+                                <i class="bi bi-calendar-event me-1"></i> Tanggal dibutuhkan
+                            </label>
+                            <input type="date" class="form-control" id="crd" name="CRD" />
+                        </div>
+
+                        <!-- Kategori Mesin -->
+                        <div class="col-12 col-sm-6">
+                            <label for="machineCategory" class="form-label">
+                                <i class="bi bi-list-ol me-1"></i> Kategori Mesin
+                            </label>
+                            <select class="form-select" id="machineCategory" name="machineCategory">
+                                <option value="">-- Pilih Kategori --</option>
+                                <option value="CNC-Milling">CNC Milling</option>
+                                <option value="3D-Printing">3D Printing</option>
+                            </select>
+                        </div>
+
+                        <!-- File Drawing -->
+                        <div class="col-12 col-sm-6">
+                            <label for="fileDrawing" class="form-label">
+                                <i class="bi bi-file-earmark-text me-1"></i> File Drawing
+                            </label>
+                            <input class="form-control" type="file" id="fileDrawing" name="fileDrawing" />
+                            <div class="form-text text-muted">Maksimal ukuran file: 1MB</div>
+                        </div>
+
+                        <!-- File Quotation -->
+                        <div class="col-12 col-sm-6">
+                            <label for="fileQuotation" class="form-label">
+                                <i class="bi bi-file-earmark-spreadsheet me-1"></i> File Quotation
+                            </label>
+                            <input class="form-control" type="file" id="fileQuotation" name="fileQuotation" />
+                            <div class="form-text text-muted">Maksimal ukuran file: 1MB</div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label for="description" class="form-label">
+                                <i class="bi bi-chat-left-text-fill me-1"></i> Deskripsi
+                            </label>
+                            <textarea class="form-control" id="description" name="Description" rows="3" placeholder="Input Deskripsi"></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="col-12 text-center my-4">
+                            <button type="submit" class="btn btn-success px-5">
+                                Request Sekarang
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const maxSize = 1 * 1024 * 1024; // 1MB
+
+        const fileInputs = [
+            document.getElementById('fileDrawing'),
+            document.getElementById('fileQuotation')
+        ];
+
+        fileInputs.forEach(input => {
+            input.addEventListener('change', function () {
+                const file = this.files[0];
+                if (file && file.size > maxSize) {
+                    alert("Ukuran file maksimal 1MB. Silakan pilih file yang lebih kecil.");
+                    this.value = ""; 
+            });
+        });
+    });
+</script>

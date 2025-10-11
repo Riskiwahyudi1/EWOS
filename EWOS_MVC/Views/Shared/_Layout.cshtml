@@ -1,5 +1,5 @@
 ﻿@{
-    var role = ViewBag.UserRole as string ?? "AdminSystem";
+    var role = ViewBag.UserRole as string ?? "Requestor";
 }
 
 <!DOCTYPE html>
@@ -193,18 +193,19 @@
                 <a href="/Requestor/Dashboard" class="@(Context.Request.Path == "/Requestor/Dashboard" ? "active" : "")">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
+                <a href="/Requestor/NewRequest" class="@(Context.Request.Path == "/Requestor/NewRequest" ? "active" : "")">
+                    <i class="bi bi-file-earmark-plus"></i> New Request
+                </a>
                 <a href="/Requestor/Progress" class="@(Context.Request.Path == "/Requestor/Progress" ? "active" : "")">
                     <i class="bi bi-hourglass-split"></i> Progress Request
                 </a>
-                <a href="/NewRequest" class="@(Context.Request.Path == "/NewRequest" ? "active" : "")">
-                    <i class="bi bi-file-earmark-plus"></i> New Request
-                </a>
+                
                 <a href="/Requestor/RepeatOrder" class="@(Context.Request.Path == "/Requestor/RepeatOrder" ? "active" : "")">
                     <i class="bi bi-arrow-repeat"></i> Repeat Order
                 </a>
-                <a href="/Identity/Account/Login" class="">
+                @* <a href="/Identity/Account/Login" class="">
                     <i class="bi bi-box-arrow-in-right"></i> Login Admin
-                </a>
+                </a> *@
             }
             else
             {
