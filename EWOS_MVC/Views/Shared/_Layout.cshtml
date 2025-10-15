@@ -189,23 +189,40 @@
             }
             else if (role == "Requestor")
             {
-                <h5>📦 Requestor Panel</h5>
+                <h5>Requestor Panel</h5>
                 <a href="/Requestor/Dashboard" class="@(Context.Request.Path == "/Requestor/Dashboard" ? "active" : "")">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
                 <a href="/Requestor/NewRequest" class="@(Context.Request.Path == "/Requestor/NewRequest" ? "active" : "")">
                     <i class="bi bi-file-earmark-plus"></i> New Request
                 </a>
-                <a href="/Requestor/Progress" class="@(Context.Request.Path == "/Requestor/Progress" ? "active" : "")">
-                    <i class="bi bi-hourglass-split"></i> Progress Request
+                <a href="/Requestor/ListProduct" class="@(Context.Request.Path == "/Requestor/ListProduct " ? "active" : "")">
+                    <i class="bi bi-list-check"></i> List Product
                 </a>
+                <a class="d-flex align-items-center justify-content-between @(Context.Request.Path.StartsWithSegments("/Requestor/MyRequest") ? "active" : "")" data-bs-toggle="collapse" href="#submenuMyRequest"
+                   role="button" aria-expanded="@(Context.Request.Path.StartsWithSegments("/AdminFabrication/ItemFabrication") ? "true" : "false")" aria-controls="submenuFabrication">
+                    <span><i class="bi bi-person-fill"></i>My Request</span>
+                    <i class="bi bi-caret-down-fill"></i>
+                </a>
+               
+                <div class="collapse ps-4 @(Context.Request.Path.StartsWithSegments("/Requestor/MyRequest") ? "show" : "")" id="submenuMyRequest">
+                    <a href="/Requestor/MyRequest/WaitingApprove" class="d-block @(ViewBag.CurrentStatus == "WaitingApprove" ? "active" : "")">
+                        <i class="bi bi-circle"></i> Waiting Approve
+                    </a>
+                    <a href="/Requestor/MyRequest/WaitingFabrication" class="d-block @(ViewBag.CurrentStatus == "WaitingFabrication" ? "active" : "")">
+                        <i class="bi bi-circle"></i> Waiting Fabrication
+                    </a>
+                    <a href="/Requestor/MyRequest/Onprocess" class="d-block @(ViewBag.CurrentStatus == "Onprocess" ? "active" : "")">
+                        <i class="bi bi-circle"></i> Onprocess
+                    </a>
+                    <a href="/Requestor/MyRequest/Done" class="d-block @(ViewBag.CurrentStatus == "Done" ? "active" : "")">
+                        <i class="bi bi-circle"></i> Done
+                    </a>
+                    <a href="/Requestor/MyRequest/Rejected" class="d-block @(ViewBag.CurrentStatus == "Rejected" ? "active" : "")">
+                        <i class="bi bi-circle"></i> Rejected
+                    </a>
+                </div>
                 
-                <a href="/Requestor/RepeatOrder" class="@(Context.Request.Path == "/Requestor/RepeatOrder" ? "active" : "")">
-                    <i class="bi bi-arrow-repeat"></i> Repeat Order
-                </a>
-                @* <a href="/Identity/Account/Login" class="">
-                    <i class="bi bi-box-arrow-in-right"></i> Login Admin
-                </a> *@
             }
             else
             {
