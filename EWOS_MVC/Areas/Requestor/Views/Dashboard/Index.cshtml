@@ -1,10 +1,327 @@
-﻿
-@{
+﻿@{
     ViewData["Title"] = "Dashboard";
 }
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Halaman Dashboard Requestor</h1>
+<div class="container my-4">
+    <!-- Header utama -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+        <h5 class="mb-0">Dashboard</h5>
 
+
+    </div>
+
+    <!-- Filter bar -->
+    <div class="d-flex align-items-center mb-4 gap-2 flex-wrap">
+        <!-- Dropdown Tahun -->
+        <div class="col-2 col-sm-2">
+            <select class="form-select" id="yearSelect" name="yearSelect" aria-label="Pilih Tahun">
+                <option value="2025" selected>2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+            </select>
+        </div>
+        <!-- Kategori-->
+        <div class="col-12 col-sm-3 col-md-2 p-0">
+            <select class="form-select" id="machineCategory" name="machineCategory" aria-label="Pilih Kategori">
+                <option value="">-- Pilih Kategori --</option>
+                <option value="CNC-Milling">CNC Milling</option>
+                <option value="3D-Printing">3D Printing</option>
+            </select>
+        </div>
+
+    </div>
+
+  <!-- Tampilan chart -->
+    <!-- Baris 1 -->
+    <div style="display: flex; flex-wrap: wrap; gap: 30px; justify-content: space-around; margin-bottom: 30px;">
+
+        <div style="flex: 1; min-width: 300px; max-width: 600px;" class="bg-light p-3 rounded shadow-sm">
+            <h6 class="mb-4">Progress Monitoring</h6>
+            <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+                <div id="fabricationCount" style="width: 260px; height: 260px;"></div>
+                <div id="ProgressFabPie" style="width: 260px; height: 260px;"></div>
+            </div>
+        </div>
+
+        <div style="flex: 1; min-width: 300px; max-width: 600px;" class="bg-light p-3 rounded shadow-sm">
+            <h6 class="mb-4">Tren Request Fabrikasi</h6>
+            <div id="barChart" style="width: 100%; height: 260px;" class=""></div>
+        </div>
+
+    </div>
+
+    <!-- Baris 2 -->
+    <div style="display: flex; flex-wrap: wrap; gap: 30px; justify-content: space-around; margin-bottom: 30px; ">
+        <div style="flex: 1; min-width: 300px; " class="bg-white shadow-sm">
+            <div class="d-flex flex-row justify-content-between py-3 px-3">
+                <h6>Saving Cost Monitoring</h6>
+                <h6 >Potential Saving 2025 : $100.000</h6>
+            </div>
+            
+            <div id="savingChart" ></div>
+        </div>
+       
+    </div>
+
+    <!-- Baris 3 -->
+    <div style="display: flex; flex-wrap: wrap; gap: 30px; justify-content: space-around; margin-bottom: 30px; ">
+        <div style="flex: 1; min-width: 300px; " class="bg-white shadow-sm p-3">
+            <h6>Machine Utilization</h6>
+            <div id="machineUtilization" ></div>
+        </div>
+    </div>
+
+  
+
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var requestCount = {
+                chart: {
+                    type: 'bar',
+                    height: 250
+                },
+                series: [{
+                    name: 'Quantity',
+                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.series))
+                }],
+                xaxis: {
+                    categories: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.categories))
+                }
+            };
+            // Progress Fabrikasi pie
+            var ProgressFabPie = {
+                      series: [80, 20],
+                       chart: {
+                          type: 'donut',
+                          height: 250
+                        },
+                        legend: {
+                            position: 'bottom'
+                          },
+                      labels: ['Done', 'On Progress'],
+
+                      responsive: [{
+                        breakpoint: 480,
+                        options: {
+                          chart: {
+                            width: 50
+                          },
+                          legend: {
+                            position: 'bottom'
+                          }
+                        }
+                      }]
+                    };
+            // Saving bar
+            var savingData = {
+          series: [
+            {
+              name: 'Aktual (Bar)',
+              type: 'column',
+              data: [1200, 2500, 4500, 8500, 3200, 5200, 4100, 2300, 2100, 3200, 10500, 8000]
+            },
+            {
+              name: 'Kumulatif (Line)',
+              type: 'line',
+              data: [1200, 3700, 8200, 16700, 19900, 25100, 29200, 31500, 33600, 36800, 47300, 55300]
+            }
+          ],
+          chart: {
+            height: 350,
+            type: 'line',
+          },
+          stroke: {
+            width: [0, 3],  // bar 0 (no stroke), line 3 px tebal
+            curve: ['straight', 'smooth']
+          },
+          dataLabels: {
+            enabled: true,
+            enabledOnSeries: [0, 1],  // data label untuk bar dan cumulative line
+            formatter: function (val) {
+              return val;
+            }
+          },
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+          yaxis: [
+            {
+              title: {
+                text: 'Aktual ($USD)',
+              },
+            },
+            {
+              opposite: true,
+              title: {
+                text: 'Kumulatif ($USD)'
+              }
+            }
+          ],
+          tooltip: {
+            shared: true,
+            intersect: false,
+          },
+          legend: {
+            position: 'bottom',
+          }
+        };
+            // fabrikasi count
+            var fabricationCount = {
+                  series: [100, 60, 40],
+                  chart: {
+                  height: 300,
+                  type: 'radialBar',
+                },
+                plotOptions: {
+                  radialBar: {
+                    offsetY: 0,
+                    startAngle: 0,
+                    endAngle: 270,
+                    hollow: {
+                      margin: 5,
+                      size: '30%',
+                      background: 'transparent',
+                      image: undefined,
+                    },
+                    dataLabels: {
+                      name: {
+                        show: false,
+                      },
+                      value: {
+                        show: false,
+                      }
+                    },
+                    barLabels: {
+                      enabled: true,
+                      useSeriesColors: true,
+                      offsetX: -8,
+                      fontSize: '12px',
+                      formatter: function(seriesName, opts) {
+                        return seriesName + ":  " + opts.w.globals.series[opts.seriesIndex]
+                      },
+                    },
+                  }
+                },
+        colors: ['#1ab7ea', '#0084ff', '#39539E'],
+        labels: ['Total Request', 'On Progress', 'Done'],
+        responsive: [{
+          breakpoint: 480,
+          options: {
+            legend: {
+                show: false
+            }
+          }
+        }]
+        };
+             // Machine Utilization
+            var machineUtilization = {
+          series: [{
+            name: 'Machine',
+                data: [
+          91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
+          91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
+          91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
+          91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
+          91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
+          91, 92, 93
+        ]
+          }],
+          chart: {
+            height: 350,
+            type: 'bar',
+          },
+          plotOptions: {
+            bar: {
+              borderRadius: 10,
+              dataLabels: {
+                position: 'Top', // top, center, bottom
+              },
+            }
+          },
+          dataLabels: {
+            enabled: true,
+            formatter: function (val) {
+              return val + "%";
+            },
+            offsetY: -20,
+            style: {
+              fontSize: '12px',
+              colors: ["#304758"]
+            }
+          },
+
+          xaxis: {
+            categories: Array.from({length: 53}, (_, i) => `Week ${i+1}`),
+            position: 'Bottom',
+            axisBorder: {
+              show: false
+            },
+            axisTicks: {
+              show: false
+            },
+            crosshairs: {
+              fill: {
+                type: 'gradient',
+                gradient: {
+                  colorFrom: '#D8E3F0',
+                  colorTo: '#BED1E6',
+                  stops: [0, 100],
+                  opacityFrom: 0.4,
+                  opacityTo: 0.5,
+                }
+              }
+            },
+            tooltip: {
+              enabled: true,
+            }
+          },
+          yaxis: {
+            axisBorder: {
+              show: false
+            },
+            axisTicks: {
+              show: false,
+            },
+            labels: {
+              show: false,
+              formatter: function (val) {
+                return val + "%";
+              }
+            }
+          },
+          title: {
+            // text: 'Machine Utilization',
+            floating: true,
+            offsetY: 330,
+            align: 'center',
+            style: {
+              color: '#444'
+            }
+          }
+        };
+
+            var chart = new ApexCharts(document.querySelector("#machineUtilization"), machineUtilization);
+            chart.render();
+
+            var fabCountChart = new ApexCharts(document.querySelector("#fabricationCount"), fabricationCount);
+            fabCountChart.render();
+
+            var fabPieChart = new ApexCharts(document.querySelector("#ProgressFabPie"), ProgressFabPie);
+            fabPieChart.render();
+
+            var savingChart = new ApexCharts(document.querySelector("#savingChart"), savingData);
+            savingChart.render();
+
+            var barChart = new ApexCharts(document.querySelector("#barChart"), requestCount);
+            barChart.render();
+
+            });
+
+    </script>
+}
