@@ -1,0 +1,135 @@
+﻿@{
+    ViewData["Title"] = "Fabrication History";
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+    <h5 class="mb-0">Fabrication Monitoring</h5>
+</div>
+
+<!-- Filter bar -->
+<div class="d-flex flex-column gap-3">
+    <!-- Bar 1: Tahun, Bulan, Minggu -->
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div class="col-2 col-sm-2">
+            <select class="form-select" id="yearSelect" name="yearSelect" aria-label="Pilih Tahun">
+                <option value="2025" selected>2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+            </select>
+        </div>
+        <div class="col-2 col-sm-2">
+            <select class="form-select" id="monthSelect" name="monthSelect" aria-label="Pilih Bulan">
+                <option value="1" selected>Januari</option>
+                <option value="2">Februari</option>
+                <option value="3">Maret</option>
+                <option value="4">April</option>
+                <option value="5">Mei</option>
+                <option value="6">Juni</option>
+                <option value="7">Juli</option>
+                <option value="8">Agustus</option>
+                <option value="9">September</option>
+                <option value="10">Oktober</option>
+                <option value="11">November</option>
+                <option value="12">Desember</option>
+            </select>
+        </div>
+        <div class="col-2 col-sm-2">
+            <select class="form-select" id="weekSelect" name="weekSelect" aria-label="Pilih Week">
+                <option value="1" selected>Week 1</option>
+                <option value="2">Week 2</option>
+                <option value="3">Week 3</option>
+                <option value="4">Week 4</option>
+                <option value="5">Week 5</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Bar 2: Kategori dan Mesin -->
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div class="col-12 col-sm-3 col-md-2 p-0">
+            <select class="form-select" id="machineCategory" name="machineCategory" aria-label="Pilih Kategori">
+                <option value="">-- Pilih Kategori --</option>
+                <option value="CNC-Milling">CNC Milling</option>
+                <option value="3D-Printing">3D Printing</option>
+            </select>
+        </div>
+        <div class="col-12 col-sm-3 col-md-2 p-0">
+            <select class="form-select" id="machineList" name="machineCategory" aria-label="Pilih Mesin">
+                <option value="">-- Pilih Mesin --</option>
+                <option value="CNC-Milling">CNC Milling #1</option>
+                <option value="CNC-Milling">CNC Milling #2</option>
+            </select>
+        </div>
+    </div>
+</div>
+<hr class="my-4">
+<div style="display: flex; gap: 30px; margin: 30px 0;">
+    <!-- Machine Utilization -->
+    <div style="flex: 0 0 300px;">
+        <h6 class="text-center">Machine Utilization</h6>
+        <div id="MachineUtilization" class="border p-4"></div>
+    </div>
+
+    <!-- List Item Table -->
+    <div style="flex: 1 1 auto;">
+        <h6 class="text-center">List Item</h6>
+        <div style="overflow-x:auto;">
+            <table class="table table-sm table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th class="text-center">No</th>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Saving Cost(USD)</th>
+                        <th>Fabrication Time</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-center">1</td>
+                        <td>Jig Phoseon</td>
+                        <td>5 Pcs</td>
+                        <td>$1200</td>
+                        <td>40 Hours</td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-1">
+                                <i class="bi bi-info-circle"></i> Detail
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+         var MachineUtilization = {
+                  series: [70],
+                  chart: {
+                  height: 200,
+                  type: 'radialBar',
+                },
+                plotOptions: {
+                  radialBar: {
+                    hollow: {
+                      size: '60%',
+                    }
+                  },
+                },
+                labels: ['CNC Milling'],
+                };
+
+                var chart = new ApexCharts(document.querySelector("#MachineUtilization"), MachineUtilization);
+                chart.render();
+    </script>
+    }
