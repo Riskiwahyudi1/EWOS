@@ -68,14 +68,14 @@
 <hr class="my-4">
 <div style="display: flex; gap: 30px; margin: 30px 0;">
     <!-- Machine Utilization -->
-    <div style="flex: 0 0 300px;">
+    <div style="flex: 0 0 300px;" class="bg-light shadow-sm py-4">
         <h6 class="text-center">Machine Utilization</h6>
-        <div id="MachineUtilization" class="border p-4"></div>
+        <div id="MachineUtilization" class=""></div>
     </div>
 
     <!-- List Item Table -->
-    <div style="flex: 1 1 auto;">
-        <h6 class="text-center">List Item</h6>
+    <div style="flex: 1 1 auto; py-4">
+        <h6 class="text-center">List Item Fabrication</h6>
         <div style="overflow-x:auto;">
             <table class="table table-sm table-striped table-bordered">
                 <thead>
@@ -126,7 +126,7 @@
                     }
                   },
                 },
-                labels: ['CNC Milling'],
+                labels: ['CNC Milling #1'],
                 };
 
                 var chart = new ApexCharts(document.querySelector("#MachineUtilization"), MachineUtilization);
