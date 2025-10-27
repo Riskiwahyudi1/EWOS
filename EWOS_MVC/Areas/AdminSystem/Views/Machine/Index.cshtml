@@ -1,13 +1,24 @@
-﻿@{
+﻿@model List<EWOS_MVC.Models.MachineModel>
+@{
     ViewData["Title"] = "Machine List";
 }
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <h5 class="my-3"> List Mesin</h5>
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
 <div class="d-flex align-items-center mb-3 gap-2">
     <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalTambah">
-        Tambah
+        ➕ Tambah
     </button>
     <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search" style="max-width: 250px;">
 </div>
@@ -18,7 +29,7 @@
             <th class="text-center">No</th>
             <th>Machine name</th>
             <th>Machine Category</th>
-            <th>Machine Power</th>
+            <th>Machine Power(KWH)</th>
             <th>Machine Status</th>
             <th>Created At</th>
             <th>Updated At</th>
@@ -29,11 +40,13 @@
         @{
             int index = 1;
         }
-
+        <div id="loadingText" style="display:none; text-align:center; margin-bottom:10px; font-weight:bold; color:#555;">
+            Memuat...
+        </div>
         @if (Model == null || !Model.Any())
         {
             <tr>
-                <td colspan="12" class="text-center text-muted">Tidak ada data Machine.</td>
+                <td colspan="7" class="text-center text-muted">Tidak ada data Machine.</td>
             </tr>
         }
         else
@@ -93,11 +106,11 @@
                         <input name="MachineName" class="form-control" required />
                         <span asp-validation-for="MachineName" class="text-danger"></span>
                     </div>
-                    @* <div class="form-group">
+                    <div class="form-group">
                         <label asp-for="MachineCategoryId">Machine Categories</label>
                         @await Component.InvokeAsync("MachineCategories")
                         <span asp-validation-for="MachineCategoryId" class="text-danger"></span>
-                    </div> *@
+                    </div>
                     <div class="form-group">
                         <label asp-for="MachinePower">Machine Power</label>
                         <input name="MachinePower" class="form-control" type="number" step="0.01" required />
@@ -113,3 +126,133 @@
         </div>
     </div>
 </div>
+
+@if (Model != null && Model.Any())
+{
+    foreach (var machine in Model)
+    {
+        <!-- Modal Edit mesin -->
+        <div class="modal fade" id="modalEdit-@machine.Id" tabindex="-1" aria-labelledby="editLabel-@machine.Id" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="/AdminSystem/Machine/Edit">
+                        @Html.AntiForgeryToken()
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editLabel-@machine.Id">Edit Data</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="Id" value="@machine.Id" />
+                            <div class="form-group mb-3">
+                                <label>MachineName</label>
+                                <input name="MachineName" class="form-control" value="@machine.MachineName" required />
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Machine Power</label>
+                                <input name="MachinePower" class="form-control" value="@machine.MachinePower" required />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="MachineCategories">Machine Categories</label>
+                                @await Component.InvokeAsync("MachineCategories", new { selectedId = machine.MachineCategoryId })
+                                <span asp-validation-for="MachineCategories" class="text-danger"></span>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Status</label>
+                                <select name="IsActive" class="form-select" aria-label="Default select example">
+                                    <option value="true" @(machine.IsActive ? "selected" : "")>Aktif</option>
+                                    <option value="false" @(!machine.IsActive ? "selected" : "")>Nonaktif</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const tableBody = document.querySelector('table.table tbody');
+      const searchBox = document.getElementById('searchBox');
+      const loadingText = document.getElementById('loadingText');
+
+      if (!tableBody || !searchBox) return;
+
+      const initialHTML = tableBody.innerHTML;
+
+      let debounceTimer = null;
+
+      searchBox.addEventListener('input', function () {
+        const keyword = this.value.trim();
+
+        // Jika kosong kembalikan tampilan awal
+        if (keyword.length === 0) {
+          tableBody.innerHTML = initialHTML;
+          return;
+        }
+
+        // Debounce (tunggu 350ms )
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+          try {
+
+               loadingTimer = setTimeout(() => {
+                    loadingText.style.display = 'block';
+                }, 500);
+
+
+            const res = await fetch(`/AdminSystem/Machine/Search?keyword=${encodeURIComponent(keyword)}`);
+            if (!res.ok) throw new Error('Network response was not ok');
+
+            const data = await res.json();
+
+             clearTimeout(loadingTimer);
+             loadingText.style.display = 'none';
+
+            if (!Array.isArray(data) || data.length === 0) {
+              tableBody.innerHTML = `
+                    <tr>
+                         <td colspan="9" class="text-center text-muted">Tidak ada data Machine.</td>
+                    </tr>`;
+              return;
+            }
+
+                let html = '';
+                data.forEach((m, idx) => {
+                  const id = m.id ?? '';
+                  const machineName = m.machineName ?? '';
+                  const machineCategory = m.categoryName ?? '';
+                  const machinePower = m.machinePower ?? '';
+                  const machineStatus = (m.isActive ? 'Active' : 'Nonactive') ?? '';
+                  const createdAt = m.createdAt ?? '';
+                  const updatedAt = m.updatedAt ?? '';
+
+                  html += `
+                    <tr>
+                        <td class="text-center">${idx + 1}</td>
+                        <td>${machineName}</td>
+                        <td>${machineCategory}</td>
+                        <td>${machinePower}</td>
+                        <td>${machineStatus}</td>
+                        <td>${createdAt}</td>
+                        <td>${updatedAt}</td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-${id}">✏️ Edit</button>
+                        </td>
+                    </tr>`;
+                });
+
+                tableBody.innerHTML = html;
+
+          } catch (err) {
+            console.error('Search error:', err);
+            tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Terjadi kesalahan saat mencari.</td></tr>`;
+          }
+        }, 350);
+      });
+    });
+</script>

@@ -9,5 +9,8 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<User> User { get; set; }
+    public DbSet<UserModel> User { get; set; }
+    public DbSet<MachineCategoriesModel> MachineCategories { get; set; }
+    public DbSet<MachineModel> Machines { get; set; }
+
 }
