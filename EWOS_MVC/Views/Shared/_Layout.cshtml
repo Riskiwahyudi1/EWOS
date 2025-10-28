@@ -1,5 +1,5 @@
 ﻿@{
-    var role = ViewBag.UserRole as string ?? "Requestor";
+    var role = ViewBag.UserRole as string ?? "Supervisor";
 }
 
 
@@ -136,7 +136,6 @@
             </nav>
             @if (role == "AdminSystem")
             {
-                <h5>🛡️ Admin Sistem Panel</h5>
                 <a href="/AdminSystem/Dashboard" class="@(Context.Request.Path == "/AdminSystem/Dashboard" ? "active" : "")">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
@@ -158,92 +157,28 @@
                 <a href="/AdminSystem/YearsSetting" class="@(Context.Request.Path == "/AdminSystem/YearsSetting" ? "active" : "")">
                     <i class="bi bi-calendar"></i> Years Setting
                 </a>
-                
             }
-            else if (role == "AdminFabrication")
+            else if (role == "AdminFabrication" || role == "Requestor" || role == "Supervisor")
             {
-                <h5 class="text-center">🛠 Admin Fabrikasi</h5>
-                <a href="/AdminFabrication/Dashboard" class="@(Context.Request.Path == "/AdminFabrication/Dashboard" ? "active" : "")">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-
-                <a class="d-flex align-items-center justify-content-between
-                        @(Context.Request.Path.StartsWithSegments("/AdminFabrication/NewRequest") ? "active" : "")"
-                   data-bs-toggle="collapse" href="#submenuRequest"
-                   role="button"
-                   aria-expanded="@(Context.Request.Path.StartsWithSegments("/AdminFabrication/NewRequest") ? "true" : "false")"
-                   aria-controls="submenuRequest">
-                    <span><i class="bi bi-box-seam"></i> Data Request</span>
-                    <i class="bi bi-caret-down-fill"></i>
-                </a>
-
-                <div class="collapse ps-4 @(Context.Request.Path.StartsWithSegments("/AdminFabrication/NewRequest") ? "show" : "")"
-                     id="submenuRequest">
-                    <a href="/AdminFabrication/NewRequest/WaitingApprove" class="d-block @(ViewBag.CurrentStatus == "WaitingApprove" ? "active" : "")">
-                        <i class="bi bi-circle"></i> Waiting Approve
-                    </a>
-                    <a href="/AdminFabrication/NewRequest/Approved" class="d-block @(ViewBag.CurrentStatus == "Approved" ? "active" : "")">
-                        <i class="bi bi-circle"></i> Approved
-                    </a>
-                    <a href="/AdminFabrication/NewRequest/Done" class="d-block @(ViewBag.CurrentStatus == "Done" ? "active" : "")">
-                        <i class="bi bi-circle"></i> Done
-                    </a>
-                    <a href="/AdminFabrication/NewRequest/Rejected" class="d-block @(ViewBag.CurrentStatus == "Rejected" ? "active" : "")">
-                        <i class="bi bi-circle"></i> Rejected
-                    </a>
-                </div>
-
-                <a href="/AdminFabrication/FabricationItem" class="@(Context.Request.Path == "/AdminFabrication/Repeat Request" ? "active" : "")">
-                    <i class="bi bi-repeat"></i> Repeat Request
-                </a>
-
-                <a class="d-flex align-items-center justify-content-between
-                        @(Context.Request.Path.StartsWithSegments("/AdminFabrication/ItemFabrication") ? "active" : "")"
-                   data-bs-toggle="collapse" href="#submenuFabrication"
-                   role="button"
-                   aria-expanded="@(Context.Request.Path.StartsWithSegments("/AdminFabrication/ItemFabrication") ? "true" : "false")"
-                   aria-controls="submenuFabrication">
-                    <span><i class="bi bi-gear-wide-connected"></i> Data Fabrikasi</span>
-                    <i class="bi bi-caret-down-fill"></i>
-                </a>
-                <div class="collapse ps-4 @(Context.Request.Path.StartsWithSegments("/AdminFabrication/ItemFabrication") ? "show" : "")" id="submenuFabrication">
-                    <a href="/AdminFabrication/ItemFabrication/Onprogress" class="d-block @(ViewBag.CurrentStatus == "Onprogress" ? "active" : "")">
-                        <i class="bi bi-circle"></i> Onprogress
-                    </a>
-                    <a href="/AdminFabrication/ItemFabrication/Done" class="d-block @(ViewBag.CurrentStatus == "Done" ? "active" : "")">
-                        <i class="bi bi-circle"></i> Done
-                    </a>
-                </div>
-
-                <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/" id="logoutForm">
-                    <button type="submit" class="btn btn-danger btn-logout mt-3">
-                        <i class="bi bi-box-arrow-right"></i> Logout
-                    </button>
-                </form>
-            }
-            else if (role == "Requestor")
-            {
-                <!-- Dashboard Requestor -->
+                <!-- Main menu -->
                 <div class="sidebar-section">
-                    <h6 class="text-uppercase text-muted px-3 mt-3 mb-2">Menu Dashboard</h6>
+                    @if (role == "AdminFabrication" || role == "Supervisor")
+                    {
+                    <h6 class="text-uppercase text-muted px-3 mt-3 mb-2">Main Menu</h6>
+                        
+                    }
                     <a href="/Requestor/Dashboard" class="nav-link px-3 @(Context.Request.Path == "/Requestor/Dashboard" ? "active" : "")">
                         <i class="bi bi-house-door"></i> Dashboard
                     </a>
                     <a href="/Requestor/FabricationHistory" class="nav-link px-3 @(Context.Request.Path == "/Requestor/FabricationHistory" ? "active" : "")">
                         <i class="bi bi-clock-history"></i> Fabrication History
                     </a>
-                </div>
-
-                <!--  Menu Requestor -->
-                <div class="sidebar-section mt-3">
-                    <h6 class="text-uppercase text-muted px-3 mb-2">Menu Requestor</h6>
                     <a href="/Requestor/NewRequest" class="nav-link px-3 @(Context.Request.Path == "/Requestor/NewRequest" ? "active" : "")">
                         <i class="bi bi-file-earmark-plus"></i> New Request
                     </a>
                     <a href="/Requestor/ListProduct" class="nav-link px-3 @(Context.Request.Path == "/Requestor/ListProduct" ? "active" : "")">
                         <i class="bi bi-list-check"></i> List Product
                     </a>
-
                     <a class="nav-link px-3 d-flex align-items-center justify-content-between @(Context.Request.Path.StartsWithSegments("/Requestor/MyRequest") ? "active" : "")"
                        data-bs-toggle="collapse" href="#submenuMyRequest"
                        role="button" aria-expanded="@(Context.Request.Path.StartsWithSegments("/Requestor/MyRequest") ? "true" : "false")"
@@ -252,7 +187,7 @@
                         <i class="bi bi-caret-down-fill small"></i>
                     </a>
 
-                    <div class="collapse ps-4 @(Context.Request.Path.StartsWithSegments("/Requestor/MyRequest") ? "show" : "")" id="submenuMyRequest">
+                    <div class="collapse ps-4 py-0 @(Context.Request.Path.StartsWithSegments("/Requestor/MyRequest") ? "show" : "")" id="submenuMyRequest">
                         <a href="/Requestor/MyRequest/WaitingApprove" class="d-block @(ViewBag.CurrentStatus == "WaitingApprove" ? "active" : "")">
                             <i class="bi bi-circle"></i> Waiting Approve
                         </a>
@@ -270,12 +205,75 @@
                         </a>
                     </div>
                 </div>
-                
+
+                <!-- Role fabrication only -->
+                @if (role == "AdminFabrication")
+                {
+                    <div class="sidebar-section mt-3">
+                        <h6 class="text-uppercase text-muted px-3 mb-2">Fabrication Menu</h6>
+
+                        <a class="d-flex align-items-center justify-content-between
+                                @(Context.Request.Path.StartsWithSegments("/AdminFabrication/NewRequest") ? "active" : "")"
+                           data-bs-toggle="collapse" href="#submenuRequest"
+                           role="button"
+                           aria-expanded="@(Context.Request.Path.StartsWithSegments("/AdminFabrication/NewRequest") ? "true" : "false")"
+                           aria-controls="submenuRequest">
+                            <span><i class="bi bi-box-seam"></i> Data New Request</span>
+                            <i class="bi bi-caret-down-fill"></i>
+                        </a>
+
+                        <div class="collapse ps-4 @(Context.Request.Path.StartsWithSegments("/AdminFabrication/NewRequest") ? "show" : "")"
+                             id="submenuRequest">
+                            <a href="/AdminFabrication/NewRequest/WaitingApprove" class="d-block @(ViewBag.CurrentStatus == "WaitingApprove" ? "active" : "")">
+                                <i class="bi bi-circle"></i> Waiting Approve
+                            </a>
+                            <a href="/AdminFabrication/NewRequest/Approved" class="d-block @(ViewBag.CurrentStatus == "Approved" ? "active" : "")">
+                                <i class="bi bi-circle"></i> Approved
+                            </a>
+                            <a href="/AdminFabrication/NewRequest/Done" class="d-block @(ViewBag.CurrentStatus == "Done" ? "active" : "")">
+                                <i class="bi bi-circle"></i> Done
+                            </a>
+                            <a href="/AdminFabrication/NewRequest/Rejected" class="d-block @(ViewBag.CurrentStatus == "Rejected" ? "active" : "")">
+                                <i class="bi bi-circle"></i> Rejected
+                            </a>
+                        </div>
+
+                        <a href="/AdminFabrication/FabricationItem" class="@(Context.Request.Path == "/AdminFabrication/FabricationItem" ? "active" : "")">
+                            <i class="bi bi-repeat"></i> Repeat Request
+                        </a>
+
+                        <a class="d-flex align-items-center justify-content-between
+                                @(Context.Request.Path.StartsWithSegments("/AdminFabrication/ItemFabrication") ? "active" : "")"
+                           data-bs-toggle="collapse" href="#submenuFabrication"
+                           role="button"
+                           aria-expanded="@(Context.Request.Path.StartsWithSegments("/AdminFabrication/ItemFabrication") ? "true" : "false")"
+                           aria-controls="submenuFabrication">
+                            <span><i class="bi bi-gear-wide-connected"></i> Data Fabrikasi</span>
+                            <i class="bi bi-caret-down-fill"></i>
+                        </a>
+                        <div class="collapse ps-4 @(Context.Request.Path.StartsWithSegments("/AdminFabrication/ItemFabrication") ? "show" : "")" id="submenuFabrication">
+                            <a href="/AdminFabrication/ItemFabrication/Onprogress" class="d-block @(ViewBag.CurrentStatus == "Onprogress" ? "active" : "")">
+                                <i class="bi bi-circle"></i> Onprogress
+                            </a>
+                            <a href="/AdminFabrication/ItemFabrication/Done" class="d-block @(ViewBag.CurrentStatus == "Done" ? "active" : "")">
+                                <i class="bi bi-circle"></i> Done
+                            </a>
+                        </div>
+                    </div>
+                }else if (role == "Supervisor")
+                {
+                    <h6 class="text-uppercase text-muted px-3 mt-3 mb-2">Supervisor Menu</h6>
+
+                    <a href="/Supervisor/Approval" class="nav-link px-3 @(Context.Request.Path == "/Supervisor/Approval" ? "active" : "")">
+                        <i class="bi bi-hourglass-split"></i> Waiting Approval
+                    </a>
+                }
             }
             else
             {
                 <h5>Unknown Role</h5>
             }
+
         </div>
 
         <!-- Main Content -->

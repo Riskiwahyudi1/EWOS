@@ -1,0 +1,169 @@
+﻿@{
+    ViewData["Title"] = "Approval";
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h5 class="my-3">Waiting Approval</h5>
+
+<div class="d-flex align-items-center mb-3 gap-2">
+    <div class="col-2 col-sm-2">
+        <select class="form-select" id="machineCategory" name="machineCategory">
+            <option value="">-- Pilih Kategori --</option>
+            <option value="CNC-Milling">CNC Milling</option>
+            <option value="3D-Printing">3D Printing</option>
+        </select>
+    </div>
+    <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search" style="max-width: 300px;">
+</div>
+
+
+<table class="table table-sm table-striped table-bordered">
+    <thead>
+        <tr>
+            <th class="text-center">No</th>
+            <th>ID Request</th>
+            <th>Item Name</th>
+            <th>Requestor</th>
+            <th>Machine Category</th>
+            <th>Quotation File</th>
+            <th>Drawing File</th>
+            <th>Request Date</th>
+            <th class="text-center">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int index = 1;
+        }
+
+        @if (Model == null || !Model.Any())
+        {
+            @* <tr>
+                <td colspan="12" class="text-center text-muted">Tidak ada data.</td>
+            </tr> *@
+        }
+        else
+        {
+            foreach (var rm in Model)
+            {
+                <tr>
+                    <td class="text-center">@index</td>
+                    <td>@rm.SapId</td>
+                    <td>@rm.Name</td>
+                    <td>@rm.MachineCategories?.CategoryName</td>
+                    <td>@rm.Stock</td>
+                    <td>@rm.Price</td>
+                    <td>@rm.CreatedAt</td>
+                    <td>@rm.UpdatedAt</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalTambah">
+                            <i class="bi bi-repeat"></i> Repeat Request
+                        </button>
+                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-@rm.Id">
+                            <i class="bi bi-info-circle"></i> Detail
+                        </button>
+                    </td>
+                </tr>
+                index++;
+            }
+        }
+        <tr>
+            <td class="text-center">@index</td>
+            <td>1000001234</td>
+            <td>Jig Phoseon</td>
+            <td>Riski Wahyudi</td>
+            <td>CNC Milling</td>
+            <td><u>Click Here</u></td>
+            <td>15/10/2025 15:00</td>
+
+            <td class="text-center">
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalApprove">
+                    Approve
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalReject">
+                    Reject
+                </button>
+                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-1">
+                    <i class="bi bi-info-circle"></i> Detail
+                </button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-end">
+        <li class="page-item disabled">
+            <a class="page-link">Previous</a>
+        </li>
+        <li class="page-item"><a class="page-link" href="#">1</a></li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item">
+            <a class="page-link" href="#">Next</a>
+        </li>
+    </ul>
+</nav>
+
+<!-- Modal Approve -->
+<div class="modal fade" id="modalApprove" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="/AdminSystem/RawMaterial/Create">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header bg-success">
+                    <h5 class="modal-title mb-2 text-white" id="modalTambahLabel">Approve Request</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="my-2" asp-for="ItemRequestId">Item Name</label>
+                        <input name="SapId" class="form-control"  value="Jig Phoseon" readonly />
+                        <span asp-validation-for="SapId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success">Approve</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Modal Reject -->
+<div class="modal fade" id="modalReject" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="/AdminSystem/RawMaterial/Create">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header bg-danger">
+                    <h5 class="modal-title mb-2 text-white" id="modalTambahLabel">Reject Request</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="my-2" asp-for="ItemRequestId">Item Name</label>
+                        <input name="SapId" class="form-control" value="Jig Phoseon" readonly />
+                        <span asp-validation-for="SapId" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="my-2" asp-for="ItemRequestId">Reason</label>
+                        <textarea class="form-control" id="Reason" name="Reason" rows="3" placeholder="Input Reason..."></textarea>
+                        <span asp-validation-for="SapId" class="text-danger"></span>
+                    </div>
+                </div>
+               
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger">Reject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
