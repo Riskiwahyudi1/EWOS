@@ -1,0 +1,93 @@
+﻿@{
+    ViewData["Title"] = "Request List";
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h5 class="my-3">Request List</h5>
+@if (TempData["Error"] != null || TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @(TempData["Error"] ?? TempData["ErrorMessage"])
+    </div>
+}
+<div class="row mb-3">
+    <div class="col-2 col-sm-2">
+        @await Component.InvokeAsync("MachineCategories")
+    </div>
+    <div class="col-4 col-sm-4">
+        <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search">
+    </div>
+</div>
+
+<table class="table table-sm table-striped table-bordered">
+    <thead>
+        <tr>
+            <th class="text-center">No</th>
+            <th>Requestor</th>
+            <th>Part Name</th>
+            <th>Machine Category</th>
+            <th>CRD</th>
+            <th>RequestedAt</th>
+            <th class="text-center">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int index = 1;
+        }
+
+        @if (Model == null || !Model.Any())
+        {
+            <tr>
+                <td colspan="7" class="text-center text-muted">Tidak ada data Requeast.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var rq in Model)
+            {
+                <tr>
+                    <td class="text-center">@index</td>
+                    <td>-</td>
+                    <td>@rq.PartName</td>
+                    <td>@rq.MachineCategories?.CategoryName</td>
+                    <td>@rq.CRD</td>
+                    <td>@rq.CreatedAt</td>
+                    <td class="text-center">
+                        @if (rq.Status == "WaitingApprove")
+                        {
+                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalApprove-@rq.Id">
+                                Approve
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalReject-@rq.Id">
+                                Reject
+                            </button>
+                        }
+                        else if (rq.Status == "Approved")
+                        {
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#fabrikasiModal-@rq.Id">
+                                Fabrikasi
+                            </button>
+                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-@rq.Id">
+                                ✏️ Edit Data
+                            </button>
+                            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-@rq.Id">
+                                Detail
+                            </button>
+                        }
+                        else if (rq.Status == "Rejected")
+                        {
+                            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-@rq.Id">
+                                Detail
+                            </button>
+                        }
+                    </td>
+
+                </tr>
+                index++;
+            }
+        }
+    </tbody>
+</table>

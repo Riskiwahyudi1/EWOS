@@ -1,0 +1,16 @@
+﻿@model List<EWOS_MVC.Models.MachineModel>
+
+@{
+    int? selectedId = ViewData["SelectedId"] as int?;
+}
+
+<select name="MachineId" class="form-select" aria-label="Default select example" required>
+    <option value="" disabled selected>-- Pilih Mesin --</option>
+    @foreach (var mc in Model)
+    {
+        <option value="@mc.Id" >
+            @mc.MachineName
+        </option>
+
+    }
+</select>

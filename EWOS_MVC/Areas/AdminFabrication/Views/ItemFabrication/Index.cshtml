@@ -1,0 +1,112 @@
+﻿@{
+    ViewData["Title"] = "Fabrication List";
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h5 class="my-3">Data Fabrikasi</h5>
+
+@if (TempData["Error"] != null || TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @(TempData["Error"] ?? TempData["ErrorMessage"])
+    </div>
+}
+<div class="container-fluid mb-3">
+    <div class="row">
+        <div class="col-md-6 col-12">
+            <!-- Baris 1 -->
+            <div class="row gy-2 align-items-end">
+                <div class="col-md-4 col-12">
+                    @await Component.InvokeAsync("MachineCategories")
+                </div>
+                <div class="col-md-4 col-12">
+                    @await Component.InvokeAsync("MachineList")
+                </div>
+                <div class="col-md-4 col-12">
+                    <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search">
+                </div>
+            </div>
+
+            @* <!-- Baris 2 -->
+            <div class="row gy-2 align-items-end mt-2">
+                <div class="col-md-4 col-12">
+                    @await Component.InvokeAsync("YearsSetting")
+                </div>
+                <div class="col-md-4 col-12">
+                    @await Component.InvokeAsync("MonthSetting")
+                </div>
+                <div class="col-md-4 col-12">
+                    @await Component.InvokeAsync("WeeksSetting")
+                </div>
+
+            </div> *@
+        </div>
+    </div>
+</div>
+
+<table class="table table-sm table-striped table-bordered">
+    <thead>
+        <tr>
+            <th class="text-center">No</th>
+            <th>Requestor</th>
+            <th>Part Name</th>
+            <th>Machine Name</th>
+            <th>Qty</th>
+            <th>Saving Total</th>
+            <th class="text-center">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int index = 1;
+        }
+
+        @if (Model == null || !Model.Any())
+        {
+            <tr>
+                <td colspan="7" class="text-center text-muted">Tidak ada data Requeast.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var rq in Model)
+            {
+                <tr>
+                    <td class="text-center">@index</td>
+                    <td>-</td>
+                    <td>@rq.ItemRequest?.PartName</td>
+                    <td>@rq.Machine?.MachineName</td>
+                    <td>@rq.Quantity</td>
+                    <td>@rq.CreatedAt</td>
+                    <td class="text-center">
+                        @if (rq.Status != null && rq.Status.Trim().Equals("Onprogress", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#finishModal-@rq.Id">
+                                Done
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalCancel-@rq.Id">
+                                Cancel
+                            </button>
+                        }
+                        else if (rq.ItemRequestId == null)
+                        {
+                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalApprove-@rq.Id">
+                                Edit Qty
+                            </button>
+                        }
+                        else if (rq.Status != null && rq.Status.Trim().Equals("Done", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-@rq.Id">
+                                Detail
+                            </button>
+                        }
+                    </td>
+
+                </tr>
+                index++;
+            }
+        }
+    </tbody>
+</table>

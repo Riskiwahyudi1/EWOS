@@ -1,5 +1,5 @@
 ﻿@{
-    var role = ViewBag.UserRole as string ?? "Supervisor";
+    var role = ViewBag.UserRole as string ?? "AdminFabrication";
 }
 
 
@@ -174,7 +174,7 @@
                         <i class="bi bi-clock-history"></i> Fabrication History
                     </a>
                     <a href="/Requestor/NewRequest" class="nav-link px-3 @(Context.Request.Path == "/Requestor/NewRequest" ? "active" : "")">
-                        <i class="bi bi-file-earmark-plus"></i> New Request
+                        <i class="bi bi-file-earmark-plus"></i> Form Request
                     </a>
                     <a href="/Requestor/ListProduct" class="nav-link px-3 @(Context.Request.Path == "/Requestor/ListProduct" ? "active" : "")">
                         <i class="bi bi-list-check"></i> List Product
@@ -184,7 +184,7 @@
                        role="button" aria-expanded="@(Context.Request.Path.StartsWithSegments("/Requestor/MyRequest") ? "true" : "false")"
                        aria-controls="submenuMyRequest">
                         <span><i class="bi bi-folder"></i> My Request</span>
-                        <i class="bi bi-caret-down-fill small"></i>
+                        <i class="bi bi-plus"></i>
                     </a>
 
                     <div class="collapse ps-4 py-0 @(Context.Request.Path.StartsWithSegments("/Requestor/MyRequest") ? "show" : "")" id="submenuMyRequest">
@@ -209,7 +209,7 @@
                 <!-- Role fabrication only -->
                 @if (role == "AdminFabrication")
                 {
-                    <div class="sidebar-section mt-3">
+                    <div class="sidebar-section mt-3 ">
                         <h6 class="text-uppercase text-muted px-3 mb-2">Fabrication Menu</h6>
 
                         <a class="d-flex align-items-center justify-content-between
@@ -219,7 +219,7 @@
                            aria-expanded="@(Context.Request.Path.StartsWithSegments("/AdminFabrication/NewRequest") ? "true" : "false")"
                            aria-controls="submenuRequest">
                             <span><i class="bi bi-box-seam"></i> Data New Request</span>
-                            <i class="bi bi-caret-down-fill"></i>
+                            <i class="bi bi-plus"></i>
                         </a>
 
                         <div class="collapse ps-4 @(Context.Request.Path.StartsWithSegments("/AdminFabrication/NewRequest") ? "show" : "")"
@@ -238,8 +238,8 @@
                             </a>
                         </div>
 
-                        <a href="/AdminFabrication/FabricationItem" class="@(Context.Request.Path == "/AdminFabrication/FabricationItem" ? "active" : "")">
-                            <i class="bi bi-repeat"></i> Repeat Request
+                        <a href="/AdminFabrication/RepeatOrder" class="@(Context.Request.Path == "/AdminFabrication/RepeatOrder" ? "active" : "")">
+                            <i class="bi bi-repeat"></i> Repeat Order
                         </a>
 
                         <a class="d-flex align-items-center justify-content-between
@@ -249,7 +249,7 @@
                            aria-expanded="@(Context.Request.Path.StartsWithSegments("/AdminFabrication/ItemFabrication") ? "true" : "false")"
                            aria-controls="submenuFabrication">
                             <span><i class="bi bi-gear-wide-connected"></i> Data Fabrikasi</span>
-                            <i class="bi bi-caret-down-fill"></i>
+                            <i class="bi bi-plus"></i>
                         </a>
                         <div class="collapse ps-4 @(Context.Request.Path.StartsWithSegments("/AdminFabrication/ItemFabrication") ? "show" : "")" id="submenuFabrication">
                             <a href="/AdminFabrication/ItemFabrication/Onprogress" class="d-block @(ViewBag.CurrentStatus == "Onprogress" ? "active" : "")">
