@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace EWOS_MVC.Areas.AdminFabrication.Controllers
 {
-    [Area("AdminFabrication")]
-    public class ItemFabricationController : Controller
+    [Authorize(Roles = "AdminSystem,AdminFabrication")]
+    [Area("AdminSystem")]
+    public class ItemFabricationController : BaseController
     {
 
         [Route("/AdminFabrication/ItemFabrication/{status?}")]
@@ -11,5 +14,6 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
         {
             return View();
         }
+        
     }
 }

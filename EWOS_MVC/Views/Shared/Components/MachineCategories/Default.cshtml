@@ -4,7 +4,7 @@
     int? selectedId = ViewData["SelectedId"] as int?;
 }
 
-<select name="MachineCategoryId" class="form-select" aria-label="Default select example" required>
+<select name="MachineCategoryId" id="MachineCategoryId" class="form-select" aria-label="Default select example" required>
     <option value="" disabled selected>-- Select Category --</option>
     @foreach (var category in Model)
     {

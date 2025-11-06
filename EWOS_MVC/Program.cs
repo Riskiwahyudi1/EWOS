@@ -1,35 +1,34 @@
+using EWOS_MVC.Services;
+using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-//Connect DB
+// Connect DB
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")));
 
+// Config Windows authentication
+builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
+    .AddNegotiate();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = options.DefaultPolicy;
+});
+builder.Services.AddScoped<AdUserService>();
+// Tambahkan memory cache 
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
-
-//  Test koneksi DB
-    //using (var scope = app.Services.CreateScope())
-    //{
-    //    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    //    if (await db.Database.CanConnectAsync())
-    //    {
-    //        Console.WriteLine(" EF Core: Koneksi ke database berhasil!");
-    //    }
-    //    else
-    //    {
-    //        Console.WriteLine(" EF Core: Tidak bisa terhubung ke database!");
-    //    }
-    //}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -37,8 +36,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseAuthentication();
+app.UseMiddleware<WindowsAuthMiddleware>();
 app.UseAuthorization();
+
 
 app.MapControllerRoute(
     name: "areas",
@@ -48,6 +49,13 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-
+//  Preload EF Core model di awal
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    Console.WriteLine("Warming up EF Core...");
+    var _ = db.Users.FirstOrDefault();
+    Console.WriteLine(" EF Core model ready");
+}
 
 app.Run();

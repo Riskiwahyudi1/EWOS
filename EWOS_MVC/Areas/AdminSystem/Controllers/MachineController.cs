@@ -1,11 +1,13 @@
 ﻿using EWOS_MVC.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-//--------------- next tambahkan kategori view componen dulu ----------------------------
+
 namespace EWOS_MVC.Areas.AdminSystem.Controllers
 {
+    [Authorize(Roles = "AdminSystem")]
     [Area("AdminSystem")]
-    public class MachineController : Controller
+    public class MachineController : BaseController
     {
         private readonly AppDbContext _context;
         public MachineController(AppDbContext context)

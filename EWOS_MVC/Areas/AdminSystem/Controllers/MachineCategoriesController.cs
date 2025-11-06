@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EWOS_MVC.Areas.AdminSystem.Controllers
 {
+    [Authorize(Roles = "AdminSystem")]
     [Area("AdminSystem")]
-
-    public class MachineCategoriesController : Controller
+    public class MachineCategoriesController : BaseController
     {
         private readonly AppDbContext _context;
         public MachineCategoriesController(AppDbContext context)

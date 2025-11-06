@@ -5,9 +5,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
-    /* Custom style for the form container */
     .form-container {
-        border: 1px solid #dee2e6; /* light gray border */
+        border: 1px solid #dee2e6; /
         border-radius: 8px;
         box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
         padding: 2rem 2.5rem;
@@ -47,27 +46,31 @@
 
                 <form method="post" action="/NewRequest/CreateNewRequest" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
-                    <div class="row g-4 align-items-end">
+                    <div class="row g-3 align-items-start">
 
+                        <!-- Kategori Mesin -->
+                        <div class="col-12 col-sm-6">
+                            <label for="machineCategory" class="form-label">
+                                <i class="bi bi-list-ol me-1"></i> Category Request
+                            </label>
+                            @await Component.InvokeAsync("MachineCategories")
+                        </div>
                         <!-- Part Name -->
                         <div class="col-12 col-sm-6">
                             <label for="PartName" class="form-label">
-                                <i class="bi bi-box-seam me-1"></i> Nama Item
+                                <i class="bi bi-box-seam me-1"></i> Item Name
                             </label>
-
-                            <input type="text" class="form-control" id="PartName" name="PartName" placeholder="Masukan Nama Item" />
+                            <input type="text" class="form-control" id="PartName" name="PartName" placeholder="Input Item Name" />
                         </div>
-
                         <!-- Quantity -->
-                        <div class="col-6 col-sm-3">
+                        <div class="col-6 col-sm-3" id="qty">
                             <label for="Jumlah" class="form-label">
-                                <i class="bi bi-123 me-1"></i> Jumlah
+                                <i class="bi bi-123 me-1"></i> Quantity
                             </label>
                             <input type="number" class="form-control" id="quantity" value="1" readonly />
                         </div>
-
                         <!-- Unit -->
-                        <div class="col-6 col-sm-3">
+                        <div class="col-6 col-sm-3" id="unitcontainer">
                             <label for="unit" class="form-label">
                                 <i class="bi bi-list me-1"></i> Unit
                             </label>
@@ -80,21 +83,19 @@
                         <!-- Target Selesai -->
                         <div class="col-12 col-sm-6">
                             <label for="crd" class="form-label">
-                                <i class="bi bi-calendar-event me-1"></i> Tanggal dibutuhkan
+                                <i class="bi bi-calendar-event me-1"></i> Date Required
                             </label>
                             <input type="date" class="form-control" id="crd" name="CRD" />
+                            <div class="form-text text-muted">Input the date when you need this request ready.</div>
                         </div>
 
-                        <!-- Kategori Mesin -->
+                        <!-- File design -->
                         <div class="col-12 col-sm-6">
-                            <label for="machineCategory" class="form-label">
-                                <i class="bi bi-list-ol me-1"></i> Kategori Mesin
+                            <label for="fileDesign" class="form-label">
+                                <i class="bi bi-file-earmark-text me-1"></i> File Design
                             </label>
-                            <select class="form-select" id="machineCategory" name="machineCategory">
-                                <option value="">-- Pilih Kategori --</option>
-                                <option value="CNC-Milling">CNC Milling</option>
-                                <option value="3D-Printing">3D Printing</option>
-                            </select>
+                            <input class="form-control" type="file" id="fileDesign" name="fileDesign" />
+                            <div class="form-text text-muted text-sm">Max 1MB, .zip only is allowed.</div>
                         </div>
 
                         <!-- File Drawing -->
@@ -103,16 +104,16 @@
                                 <i class="bi bi-file-earmark-text me-1"></i> File Drawing
                             </label>
                             <input class="form-control" type="file" id="fileDrawing" name="fileDrawing" />
-                            <div class="form-text text-muted">Maksimal ukuran file: 1MB</div>
+                            <div class="form-text text-muted text-sm">Max 1MB, .pdf only is allowed.</div>
                         </div>
 
                         <!-- File Quotation -->
-                        <div class="col-12 col-sm-6">
+                        <div class="col-12 col-sm-6" id="quatationcontainer">
                             <label for="fileQuotation" class="form-label">
                                 <i class="bi bi-file-earmark-spreadsheet me-1"></i> File Quotation
                             </label>
                             <input class="form-control" type="file" id="fileQuotation" name="fileQuotation" />
-                            <div class="form-text text-muted">Maksimal ukuran file: 1MB</div>
+                            <div class="form-text text-muted text-sm">Max 1MB, .pdf only is allowed.</div>
                         </div>
 
                         <!-- Description -->
@@ -126,7 +127,7 @@
                         <!-- Submit Button -->
                         <div class="col-12 text-center my-4">
                             <button type="submit" class="btn btn-success px-5">
-                                Request Sekarang
+                                Request 
                             </button>
                         </div>
 
@@ -141,17 +142,71 @@
         const maxSize = 1 * 1024 * 1024; // 1MB
 
         const fileInputs = [
-            document.getElementById('fileDrawing'),
-            document.getElementById('fileQuotation')
+            { id: 'fileDrawing', type: 'pdf' },
+            { id: 'fileQuotation', type: 'pdf' },
+            { id: 'fileDesign', type: 'zip' }
         ];
 
-        fileInputs.forEach(input => {
+        fileInputs.forEach(item => {
+            const input = document.getElementById(item.id);
+            if (!input) return; // pastikan elemen ada di halaman
+
             input.addEventListener('change', function () {
                 const file = this.files[0];
-                if (file && file.size > maxSize) {
+                if (!file) return;
+
+                const fileName = file.name.toLowerCase();
+                const fileSize = file.size;
+                const isPDF = file.type === "application/pdf" || fileName.endsWith(".pdf");
+                const isZIP = file.type === "application/zip" || fileName.endsWith(".zip");
+
+                // Validasi format sesuai ID
+                if (item.type === 'pdf' && !isPDF) {
+                    alert("Hanya file berformat PDF yang diizinkan.");
+                    this.value = "";
+                    return;
+                }
+
+                if (item.type === 'zip' && !isZIP) {
+                    alert("Hanya file berformat ZIP yang diizinkan.");
+                    this.value = "";
+                    return;
+                }
+
+                // Validasi ukuran
+                if (fileSize > maxSize) {
                     alert("Ukuran file maksimal 1MB. Silakan pilih file yang lebih kecil.");
-                    this.value = ""; 
+                    this.value = "";
+                    return;
+                }
             });
         });
     });
 </script>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const kategori = document.getElementById("MachineCategoryId");
+        const jumlah = document.getElementById("qty");
+        const unit = document.getElementById("unitcontainer");
+        const quatation = document.getElementById("quatationcontainer");
+
+        function updateVisibility() {
+            if (kategori.value === "3") {
+            unit.classList.add("d-none");
+            jumlah.classList.add("d-none");
+            quatation.classList.add("d-none");
+        } else {
+            unit.classList.remove("d-none");
+            jumlah.classList.remove("d-none");
+            quatation.classList.remove("d-none");
+        }
+        }
+
+        updateVisibility();
+
+        kategori.addEventListener("change", updateVisibility);
+    });
+</script>
+

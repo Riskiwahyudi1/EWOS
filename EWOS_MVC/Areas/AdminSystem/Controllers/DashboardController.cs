@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EWOS_MVC.Areas.AdminSystem.Controllers
 {
+
+    [Authorize(Roles = "AdminSystem")]
     [Area("AdminSystem")]
-    public class DashboardController : Controller
+    public class DashboardController : BaseController
     {
         
         public IActionResult Index()

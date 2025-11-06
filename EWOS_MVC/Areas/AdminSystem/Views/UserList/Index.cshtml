@@ -1,25 +1,22 @@
-﻿@model List<EWOS_MVC.Models.MachineModel>
+﻿@model EWOS_MVC.Models.ViewModels.UserRolesViewModel
+
 @{
-    ViewData["Title"] = "Machine List";
-}
-@{
+    ViewData["Title"] = "User List";
     Layout = "~/Views/Shared/_LayoutAdminSystem.cshtml";
 }
-<h5 class="my-3"> List Mesin</h5>
+
+<h5 class="my-3">List User</h5>
+
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success">@TempData["Success"]</div>
 }
-
 @if (TempData["Error"] != null)
 {
     <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
 <div class="d-flex align-items-center mb-3 gap-2">
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalTambah">
-        ➕ Tambah
-    </button>
     <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search" style="max-width: 250px;">
 </div>
 
@@ -27,11 +24,12 @@
     <thead>
         <tr>
             <th class="text-center">No</th>
-            <th>Machine name</th>
-            <th>Machine Category</th>
-            <th>Machine Power(KWH)</th>
-            <th>Machine Status</th>
-            <th>Created At</th>
+            <th>User Name</th>
+            <th>Name</th>
+            <th>Badge</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Join Date</th>
             <th>Updated At</th>
             <th class="text-center">Action</th>
         </tr>
@@ -40,29 +38,33 @@
         @{
             int index = 1;
         }
+
         <div id="loadingText" style="display:none; text-align:center; margin-bottom:10px; font-weight:bold; color:#555;">
             Memuat...
         </div>
-        @if (Model == null || !Model.Any())
+
+        @if (Model == null || !Model.Users.Any())
         {
             <tr>
-                <td colspan="7" class="text-center text-muted">Tidak ada data Machine.</td>
+                <td colspan="9" class="text-center text-muted">Tidak ada data user.</td>
             </tr>
         }
         else
         {
-            foreach (var machine in Model)
+            foreach (var user in Model.Users)
             {
                 <tr>
                     <td class="text-center">@index</td>
-                    <td>@machine.MachineName</td>
-                    <td>@machine.MachineCategories?.CategoryName</td>
-                    <td>@machine.MachinePower</td>
-                    <td>@(machine.IsActive ? "Aktif" : "Nonaktif")</td>
-                    <td>@machine.CreatedAt</td>
-                    <td>@machine.UpdatedAt</td>
+                    <td>@user.UserName</td>
+                    <td>@user.Name</td>
+                    <td>@user.Badge</td>
+                    <td>@user.Email</td>
+                    <td>@(user.IsActive ? "Aktif" : "Nonaktif")</td>
+                    <td>@user.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@user.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-@machine.Id">
+                        <button type="button" class="btn btn-warning btn-sm"
+                                data-bs-toggle="modal" data-bs-target="#modalEdit-@user.Id">
                             ✏️ Edit
                         </button>
                     </td>
@@ -87,83 +89,47 @@
     </ul>
 </nav>
 
-
-<!-- Modal tambah -->
-<div class="modal fade" id="modalTambah" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post" action="/AdminSystem/Machine/Create">
-                @Html.AntiForgeryToken()
-
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTambahLabel">Tambah Machine</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                </div>
-
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label asp-for="MachineName">Machine Name</label>
-                        <input name="MachineName" class="form-control" required />
-                        <span asp-validation-for="MachineName" class="text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <label asp-for="MachineCategoryId">Machine Categories</label>
-                        @await Component.InvokeAsync("MachineCategories")
-                        <span asp-validation-for="MachineCategoryId" class="text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <label asp-for="MachinePower">Machine Power</label>
-                        <input name="MachinePower" class="form-control" type="number" step="0.01" required />
-                        <span asp-validation-for="MachinePower" class="text-danger"></span>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-@if (Model != null && Model.Any())
+<!-- Modals per user -->
+@if (Model.Users != null && Model.Users.Any())
 {
-    foreach (var machine in Model)
+    foreach (var user in Model.Users)
     {
-        <!-- Modal Edit mesin -->
-        <div class="modal fade" id="modalEdit-@machine.Id" tabindex="-1" aria-labelledby="editLabel-@machine.Id" aria-hidden="true">
+        <div class="modal fade" id="modalEdit-@user.Id" tabindex="-1" aria-labelledby="editLabel-@user.Id" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form method="post" action="/AdminSystem/Machine/Edit">
+                    <form method="post" action="/AdminSystem/UserList/Edit">
                         @Html.AntiForgeryToken()
+
                         <div class="modal-header">
-                            <h5 class="modal-title" id="editLabel-@machine.Id">Edit Data</h5>
+                            <h5 class="modal-title" id="editLabel-@user.Id">Edit User</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                         </div>
+
                         <div class="modal-body">
-                            <input type="hidden" name="Id" value="@machine.Id" />
+                            <input type="hidden" name="Id" value="@user.Id" />
+
                             <div class="form-group mb-3">
-                                <label>MachineName</label>
-                                <input name="MachineName" class="form-control" value="@machine.MachineName" required />
+                                <label>Roles</label>
+                                @foreach (var role in Model.Roles)
+                                {
+                                    var isChecked = Model.UserRoles.Any(ur => ur.UserId == user.Id && ur.RoleId == role.Id);
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="Roles" value="@role.Id" @(isChecked ? "checked" : "")>
+                                        <label class="form-check-label">@role.Name</label>
+                                    </div>
+                                }
                             </div>
+
                             <div class="form-group mb-3">
-                                <label>Machine Power</label>
-                                <input name="MachinePower" class="form-control" value="@machine.MachinePower" required />
-                            </div>
-                            <div class="form-group">
-                                <label asp-for="MachineCategories">Machine Categories</label>
-                                @await Component.InvokeAsync("MachineCategories", new { selectedId = machine.MachineCategoryId })
-                                <span asp-validation-for="MachineCategories" class="text-danger"></span>
-                            </div>
-                            <div class="form-group mb-3">
-                                <label>Status</label>
-                                <select name="IsActive" class="form-select" aria-label="Default select example">
-                                    <option value="true" @(machine.IsActive ? "selected" : "")>Aktif</option>
-                                    <option value="false" @(!machine.IsActive ? "selected" : "")>Nonaktif</option>
+                                <label for="IsActive-@user.Id">Status</label>
+                                <select id="IsActive-@user.Id" name="IsActive" class="form-select" aria-label="Pilih status">
+                                    <option value="true" @(user.IsActive ? "selected" : "")>Aktif</option>
+                                    <option value="false" @(!user.IsActive ? "selected" : "")>Nonaktif</option>
                                 </select>
                             </div>
                         </div>
+
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                             <button type="submit" class="btn btn-primary">Simpan</button>
@@ -174,6 +140,7 @@
         </div>
     }
 }
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
       const tableBody = document.querySelector('table.table tbody');
