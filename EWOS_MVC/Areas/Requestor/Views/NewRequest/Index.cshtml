@@ -44,7 +44,7 @@
                     <div class="alert alert-danger py-2">@TempData["Error"]</div>
                 }
 
-                <form method="post" action="/NewRequest/CreateNewRequest" enctype="multipart/form-data">
+                <form method="post" action="/Requestor/NewRequest/CreateNewRequest" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
                     <div class="row g-3 align-items-start">
 
@@ -74,7 +74,7 @@
                             <label for="unit" class="form-label">
                                 <i class="bi bi-list me-1"></i> Unit
                             </label>
-                            <select class="form-select" id="unit" name="unit">
+                            <select class="form-select" id="unit" name="Unit">
                                 <option value="Pcs">Pcs</option>
                                 <option value="Set">Set</option>
                             </select>

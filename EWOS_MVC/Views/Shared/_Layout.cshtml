@@ -161,30 +161,10 @@
                     <a href="/Requestor/ListProduct" class="nav-link px-3 @(Context.Request.Path == "/Requestor/ListProduct" ? "active" : "")">
                         <i class="bi bi-list-check"></i> List Product
                     </a>
-                    <a class="nav-link px-3 d-flex align-items-center justify-content-between @(Context.Request.Path.StartsWithSegments("/Requestor/MyRequest") ? "active" : "")"
-                       data-bs-toggle="collapse" href="#submenuMyRequest"
-                       role="button" aria-expanded="@(Context.Request.Path.StartsWithSegments("/Requestor/MyRequest") ? "true" : "false")"
-                       aria-controls="submenuMyRequest">
-                        <span><i class="bi bi-folder"></i> My Request</span>
-                        <i class="bi bi-plus"></i>
+                    <a href="/Requestor/MyRequest/WaitingApproval" class="nav-link px-3 @(Context.Request.Path == "/Requestor/MyRequest/WaitingApproval" ? "active" : "")">
+                        <i class="bi bi-person-lines-fill"></i> My Request
                     </a>
-                    <div class="collapse ps-4 py-0 @(Context.Request.Path.StartsWithSegments("/Requestor/MyRequest") ? "show" : "")" id="submenuMyRequest">
-                        <a href="/Requestor/MyRequest/WaitingApprove" class="d-block @(ViewBag.CurrentStatus == "WaitingApprove" ? "active" : "")">
-                            <i class="bi bi-circle"></i> Waiting Approve
-                        </a>
-                        <a href="/Requestor/MyRequest/WaitingFabrication" class="d-block @(ViewBag.CurrentStatus == "WaitingFabrication" ? "active" : "")">
-                            <i class="bi bi-circle"></i> Waiting Fabrication
-                        </a>
-                        <a href="/Requestor/MyRequest/Onprocess" class="d-block @(ViewBag.CurrentStatus == "Onprocess" ? "active" : "")">
-                            <i class="bi bi-circle"></i> Onprocess
-                        </a>
-                        <a href="/Requestor/MyRequest/Done" class="d-block @(ViewBag.CurrentStatus == "Done" ? "active" : "")">
-                            <i class="bi bi-circle"></i> Done
-                        </a>
-                        <a href="/Requestor/MyRequest/Rejected" class="d-block @(ViewBag.CurrentStatus == "Rejected" ? "active" : "")">
-                            <i class="bi bi-circle"></i> Rejected
-                        </a>
-                    </div>
+                    
                 </div>
             }
 
@@ -251,6 +231,9 @@
                     <h6 class="text-uppercase text-muted px-3 mb-2">Supervisor Menu</h6>
                     <a href="/Supervisor/Approval" class="nav-link px-3 @(Context.Request.Path == "/Supervisor/Approval" ? "active" : "")">
                         <i class="bi bi-hourglass-split"></i> Waiting Approval
+                    </a>
+                    <a href="/Supervisor/DataRequest" class="nav-link px-3 @(Context.Request.Path == "/Supervisor/DataRequest" ? "active" : "")">
+                        <i class="bi bi-clipboard2-data-fill"></i>Data Request
                     </a>
                 </div>
             }

@@ -11,6 +11,7 @@ public class BaseController : Controller
 
         if (user != null)
         {
+            ViewBag.Id = user.Id;
             ViewBag.UserName = user.UserName;
             ViewBag.Name = user.Name;
             ViewBag.Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList();

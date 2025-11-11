@@ -24,7 +24,6 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
         }
 
         //Seaching
-
         [HttpGet]
         public IActionResult Search(string keyword)
         {
@@ -50,7 +49,6 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
         }
 
         //Menambahkan data
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(MachineModel machine)

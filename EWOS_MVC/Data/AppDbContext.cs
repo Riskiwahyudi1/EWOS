@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EWOS_MVC.Models;
+using InhouseFabricationSystem.Models;
 
 public class AppDbContext : DbContext
 {
@@ -10,11 +11,13 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<UserModel> Users { get; set; }
+    public DbSet<RoleModel> Roles { get; set; }
+    public DbSet<UserRoleModel> UserRoles { get; set; }
     public DbSet<MachineCategoriesModel> MachineCategories { get; set; }
     public DbSet<MachineModel> Machines { get; set; }
-    public DbSet<RoleModel> Roles { get; set; }
-
-    public DbSet<UserRoleModel> UserRoles { get; set; }
+    public DbSet<ItemRequestModel> ItemRequests { get; set; }
+    public DbSet<RequestStatusModel> RequestStatus { get; set; }
+    public DbSet<RawMaterialModel> RawMaterials { get; set; }
 
     //konfigurasi relasi  many to many
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -31,6 +34,18 @@ public class AppDbContext : DbContext
             .HasOne(ur => ur.Role)
             .WithMany(r => r.UserRoles)
             .HasForeignKey(ur => ur.RoleId);
+
+        modelBuilder.Entity<RequestStatusModel>()
+            .HasOne(rs => rs.Users)
+            .WithMany()
+            .HasForeignKey(rs => rs.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<RequestStatusModel>()
+            .HasOne(rs => rs.ItemRequest)
+            .WithMany(ir => ir.RequestStatus)
+            .HasForeignKey(rs => rs.ItemRequestId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
 }
