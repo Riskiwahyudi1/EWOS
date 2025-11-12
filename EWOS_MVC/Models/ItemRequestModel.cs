@@ -1,4 +1,4 @@
-﻿using InhouseFabricationSystem.Models;
+﻿using EWOS_MVC.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -57,6 +57,7 @@ namespace EWOS_MVC.Models
         public string? Status { get; set; }
 
         public bool IsCalculateSaving { get; set; } = true;
+        public DateTime? OCD { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 

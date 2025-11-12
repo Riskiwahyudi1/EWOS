@@ -15,4 +15,10 @@
     <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.10" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\uploads\design\" />
+    <Folder Include="wwwroot\uploads\drawing\" />
+    <Folder Include="wwwroot\uploads\quotation\" />
+  </ItemGroup>
+
 </Project>

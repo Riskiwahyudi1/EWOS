@@ -161,7 +161,7 @@
                     <a href="/Requestor/ListProduct" class="nav-link px-3 @(Context.Request.Path == "/Requestor/ListProduct" ? "active" : "")">
                         <i class="bi bi-list-check"></i> List Product
                     </a>
-                    <a href="/Requestor/MyRequest/WaitingApproval" class="nav-link px-3 @(Context.Request.Path == "/Requestor/MyRequest/WaitingApproval" ? "active" : "")">
+                    <a href="/Requestor/MyRequest" class="nav-link px-3 @(Context.Request.Path == "/Requestor/MyRequest" ? "active" : "")">
                         <i class="bi bi-person-lines-fill"></i> My Request
                     </a>
                     
@@ -174,32 +174,11 @@
                 <div class="sidebar-section mt-3">
                     <h6 class="text-uppercase text-muted px-3 mb-2">Fabrication Menu</h6>
 
-                    <a class="d-flex align-items-center justify-content-between
-                                     @(Context.Request.Path.StartsWithSegments("/AdminFabrication/NewRequest") ? "active" : "")"
-                       data-bs-toggle="collapse" href="#submenuRequest"
-                       role="button"
-                       aria-expanded="@(Context.Request.Path.StartsWithSegments("/AdminFabrication/NewRequest") ? "true" : "false")"
-                       aria-controls="submenuRequest">
-                        <span><i class="bi bi-box-seam"></i> Data New Request</span>
-                        <i class="bi bi-plus"></i>
+
+
+                    <a href="/AdminFabrication/NewRequest" class="@(Context.Request.Path == "/AdminFabrication/NewRequest" ? "active" : "")">
+                        <i class="bi bi-box-fill"></i> New Order
                     </a>
-
-                    <div class="collapse ps-4 @(Context.Request.Path.StartsWithSegments("/AdminFabrication/NewRequest") ? "show" : "")"
-                         id="submenuRequest">
-                        <a href="/AdminFabrication/NewRequest/WaitingApprove" class="d-block @(ViewBag.CurrentStatus == "WaitingApprove" ? "active" : "")">
-                            <i class="bi bi-circle"></i> Waiting Approve
-                        </a>
-                        <a href="/AdminFabrication/NewRequest/Approved" class="d-block @(ViewBag.CurrentStatus == "Approved" ? "active" : "")">
-                            <i class="bi bi-circle"></i> Approved
-                        </a>
-                        <a href="/AdminFabrication/NewRequest/Done" class="d-block @(ViewBag.CurrentStatus == "Done" ? "active" : "")">
-                            <i class="bi bi-circle"></i> Done
-                        </a>
-                        <a href="/AdminFabrication/NewRequest/Rejected" class="d-block @(ViewBag.CurrentStatus == "Rejected" ? "active" : "")">
-                            <i class="bi bi-circle"></i> Rejected
-                        </a>
-                    </div>
-
                     <a href="/AdminFabrication/RepeatOrder" class="@(Context.Request.Path == "/AdminFabrication/RepeatOrder" ? "active" : "")">
                         <i class="bi bi-repeat"></i> Repeat Order
                     </a>
@@ -231,9 +210,6 @@
                     <h6 class="text-uppercase text-muted px-3 mb-2">Supervisor Menu</h6>
                     <a href="/Supervisor/Approval" class="nav-link px-3 @(Context.Request.Path == "/Supervisor/Approval" ? "active" : "")">
                         <i class="bi bi-hourglass-split"></i> Waiting Approval
-                    </a>
-                    <a href="/Supervisor/DataRequest" class="nav-link px-3 @(Context.Request.Path == "/Supervisor/DataRequest" ? "active" : "")">
-                        <i class="bi bi-clipboard2-data-fill"></i>Data Request
                     </a>
                 </div>
             }

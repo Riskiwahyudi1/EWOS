@@ -4,7 +4,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace InhouseFabricationSystem.Models
+namespace EWOS_MVC.Models
 {
     public class RawMaterialModel
     {
@@ -18,12 +18,13 @@ namespace InhouseFabricationSystem.Models
         public MachineCategoriesModel MachineCategories { get; set; }
 
         [Required(ErrorMessage = "Sap ID  wajib diisi")]
-        public int SAPID { get; set; }
+        public long SAPID { get; set; }
 
         [Required(ErrorMessage = "Nama Raw Material wajib diisi")]
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Price wajib diisi")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
         public DateTime CreatedAt { get; set; }

@@ -1,0 +1,16 @@
+﻿@model List<EWOS_MVC.Models.RawMaterialModel>
+
+@{
+    int? selectedId = ViewData["SelectedId"] as int?;
+}
+
+<select name="RawMaterialId" class="form-select" aria-label="Default select example" required>
+    <option value="" disabled selected>-- Pilih Raw Material --</option>
+    @foreach (var rm in Model)
+    {
+        <option value="@rm.Id" selected="@(rm.Id == selectedId ? "selected" : null)">
+            @rm.Name
+        </option>
+
+    }
+</select>

@@ -53,7 +53,7 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
                 return NotFound();
             }
             // Update proses
-            findRequest.Status = "WaitingFabrication";
+            findRequest.Status = "FabricationApproval";
             findRequest.UpdatedAt = DateTime.Now;
 
             var approvalRequest = new RequestStatusModel

@@ -1,4 +1,5 @@
-﻿@{
+﻿@model List<EWOS_MVC.Models.ItemRequestModel>
+@{
     ViewData["Title"] = "Request List";
 }
 @{
@@ -20,8 +21,127 @@
         <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search">
     </div>
 </div>
+<style>
+    .tab-wrapper {
+        max-width: auto;
+        position: relative;
+        border-bottom: 2px solid #dee2e6;
+        margin-bottom: 1rem;
+    }
 
-<table class="table table-sm table-striped table-bordered">
+    .nav-tabs {
+        border: none;
+        margin-bottom: 0;
+    }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: #6c757d;
+            background-color: transparent;
+            font-weight: 500;
+        }
+
+            .nav-tabs .nav-link.active {
+                color: #0d6efd;
+                border-bottom: 3px solid #0d6efd;
+                background-color: transparent;
+            }
+
+            .nav-tabs .nav-link:hover {
+                color: #0d6efd;
+            }
+</style>
+
+<div class="tab-wrapper">
+    
+    @{
+        var summary = ViewBag.StatusSummary as Dictionary<string, int>;
+        int GetCount(string status) => summary != null && summary.ContainsKey(status) ? summary[status] : 0;
+    }
+    <!-- Tab Bar-->
+    <ul class="nav nav-tabs justify-content-center" id="statusTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active"
+                    id="waitingapproval-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#waitingapproval"
+                    data-status="WaitingApproval"
+                    type="button"
+                    role="tab">
+                Supervisor Approval
+                @if (GetCount("WaitingApproval") > 0)
+                {
+                    <span class="badge bg-danger rounded-pill">@GetCount("WaitingApproval")</span>
+                }
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="fabricationapproval-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#FabricationApproval"
+                    data-status="FabricationApproval"
+                    type="button"
+                    role="tab">
+                Fabrication Approval
+                @if (GetCount("FabricationApproval") > 0)
+                {
+                    <span class="badge bg-danger rounded-pill">@GetCount("FabricationApproval")</span>
+                }
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="waitingfabrication-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#WaitingFabrication"
+                    data-status="WaitingFabrication"
+                    type="button"
+                    role="tab">
+                Waiting Fabrication
+                @if (GetCount("WaitingFabrication") > 0)
+                {
+                    <span class="badge bg-danger rounded-pill">@GetCount("WaitingFabrication")</span>
+                }
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="infabrication-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#InFabrication"
+                    data-status="InFabrication"
+                    type="button"
+                    role="tab">
+                In Fabrication
+                @if (GetCount("InFabrication") > 0)
+                {
+                    <span class="badge bg-danger rounded-pill">@GetCount("InFabrication")</span>
+                }
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="waitingbuyoff-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#WaitingBuyOff"
+                    data-status="WaitingBuyOff"
+                    type="button"
+                    role="tab">
+                Waiting Buyoff
+                @if (GetCount("WaitingBuyOff") > 0)
+                {
+                    <span class="badge bg-danger rounded-pill">@GetCount("WaitingBuyOff")</span>
+                }
+            </button>
+        </li>
+    </ul>
+</div>
+
+<!-- Table data-->
+<table class="table table-sm table-striped table-bordered mt-3">
     <thead>
         <tr>
             <th class="text-center">No</th>
@@ -29,7 +149,7 @@
             <th>Part Name</th>
             <th>Machine Category</th>
             <th>CRD</th>
-            <th>RequestedAt</th>
+            <th>Request Date</th>
             <th class="text-center">Action</th>
         </tr>
     </thead>
@@ -37,7 +157,9 @@
         @{
             int index = 1;
         }
-
+        <tr id="loadingText" style="display:none; text-align:center; margin-bottom:10px; font-weight:bold; color:#555;">
+            <td>Loading...</td>
+        </tr>
         @if (Model == null || !Model.Any())
         {
             <tr>
@@ -50,13 +172,13 @@
             {
                 <tr>
                     <td class="text-center">@index</td>
-                    <td>-</td>
+                    <td>@rq.Users.Name</td>
                     <td>@rq.PartName</td>
                     <td>@rq.MachineCategories?.CategoryName</td>
-                    <td>@rq.CRD</td>
+                    <td>@rq.CRD.ToString("dd/MM/yyyy")</td>
                     <td>@rq.CreatedAt</td>
                     <td class="text-center">
-                        @if (rq.Status == "WaitingApprove")
+                        @if (rq.Status == "ApprovalFabrication")
                         {
                             <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalApprove-@rq.Id">
                                 Approve
@@ -64,25 +186,22 @@
                             <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalReject-@rq.Id">
                                 Reject
                             </button>
-                        }
-                        else if (rq.Status == "Approved")
-                        {
+                         }
+
+                        else if (rq.Status == "WaitingFabrication")
+                        { 
                             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#fabrikasiModal-@rq.Id">
                                 Fabrikasi
                             </button>
                             <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-@rq.Id">
-                                ✏️ Edit Data
+                                Edit
                             </button>
-                            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-@rq.Id">
+                        } 
+
+                             <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-@rq.Id">
                                 Detail
                             </button>
-                        }
-                        else if (rq.Status == "Rejected")
-                        {
-                            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-@rq.Id">
-                                Detail
-                            </button>
-                        }
+                        
                     </td>
 
                 </tr>
@@ -91,3 +210,395 @@
         }
     </tbody>
 </table>
+
+@if (ViewBag.ModalData != null)
+{
+    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
+    {
+        <!-- Modal Approve -->
+        <div class="modal fade" id="modalApprove-@ir.Id" tabindex="-1" aria-labelledby="editLabel-@ir.Id" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="/AdminFabrication/NewRequest/Approve" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div class="modal-header bg-success">
+                            <h5 class="modal-title mb-2 text-white" id="modalApprove">Approve Request</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="my-2" asp-for="ItemRequestId">Id Request</label>
+                                <input class="form-control" value="@ir.Id" readonly />
+                                <span asp-validation-for="PartName" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="my-2" asp-for="ItemRequestId">Item Name</label>
+                                <input type="hidden" name="ItemRequestId" value="@ir.Id" />
+                                <input name="PartName" class="form-control" value="@ir.PartName" readonly />
+                                <span asp-validation-for="PartName" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="my-2" asp-for="OCD">Prediction Complete</label>
+                                <input name="OCD" type="date" class="form-control" value="" required />
+                                <span asp-validation-for="OCD" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-success">Approve</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@if (ViewBag.ModalData != null)
+{
+    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
+    {
+
+        <!-- Modal Reject -->
+        <div class="modal fade" id="modalReject-@ir.Id" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="/AdminFabrication/NewRequest/Reject">
+                        @Html.AntiForgeryToken()
+
+                        <div class="modal-header bg-danger">
+                            <h5 class="modal-title mb-2 text-white" id="modalTambahLabel">Reject Request</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="my-2" asp-for="ItemRequestId">ID Request</label>
+                                <input class="form-control" value="@ir.Id" readonly />
+                                <span asp-validation-for="SapId" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="my-2" asp-for="ItemRequestId">Item Name</label>
+                                <input type="hidden" name="ItemRequestId" value="@ir.Id" />
+                                <input name="PartName" class="form-control" value="@ir.PartName" readonly />
+                                <span asp-validation-for="SapId" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="my-2" asp-for="ItemRequestId">Reason</label>
+                                <textarea class="form-control" id="Reason" name="Reason" rows="3" placeholder="Input Reason..."></textarea>
+                                <span asp-validation-for="SapId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-danger">Reject</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@if (ViewBag.ModalData != null)
+{
+    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
+    {
+        <!-- Modal Edit data -->
+        <div class="modal fade" id="modalEdit-@ir.Id" tabindex="-1" aria-labelledby="approveLabel-@ir.Id" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="/AdminFabrication/NewRequest/Edit">
+                        @Html.AntiForgeryToken()
+                        <div class="modal-header bg-warning text-white">
+                            <h5 class="modal-title" id="approveLabel-@ir.Id">Edit Data</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="Id" value="@ir.Id" />
+                            <input type="hidden" name="Description" value="@ir.Description" />
+                            <div class="form-group mb-3">
+                                <label>Id Request</label>
+                                <input name="Id" class="form-control" value="@ir.Id" readonly />
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Part Name</label>
+                                <input name="PartName" class="form-control" value="@ir.PartName" required />
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label asp-for="MachineCategories">Machine Category</label>
+                                @await Component.InvokeAsync("MachineCategories", new { selectedId = ir.MachineCategoryId })
+                                <span asp-validation-for="MachineCategories" class="text-danger"></span>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>External Fab Cost($)</label>
+                                <input name="ExternalFabCost" class="form-control" type="number" step="0.01" placeholder="0.00" value="@ir.ExternalFabCost" />
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Fabrication Time</label>
+                                <input name="FabricationTime" class="form-control" type="number" step="0.01" placeholder="4.5" value="@ir.FabricationTime" />
+                            </div>
+                            <div class="form-group mb-3">
+                                <label asp-for="RawMaterials">Raw Material</label>
+                                @await Component.InvokeAsync("RawMaterials", new { selectedId = ir.RawMaterialId, machineCategoryId = ir.MachineCategoryId })
+                                <span asp-validation-for="RawMaterials" class="text-danger"></span>
+                            </div>
+                            @if (ir.MachineCategoryId == 2)
+                            {
+                                <div class="form-group mb-3">
+                                    <label>Weight</label>
+                                    <input name="Weight" class="form-control" type="number" step="0.01" placeholder="0.00" value="@ir.Weight" />
+                                </div>
+                            }
+                            <div class="form-group mb-3">
+                                <label>Part Code</label>
+                                <input name="PartCode" class="form-control" placeholder="Input Part Code" value="@ir.PartCode" />
+                            </div>
+                            @* <div class="form-group mb-3">
+                                <label>Link Quantation</label>
+                                <input name="LinkQuantation" class="form-control" placeholder="Input Link Quantation" value="@ir.LinkQuantation" />
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Link Drawing</label>
+                                <input name="LinkDrawing" class="form-control" placeholder="Input Link Drawing" value="@ir.LinkDrawing" />
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Link ODC</label>
+                                <input name="LinkODC" class="form-control" placeholder="Input Link ODC" value="@ir.LinkODC" />
+                            </div> *@
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@if (ViewBag.ModalData != null)
+{
+    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
+    {
+        <!-- Modal Fabrikasi -->
+        <div class="modal fade" id="fabrikasiModal-@ir.Id" tabindex="-1" aria-labelledby="fabrikasiModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content rounded-3 shadow">
+                    <div class="modal-header bg-primary">
+                        <h5 class="modal-title" id="fabrikasiModalLabel">Fabrikasi</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" action="/AdminFabrication/NewRequest/Add">
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden" name="ItemRequestId" value="@ir.Id" />
+                            <div class="form-group mb-3">
+                                <label for="MachineId" class="mb-2">Mesin Fabrikasi</label>
+                                @await Component.InvokeAsync("MachineList", new { selectedId = ir.MachineCategoryId })
+                                <span asp-validation-for="Machine" class="text-danger"></span>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-primary">Proses</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+
+@if (ViewBag.ModalData != null)
+{
+    foreach (var rm in (IEnumerable<dynamic>)ViewBag.ModalData)
+    {
+        <!-- Modal Detail -->
+        <div class="modal fade" id="modalDetail-@rm.Id" tabindex="-1" aria-labelledby="detailLabel-@rm.Id" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-info text-white">
+                        <h5 class="modal-title" id="detailLabel-@rm.Id">Detail Data</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <dl class="row">
+                            <dt class="col-sm-4">Part Name</dt>
+                            <dd class="col-sm-8">
+                                @(rm.PartName ?? Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
+                            </dd>
+
+                            <dt class="col-sm-4">Machine Category</dt>
+                            <dd class="col-sm-8">
+                                @(rm.MachineCategories?.CategoryName ?? Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
+                            </dd>
+
+                            <dt class="col-sm-4">External Cost ($)</dt>
+                            <dd class="col-sm-8">
+                                @(rm.ExternalFabCost != null ? rm.ExternalFabCost.ToString() : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
+                            </dd>
+
+                            <dt class="col-sm-4">Fabrication Time</dt>
+                            <dd class="col-sm-8">
+                                @(rm.FabricationTime != null ? rm.FabricationTime.ToString() : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
+                            </dd>
+
+                            @if (rm.MachineCategoryId == 2)
+                            {
+                                <dt class="col-sm-4">Weight</dt>
+                                <dd class="col-sm-8">
+                                    @(rm.Weight != null ? rm.Weight.ToString() : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
+                                </dd>
+                            }
+
+                            <dt class="col-sm-4">Part Code</dt>
+                            <dd class="col-sm-8">
+                                @(rm.PartCode ?? Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
+                            </dd>
+                        </dl>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tableBody = document.querySelector('table.table tbody');
+        const searchBox = document.getElementById('searchBox');
+        const categoryFilter = document.querySelector('select[name="MachineCategoryId"]');
+        const tabs = document.querySelectorAll(".nav-link");
+        let currentStatus = '@ViewBag.CurrentStatus';
+        const loadingText = document.getElementById('loadingText');
+
+        if (!tableBody || !searchBox || !categoryFilter) return;
+
+        const initialHTML = tableBody.innerHTML;
+            let debounceTimer = null;
+    let loadingTimer = null;
+
+    async function performSearch() {
+        const keyword = searchBox.value.trim();
+        const categoryId = categoryFilter.value;
+
+        if (keyword.length === 0 && !categoryId && !currentStatus) {
+            tableBody.innerHTML = initialHTML;
+            return;
+        }
+
+        // Hapus timer sebelumnya
+        clearTimeout(debounceTimer);
+
+        // Set delay 
+        debounceTimer = setTimeout(async () => {
+            try {
+                // tampilkan indikator loading
+                clearTimeout(loadingTimer);
+                loadingTimer = setTimeout(() => {
+                    if (loadingText) loadingText.style.display = 'block';
+                }, 350);
+
+                // Buat URL dan query
+                const url = new URL("/AdminFabrication/NewRequest/Search", window.location.origin);
+                if (keyword) url.searchParams.append("keyword", keyword);
+                if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
+                if (currentStatus) url.searchParams.append("status", currentStatus.replace('#', ''));
+
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Network response was not ok');
+
+                const data = await res.json();
+
+                clearTimeout(loadingTimer);
+                if (loadingText) loadingText.style.display = 'none';
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Tidak ada data Request.</td></tr>`;
+                    return;
+                }
+
+                // Generate HTML
+                let html = '';
+                data.forEach((rq, idx) => {
+                    let buttons = "";
+
+                    if (rq.status === "FabricationApproval") {
+                        buttons += `
+                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalApprove-${rq.id}">
+                                Approve
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalReject-${rq.id}">
+                                Reject
+                            </button>
+                        `;
+                    } else if (rq.status === "WaitingFabrication") {
+                        buttons += `
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#fabrikasiModal-${rq.id}">
+                                Fabrikasi
+                            </button>
+                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-${rq.id}">
+                                Edit Data
+                            </button>
+                        `;
+                    } 
+                        buttons += `
+                            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-${rq.id}">
+                                Detail
+                            </button>
+                        `;
+                    
+
+                    html += `
+                        <tr>
+                            <td class="text-center">${idx + 1}</td>
+                            <td>${rq.users ?? ''}</td>
+                            <td>${rq.partName ?? rq.PartName ?? ''}</td>
+                            <td>${rq.categoryName ?? ''}</td>
+                            <td>${rq.crd ? new Date(rq.crd).toLocaleDateString('id-ID') : ''}</td>
+                            <td>${rq.createdAt ? new Date(rq.createdAt).toLocaleDateString('id-ID') : ''}</td>
+                            <td class="text-center">${buttons}</td>
+                        </tr>
+                    `;
+                });
+
+                tableBody.innerHTML = html;
+
+            } catch (err) {
+                console.error('Search error:', err);
+                if (loadingText) loadingText.style.display = 'none';
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Terjadi kesalahan saat mencari.</td></tr>`;
+            }
+        }, 200); 
+    }
+
+
+        // Event search dengan debounce
+        searchBox.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(performSearch, 350);
+        });
+
+        // Event filter kategori
+        categoryFilter.addEventListener('change', performSearch);
+
+        // event tab
+        tabs.forEach(tab => {
+            tab.addEventListener("click", function () {
+                currentStatus = this.getAttribute("data-bs-target"); 
+                performSearch();
+            });
+        });
+    });
+</script>

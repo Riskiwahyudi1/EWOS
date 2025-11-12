@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EWOS_MVC.Models;
-using InhouseFabricationSystem.Models;
 
 public class AppDbContext : DbContext
 {

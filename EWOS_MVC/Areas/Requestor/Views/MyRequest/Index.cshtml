@@ -15,123 +15,150 @@
     <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search" style="max-width: 300px;">
 </div>
 <style>
-    .custom-tabs {
-        border-bottom: 1px solid #dee2e6;
+    .tab-wrapper {
+        max-width: auto;
+        position: relative;
+        border-bottom: 2px solid #dee2e6;
+        margin-bottom: 1rem;
     }
 
-        .custom-tabs .nav-link {
+    .nav-tabs {
+        border: none;
+        margin-bottom: 0;
+    }
+
+        .nav-tabs .nav-link {
             border: none;
             color: #6c757d;
-            background: transparent;
+            background-color: transparent;
             font-weight: 500;
             position: relative;
-            padding-bottom: 0.5rem;
         }
 
-            .custom-tabs .nav-link.active {
+            .nav-tabs .nav-link.active {
                 color: #0d6efd;
-                background: transparent;
+                border-bottom: 3px solid #0d6efd;
+                background-color: transparent;
             }
 
-                .custom-tabs .nav-link.active::after {
-                    content: "";
-                    position: absolute;
-                    left: 0;
-                    right: 0;
-                    bottom: -1px;
-                    height: 3px;
-                    background-color: #0d6efd;
-                    border-radius: 2px;
-                }
-
-            .custom-tabs .nav-link:hover {
+            .nav-tabs .nav-link:hover {
                 color: #0d6efd;
             }
 
-            .custom-tabs .nav-link.active .badge {
-                background-color: #0d6efd !important;
-                color: #fff;
-            }
+    .nav-link .badge {
+        font-size: 0.75rem;
+        margin-left: 6px;
+        vertical-align: middle;
+    }
 </style>
+
 
 @{
     var summary = ViewBag.StatusSummary as Dictionary<string, int>;
     int GetCount(string status) => summary != null && summary.ContainsKey(status) ? summary[status] : 0;
-
-    var currentPath = Context.Request.Path.ToString().ToLower();
 }
 
-<ul class="nav nav-tabs custom-tabs justify-content-center" id="myTab" role="tablist">
+<ul class="nav nav-tabs justify-content-center" id="statusTabs" role="tablist">
     <li class="nav-item" role="presentation">
-        <a class="nav-link @(currentPath.Contains("waitingapproval") ? "active" : "")"
-           href="/Requestor/MyRequest/WaitingApproval" role="tab">
+        <button class="nav-link active"
+                id="waitingapproval-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#waitingapproval"
+                data-status="WaitingApproval"
+                type="button"
+                role="tab">
             Waiting Approve
             @if (GetCount("WaitingApproval") > 0)
             {
-                <span class="badge bg-danger rounded-pill ms-1">@GetCount("WaitingApproval")</span>
+                <span class="badge bg-danger rounded-pill">@GetCount("WaitingApproval")</span>
             }
-        </a>
+        </button>
     </li>
 
     <li class="nav-item" role="presentation">
-        <a class="nav-link @(currentPath.Contains("waitingfabrication") ? "active" : "")"
-           href="/Requestor/MyRequest/WaitingFabrication" role="tab">
+        <button class="nav-link"
+                id="waitingfabrication-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#waitingfabrication"
+                data-status="WaitingFabrication"
+                type="button"
+                role="tab">
             Waiting Fabrication
             @if (GetCount("WaitingFabrication") > 0)
             {
-                <span class="badge bg-danger rounded-pill ms-1">@GetCount("WaitingFabrication")</span>
+                <span class="badge bg-danger rounded-pill">@GetCount("WaitingFabrication")</span>
             }
-        </a>
+        </button>
     </li>
 
     <li class="nav-item" role="presentation">
-        <a class="nav-link @(currentPath.Contains("onfabrication") ? "active" : "")"
-           href="/Requestor/MyRequest/OnFabrication" role="tab">
+        <button class="nav-link"
+                id="onfabrication-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#onfabrication"
+                data-status="OnFabrication"
+                type="button"
+                role="tab">
             On Fabrication
             @if (GetCount("OnFabrication") > 0)
             {
-                <span class="badge bg-danger rounded-pill ms-1">@GetCount("OnFabrication")</span>
+                <span class="badge bg-danger rounded-pill">@GetCount("OnFabrication")</span>
             }
-        </a>
+        </button>
     </li>
 
     <li class="nav-item" role="presentation">
-        <a class="nav-link @(currentPath.Contains("waitingconfirmation") ? "active" : "")"
-           href="/Requestor/MyRequest/WaitingConfirmation" role="tab">
-            Waiting Confirmation
+        <button class="nav-link"
+                id="waitingconfirmation-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#waitingconfirmation"
+                data-status="WaitingConfirmation"
+                type="button"
+                role="tab">
+            Waiting Buyoff
             @if (GetCount("WaitingConfirmation") > 0)
             {
-                <span class="badge bg-danger rounded-pill ms-1">@GetCount("WaitingConfirmation")</span>
+                <span class="badge bg-danger rounded-pill">@GetCount("WaitingConfirmation")</span>
             }
-        </a>
+        </button>
     </li>
 
     <li class="nav-item" role="presentation">
-        <a class="nav-link @(currentPath.Contains("history") ? "active" : "")"
-           href="/Requestor/MyRequest/History" role="tab">
+        <button class="nav-link"
+                id="history-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#history"
+                data-status="Maspro,Fail"
+                type="button"
+                role="tab">
             History
-            @if (GetCount("History") > 0)
-            {
-                <span class="badge bg-danger rounded-pill ms-1">@GetCount("History")</span>
+            @{
+                int historyCount = GetCount("Maspro") + GetCount("Fail");
             }
-        </a>
+            @if (historyCount > 0)
+            {
+                <span class="badge bg-danger rounded-pill">@historyCount</span>
+            }
+        </button>
     </li>
 
+
     <li class="nav-item" role="presentation">
-        <a class="nav-link @(currentPath.Contains("reject") ? "active" : "")"
-           href="/Requestor/MyRequest/Reject" role="tab">
+        <button class="nav-link"
+                id="reject-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#reject"
+                data-status="Reject"
+                type="button"
+                role="tab">
             Reject
             @if (GetCount("Reject") > 0)
             {
-                <span class="badge bg-danger rounded-pill ms-1">@GetCount("Reject")</span>
+                <span class="badge bg-danger rounded-pill">@GetCount("Reject")</span>
             }
-        </a>
+        </button>
     </li>
 </ul>
-
-
-
-
 
 <table class="table table-sm mt-3 table-striped table-bordered">
     <thead>
@@ -167,7 +194,16 @@
                     <td>@ir.MachineCategories?.CategoryName</td>
                     <td>@ir.CreatedAt</td>
                     <td class="text-center">
+                        @if (ir.Status == "WaitingConfirmation")
+                        {
+                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalPass-@ir.Id">
+                                <i class="bi bi-check"></i> Pass
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalFail-@ir.Id">
+                                <i class="bi bi-x-lg"></i> Fail
+                            </button>
 
+                        }
                         <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-@ir.Id">
                             <i class="bi bi-info-circle"></i> Detail
                         </button>
@@ -183,6 +219,47 @@
     </tbody>
 </table>
 
+<!-- Modal pass -->
+@if (ViewBag.ModalData != null)
+{
+    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
+    {
+        <div class="modal fade" id="modalPass-@ir.Id" tabindex="-1" aria-labelledby="modalApprove" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="/Requestor/MyRequest/Pass" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div class="modal-header bg-success">
+                            <h5 class="modal-title mb-2 text-white" id="modalApprove">Confirmation Result</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="my-2">Id Request</label>
+                                <input class="form-control" value="@ir.Id" readonly />
+                            </div>
+                            <div class="form-group">
+                                <label class="my-2">Item Name</label>
+                                <input type="hidden" name="ItemRequestId" value="@ir.Id" />
+                                <input name="PartName" class="form-control" value="@ir.PartName" readonly />
+                            </div>
+                            <div class="form-group">
+                                <label class="my-2">Result</label>
+                                <input class="form-control" value="Pass" readonly />
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-success">Lanjut</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+}
+
 <nav aria-label="Page navigation example">
     <ul class="pagination justify-content-end">
         <li class="page-item disabled">
@@ -196,18 +273,69 @@
         </li>
     </ul>
 </nav>
-@if (Model != null && Model.Any())
+
+<!-- Modal Fail -->
+@if (ViewBag.ModalData != null)
 {
-    foreach (var ir in Model)
+    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
+    {
+        <div class="modal fade" id="modalFail-@ir.Id" tabindex="-1" aria-labelledby="modalApprove" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="/Requestor/MyRequest/Fail" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div class="modal-header bg-danger">
+                            <h5 class="modal-title mb-2 text-white" id="modalApprove">Confirmation Result</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="my-2" asp-for="ItemRequestId">Id Request</label>
+                                <input class="form-control" value="@ir.Id" readonly />
+                                <span asp-validation-for="PartName" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="my-2" asp-for="ItemRequestId">Item Name</label>
+                                <input type="hidden" name="ItemRequestId" value="@ir.Id" />
+                                <input name="PartName" class="form-control" value="@ir.PartName" readonly />
+                                <span asp-validation-for="PartName" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="my-2" asp-for="ItemRequestId">Result</label>
+                                <input class="form-control" value="Fail" readonly />
+                                <span asp-validation-for="PartName" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="my-2" asp-for="ItemRequestId">Reason</label>
+                                <textarea class="form-control" id="Reason" name="Reason" rows="3" placeholder="Input Reason..."></textarea>
+                                <span asp-validation-for="SapId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-danger">Lanjut</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    }
+}
+@if (ViewBag.ModalData != null)
+{
+    foreach (var rm in (IEnumerable<dynamic>)ViewBag.ModalData)
     {
         // cek apakah status terakhir reject
-        var isRejected = ir.Status?.Equals("Reject", StringComparison.OrdinalIgnoreCase) == true;
-        var latestReject = ir.RequestStatus?
-                .FirstOrDefault(s =>
-                    s.Status.Contains("Reject", StringComparison.OrdinalIgnoreCase)
-                );
+        var isRejected = rm.Status?.ToString().Equals("Reject", StringComparison.OrdinalIgnoreCase) == true;
 
-        <div class="modal fade" id="modalStatus-@ir.Id" tabindex="-1" aria-labelledby="modalApprove" aria-hidden="true">
+
+        var latestReject = (rm.RequestStatus as IEnumerable<dynamic>)?
+            .FirstOrDefault(s =>
+                s.Status != null && s.Status.ToString().Contains("Reject", StringComparison.OrdinalIgnoreCase)
+            );
+
+        <div class="modal fade" id="modalStatus-@rm.Id" tabindex="-1" aria-labelledby="modalApprove" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <!-- Header berubah warna -->
@@ -226,13 +354,14 @@
                                         <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-success p-2">
                                             <i class="bi bi-person-plus"></i>
                                         </span>
-                                        <strong>Request By:</strong> @ir.Users.Name
-                                        <br><small class="text-muted">@ir.CreatedAt</small>
+                                        <strong>Request By:</strong> @(rm.Users?.Name ?? "-")
+                                        <br><small class="text-muted">@rm.CreatedAt</small>
                                     </li>
 
                                     <!-- Supervisor -->
                                     @{
-                                        var approvedStatus = ir.RequestStatus.FirstOrDefault(s => s.Status == "SupervisorApproved");
+                                        var approvedStatus = (rm.RequestStatus as IEnumerable<dynamic>)?
+                                        .FirstOrDefault(s => s.Status?.ToString() == "SupervisorApproved");
                                     }
                                     <li class="list-group-item ps-4 position-relative">
                                         @if (approvedStatus != null)
@@ -242,9 +371,8 @@
                                             </span>
                                             <strong>Approved By Supervisor:</strong>
  
-                                            @approvedStatus.Users?.Name
+                                            @(approvedStatus.Users?.Name ?? "-")
                                             <br>
-
                                             <small class="text-muted">@approvedStatus.CreatedAt</small>
                                         }
                                         else
@@ -256,7 +384,36 @@
 
                                             <i class="text-muted">-</i>
                                             <br>
+                                            <small class="text-muted">-</small>
+                                        }
+                                    </li>
 
+                                    <!-- Tim Fabricasi -->
+                                    @{
+                                        var fabApprove = (rm.RequestStatus as IEnumerable<dynamic>)?
+                                        .FirstOrDefault(s => s.Status?.ToString() == "FabricationApproved");
+                                    }
+                                    <li class="list-group-item ps-4 position-relative">
+                                        @if (fabApprove != null)
+                                        {
+                                            <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-success p-2">
+                                                <i class="bi bi-check-circle"></i>
+                                            </span>
+                                            <strong>Approved By Fabrication Tim:</strong>
+
+                                            @(fabApprove.Users?.Name ?? "-")
+                                            <br>
+                                            <small class="text-muted">@fabApprove.CreatedAt</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-secondary p-2">
+                                                <i class="bi bi-clock"></i>
+                                            </span>
+                                            <strong>Approved By Fabrication Tim:</strong>
+
+                                            <i class="text-muted">-</i>
+                                            <br>
                                             <small class="text-muted">-</small>
                                         }
                                     </li>
@@ -271,24 +428,62 @@
                                     </li>
 
                                     <!-- Received -->
+                                    @{
+                                        var recivedStatus = (rm.RequestStatus as IEnumerable<dynamic>)?
+                                        .FirstOrDefault(s => s.Status?.ToString() == "ResultPass" || s.Status?.ToString() == "ResultFail");
+                                    }
                                     <li class="list-group-item ps-4 position-relative">
-                                        <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-secondary p-2">
-                                            <i class="bi bi-person-check-fill "></i>
-                                        </span>
-                                        <strong>Received By:</strong> -
-                                        <br><small class="text-muted">-</small>
+                                        @if (recivedStatus != null)
+                                        {
+                                            var isFail = recivedStatus.Status?.Contains("Fail", StringComparison.OrdinalIgnoreCase) == true;
+                                            var badgeColor = isFail ? "bg-danger" : "bg-success";
+                                            var borderColor = isFail ? "border-danger" : "border-primary";
+                                            var textColor = isFail ? "text-danger" : "text-muted";
+
+                                            <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle @badgeColor p-2">
+                                                <i class="bi @(isFail ? "bi-x-circle" : "bi-check-circle")"></i>
+                                            </span>
+                                            <strong>Buy Off By:</strong>
+ 
+                                            @(recivedStatus.Users?.Name ?? "-")
+                                            <br>
+                                            <small>@recivedStatus.CreatedAt</small>
+
+                                            <div class="mt-2 border-start border-2 @borderColor ps-3">
+                                                <small class="@(isFail ? "text-danger" : "")">
+                                                    <strong>Result:</strong>
+                                                    @System.Text.RegularExpressions.Regex.Replace(recivedStatus.Status ?? "-", "([a-z])([A-Z])", "$1 $2")
+                                                </small>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-secondary p-2">
+                                                <i class="bi bi-clock"></i>
+                                            </span>
+                                            <strong>Buy Off By:</strong>
+
+                                            <i class="text-muted">-</i>
+                                            <br>
+                                            <small class="text-muted">-</small>
+                                            <div class="mt-2 border-start border-2 border-secondary ps-3">
+                                                <small><strong>Result:</strong> -</small>
+                                            </div>
+                                        }
                                     </li>
 
-                                    
+
+                                    <!-- Reject -->
                                     @if (isRejected && latestReject != null)
                                     {
                                         <li class="list-group-item ps-4 position-relative text-danger">
                                             <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-danger p-2">
                                                 <i class="bi bi-x-circle"></i>
                                             </span>
-                                            <strong>Rejected By:</strong> @latestReject.Users?.Name
+                                            <strong>Rejected By:</strong> @(latestReject.Users?.Name ?? "-")
                                             <br><small class="text-muted">@latestReject.CreatedAt</small>
-                                            @if (!string.IsNullOrEmpty(latestReject.Reason))
+
+                                            @if (!string.IsNullOrEmpty((string)latestReject.Reason))
                                             {
                                                 <div class="mt-2 border-start border-2 border-danger ps-3">
                                                     <small><strong>Reason:</strong> @latestReject.Reason</small>
@@ -311,12 +506,12 @@
 }
 
 
-<!-- Modal detail-->
-@if (Model != null && Model.Any())
+
+<!-- Modal Detail -->
+@if (ViewBag.ModalData != null)
 {
-    foreach (var rm in Model)
+    foreach (var rm in (IEnumerable<dynamic>)ViewBag.ModalData)
     {
-        <!-- Modal Detail -->
         <div class="modal fade" id="modalDetail-@rm.Id" tabindex="-1" aria-labelledby="detailLabel-@rm.Id" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -329,92 +524,36 @@
                         <dl class="row">
                             <dt class="col-sm-4">Part Name</dt>
                             <dd class="col-sm-8">
-                                @(!string.IsNullOrEmpty(rm.PartName)
-                                                        ? rm.PartName
-                                                        : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                                                                                                                          </dd>
-
+                                @(rm.PartName ?? Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
+                            </dd>
 
                             <dt class="col-sm-4">Machine Category</dt>
                             <dd class="col-sm-8">
-                                @(rm.MachineCategories.CategoryName != null
-                                                        ? rm.MachineCategories.CategoryName
-                                                        : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                                                                                                                          </dd>
+                                @(rm.MachineCategories?.CategoryName ?? Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
+                            </dd>
 
                             <dt class="col-sm-4">External Cost ($)</dt>
                             <dd class="col-sm-8">
-                                @(rm.ExternalFabCost.HasValue
-                                                        ? rm.ExternalFabCost.ToString()
-                                                        : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                                                                                                                          </dd>
+                                @(rm.ExternalFabCost != null ? rm.ExternalFabCost.ToString() : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
+                            </dd>
 
                             <dt class="col-sm-4">Fabrication Time</dt>
                             <dd class="col-sm-8">
-                                @(rm.FabricationTime.HasValue
-                                                        ? rm.FabricationTime.ToString()
-                                                        : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                    </dd>
+                                @(rm.FabricationTime != null ? rm.FabricationTime.ToString() : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
+                            </dd>
 
-                            @*         <dt class="col-sm-4">Raw Material</dt>
-                                    <dd class="col-sm-8">
-                                        @(rm.RawMaterials.Name != null
-                                                                ? rm.RawMaterials.Name
-                                                                : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                            </dd> *@
-
-                    @if (rm.MachineCategoryId == 2)
+                            @if (rm.MachineCategoryId == 2)
                             {
                                 <dt class="col-sm-4">Weight</dt>
                                 <dd class="col-sm-8">
-                                    @(rm.Weight != null
-                                                            ? rm.Weight.ToString()
-                                                            : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                    </dd>
-                                        }
-
-                    <dt class="col-sm-4">Part Code</dt>
-                    <dd class="col-sm-8">
-                        @(!string.IsNullOrEmpty(rm.PartCode)
-                                                ? rm.PartCode
-                                                : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                    </dd>
-
-                            @* <dt class="col-sm-4">Link Quotation</dt>
-                                <dd class="col-sm-8">
-                            @if (!string.IsNullOrEmpty(rm.LinkQuantation))
-                                    {
-                                        <a href="@rm.LinkQuantation" target="_blank">klik disini</a>
-                                    }
-                                    else
-                                    {
-                                        @Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>")
-                                    }
+                                    @(rm.Weight != null ? rm.Weight.ToString() : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
                                 </dd>
+                            }
 
-                                <dt class="col-sm-4">Link Drawing</dt>
-                                <dd class="col-sm-8">
-                                    @if (!string.IsNullOrEmpty(rm.LinkDrawing))
-                                    {
-                                        <a href="@rm.LinkDrawing" target="_blank">klik disini</a>
-                                    }
-                                    else
-                                    {
-                                        @Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>")
-                                    }
-                                </dd>
-
-                                <dt class="col-sm-4">Link ODC</dt>
-                                <dd class="col-sm-8">
-                                    @if (!string.IsNullOrEmpty(rm.LinkODC))
-                                    {
-                                        <a href="@rm.LinkODC" target="_blank">klik disini</a>
-                                    }
-                                    else
-                                    {
-                                        @Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>")
-                                    }
-                                </dd>*@
+                            <dt class="col-sm-4">Part Code</dt>
+                            <dd class="col-sm-8">
+                                @(rm.PartCode ?? Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
+                            </dd>
                         </dl>
                     </div>
 
@@ -433,40 +572,6 @@
 @if (Model != null && Model.Any())
 
 {
-    foreach (var rq in Model)
-
-    {
-        <!-- Modal Approve -->
-        <div class="modal fade" id="modalApprove-@rq.Id" tabindex="-1" aria-labelledby="modalApproveLabel-@rq.Id" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <form method="post" action="/AdminFabrication/NewRequest/Approve">
-
-                        @Html.AntiForgeryToken()
-                        <div class="modal-header bg-success text-white">
-                            <h5 class="modal-title" id="modalApproveLabel-@rq.Id">Approve Request</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-
-
-                            <div class="form-group mb-2">
-                                <label for="estimation-@rq.Id">Estimasi Selesai</label>
-                                <input type="date" class="form-control" id="estimation-@rq.Id" name="EstimationDone" required />
-                            </div>
-
-                            <input type="hidden" name="ItemRequestId" value="@rq.Id" />
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-success">Approve</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-    }
 }
 
 <!-- Modal repeat -->
@@ -501,3 +606,124 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const tableBody = document.querySelector('table.table tbody');
+      const searchBox = document.getElementById('searchBox');
+      const loadingText = document.getElementById('loadingText');
+      const categoryFilter = document.querySelector('select[name="MachineCategoryId"]');
+      const tabs = document.querySelectorAll('#statusTabs .nav-link');
+
+      let currentStatusList = ['@ViewBag.CurrentStatus']; // ubah jadi array
+      let debounceTimer = null;
+      let loadingTimer = null;
+
+      if (!tableBody || !searchBox) return;
+      const initialHTML = tableBody.innerHTML;
+
+      async function performSearch() {
+        const keyword = searchBox.value.trim();
+        const categoryId = categoryFilter ? categoryFilter.value : "";
+
+        // Jika tidak ada filter apapun, kembalikan tampilan awal
+        if (keyword.length === 0 && !categoryId && (!currentStatusList || currentStatusList.length === 0)) {
+          tableBody.innerHTML = initialHTML;
+          return;
+        }
+
+        clearTimeout(loadingTimer);
+        loadingTimer = setTimeout(() => {
+          if (loadingText) loadingText.style.display = 'block';
+        }, 400);
+
+        try {
+          const url = new URL("/Requestor/MyRequest/Search", window.location.origin);
+          if (keyword) url.searchParams.append("keyword", keyword);
+          if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
+
+          // kirim semua status (bisa 1 atau banyak)
+          currentStatusList.forEach(s => url.searchParams.append("status", s.trim()));
+
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('Network response was not ok');
+          const data = await res.json();
+          console.log(data)
+          clearTimeout(loadingTimer);
+          if (loadingText) loadingText.style.display = 'none';
+
+          if (!Array.isArray(data) || data.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Tidak ada data Request.</td></tr>`;
+            return;
+          }
+
+          let html = '';
+          data.forEach((rq, idx) => {
+            const id = rq.id ?? '';
+            let buttons = '';
+
+            if (rq.status === "WaitingConfirmation") {
+              buttons += `
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalPass-${id}">
+                  <i class="bi bi-check"></i> Pass
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalFail-${id}">
+                  <i class="bi bi-x-lg"></i> Fail
+                </button>
+                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-${id}">
+                  <i class="bi bi-info-circle"></i> Detail
+                </button>
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalStatus-${id}">
+                  <i class="bi bi-ticket-detailed"></i> Status
+                </button>`;
+            } else if (
+              ["WaitingFabrication", "OnFabrication", "WaitingApproval", "Maspro", "Fail", "Reject"].includes(rq.status)
+            ) {
+              buttons += `
+                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-${id}">
+                  <i class="bi bi-info-circle"></i> Detail
+                </button>
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalStatus-${id}">
+                  <i class="bi bi-ticket-detailed"></i> Status
+                </button>`;
+            }
+
+            html += `
+              <tr>
+                <td class="text-center">${idx + 1}</td>
+                <td>${rq.id ?? '-'}</td>
+                <td>${rq.partName ?? '-'}</td>
+                <td>${rq.categoryName ?? '-'}</td>
+                <td>${rq.createdAt ?? '-'}</td>
+                <td class="text-center">${buttons}</td>
+              </tr>`;
+          });
+
+          tableBody.innerHTML = html;
+        } catch (err) {
+          clearTimeout(loadingTimer);
+          if (loadingText) loadingText.style.display = 'none';
+          console.error('Search error:', err);
+          tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Terjadi kesalahan saat mencari.</td></tr>`;
+        }
+      }
+
+      // Debounce input
+      searchBox.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(performSearch, 350);
+      });
+
+      // Filter kategori
+      if (categoryFilter) categoryFilter.addEventListener('change', performSearch);
+
+      // Tab change (Bootstrap event)
+      tabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', event => {
+          const statusAttr = event.target.getAttribute('data-status');
+          currentStatusList = statusAttr ? statusAttr.split(',').map(s => s.trim()) : [];
+          performSearch();
+        });
+      });
+    });
+</script>
