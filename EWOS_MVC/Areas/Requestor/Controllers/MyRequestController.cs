@@ -34,6 +34,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             var modalData = await _context.ItemRequests
                 .Include(mc => mc.MachineCategories)
                 .Include(u => u.Users)
+                .Include(rm => rm.RawMaterials)
                 .Include(rs => rs.RequestStatus)
                     .ThenInclude(u => u.Users)
                 .Where(u => u.UserId == userId)

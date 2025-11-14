@@ -41,7 +41,7 @@ public class WindowsAuthMiddleware
                 return await db.Users
                     .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
-                    .FirstOrDefaultAsync(u => u.UserName == userNameOnly && u.IsActive);
+                    .FirstOrDefaultAsync(u => u.UserName == "riski.wahyudi" && u.IsActive);
             });
 
             //jika tidak ada ambil dari AD service dan tambahkan ke DB

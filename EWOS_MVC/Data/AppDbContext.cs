@@ -17,6 +17,10 @@ public class AppDbContext : DbContext
     public DbSet<ItemRequestModel> ItemRequests { get; set; }
     public DbSet<RequestStatusModel> RequestStatus { get; set; }
     public DbSet<RawMaterialModel> RawMaterials { get; set; }
+    public DbSet<RepeatOrderModel> RepeatOrders { get; set; }
+    public DbSet<ItemFabricationModel> ItemFabrications { get; set; }
+    public DbSet<WeeksSettingModel> WeeksSetting { get; set; }
+    public DbSet<YearsSettingModel> YearsSetting { get; set; }
 
     //konfigurasi relasi  many to many
     protected override void OnModelCreating(ModelBuilder modelBuilder)

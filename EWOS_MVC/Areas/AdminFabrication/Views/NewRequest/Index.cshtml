@@ -186,13 +186,28 @@
                             <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalReject-@rq.Id">
                                 Reject
                             </button>
-                         }
+                        }
 
                         else if (rq.Status == "WaitingFabrication")
-                        { 
-                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#fabrikasiModal-@rq.Id">
-                                Fabrikasi
-                            </button>
+                        {
+                            var externalCost = rq.ExternalFabCost == null;
+                            var FabTime = rq.FabricationTime == null;
+                            var rawMaterial = rq.RawMaterialId == null;
+                            var weight = rq.Weight == null;
+
+                            if(rq.MachineCategoryId == 1)
+                            {
+                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" @(externalCost || FabTime || rawMaterial ? "disabled" : "") data-bs-target="#fabrikasiModal-@rq.Id">
+                                    Fabrikasi
+                                </button>
+                                
+                            }else if(rq.MachineCategoryId == 2)
+                            {
+                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" @(externalCost || FabTime || rawMaterial || weight ? "disabled" : "") data-bs-target="#fabrikasiModal-@rq.Id">
+                                    Fabrikasi
+                                </button>
+
+                            }
                             <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-@rq.Id">
                                 Edit
                             </button>
@@ -309,7 +324,7 @@
         <div class="modal fade" id="modalEdit-@ir.Id" tabindex="-1" aria-labelledby="approveLabel-@ir.Id" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form method="post" action="/AdminFabrication/NewRequest/Edit">
+                    <form method="post" action="/AdminFabrication/NewRequest/Edit" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
                         <div class="modal-header bg-warning text-white">
                             <h5 class="modal-title" id="approveLabel-@ir.Id">Edit Data</h5>
@@ -334,11 +349,11 @@
                             </div>
                             <div class="form-group mb-3">
                                 <label>External Fab Cost($)</label>
-                                <input name="ExternalFabCost" class="form-control" type="number" step="0.01" placeholder="0.00" value="@ir.ExternalFabCost" />
+                                <input name="ExternalFabCost" class="form-control" type="number" step="0.01" placeholder="0,00" value="@(ir.ExternalFabCost != null ? ir.ExternalFabCost.ToString("0.00") : ""))" />
                             </div>
                             <div class="form-group mb-3">
                                 <label>Fabrication Time</label>
-                                <input name="FabricationTime" class="form-control" type="number" step="0.01" placeholder="4.5" value="@ir.FabricationTime" />
+                                <input name="FabricationTime" class="form-control" type="number" step="0.01" placeholder="0,00" value="@(ir.FabricationTime != null ? ir.FabricationTime.ToString("0.00") : "")" />
                             </div>
                             <div class="form-group mb-3">
                                 <label asp-for="RawMaterials">Raw Material</label>
@@ -349,25 +364,57 @@
                             {
                                 <div class="form-group mb-3">
                                     <label>Weight</label>
-                                    <input name="Weight" class="form-control" type="number" step="0.01" placeholder="0.00" value="@ir.Weight" />
+                                    <input name="Weight" class="form-control" type="number" step="0.01" placeholder="0,00" value="@(ir.Weight != null ? ir.Weight.ToString("0.00") : "")" />
                                 </div>
                             }
                             <div class="form-group mb-3">
                                 <label>Part Code</label>
                                 <input name="PartCode" class="form-control" placeholder="Input Part Code" value="@ir.PartCode" />
                             </div>
-                            @* <div class="form-group mb-3">
-                                <label>Link Quantation</label>
-                                <input name="LinkQuantation" class="form-control" placeholder="Input Link Quantation" value="@ir.LinkQuantation" />
+                            <div class="form-group mb-3" id="unitcontainer">
+                                <label for="unit" class="form-label">
+                                    <i class="bi bi-list me-1"></i> Unit
+                                </label>
+                                <select class="form-select" id="unit" name="Unit">
+                                    <option selected value="@ir.Unit">@ir.Unit</option>
+
+                                    @if (ir.Unit != "Pcs")
+                                    {
+                                        <option value="Pcs">Pcs</option>
+                                    }
+                                    @if (ir.Unit != "Set")
+                                    {
+                                        <option value="Set">Set</option>
+                                    }
+                                </select>
                             </div>
+
+                            <!-- File Design -->
                             <div class="form-group mb-3">
-                                <label>Link Drawing</label>
-                                <input name="LinkDrawing" class="form-control" placeholder="Input Link Drawing" value="@ir.LinkDrawing" />
+                                <label for="fileDesign" class="form-label">
+                                    <i class="bi bi-file-earmark-text me-1"></i> Update File Design
+                                </label>
+                                <input class="form-control" type="file" id="fileDesign" name="fileDesign" />
+                                <div class="form-text text-muted text-sm">Max 1MB, .zip only is allowed.</div>
                             </div>
+
+                            <!-- File Drawing -->
                             <div class="form-group mb-3">
-                                <label>Link ODC</label>
-                                <input name="LinkODC" class="form-control" placeholder="Input Link ODC" value="@ir.LinkODC" />
-                            </div> *@
+                                <label for="fileDrawing" class="form-label">
+                                    <i class="bi bi-file-earmark-text me-1"></i> Update File Drawing
+                                </label>
+                                <input class="form-control" type="file" id="fileDrawing" name="fileDrawing" />
+                                <div class="form-text text-muted text-sm">Max 1MB, .pdf only is allowed.</div>
+                            </div>
+
+                            <!-- File Quotation -->
+                            <div class="form-group mb-3" id="quatationcontainer">
+                                <label for="fileQuotation" class="form-label">
+                                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Update File Quotation
+                                </label>
+                                <input class="form-control" type="file" id="fileQuotation" name="fileQuotation" />
+                                <div class="form-text text-muted text-sm">Max 1MB, .pdf only is allowed.</div>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -393,7 +440,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
                     <div class="modal-body">
-                        <form method="post" action="/AdminFabrication/NewRequest/Add">
+                        <form method="post" action="/AdminFabrication/NewRequest/AddFabrikasi">
                             @Html.AntiForgeryToken()
 
                             <input type="hidden" name="ItemRequestId" value="@ir.Id" />
@@ -422,58 +469,181 @@
     {
         <!-- Modal Detail -->
         <div class="modal fade" id="modalDetail-@rm.Id" tabindex="-1" aria-labelledby="detailLabel-@rm.Id" aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
-                    <div class="modal-header bg-info text-white">
+                    <!-- Modal Header -->
+                    <div class="modal-header bg-gradient ">
                         <h5 class="modal-title" id="detailLabel-@rm.Id">Detail Data</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
 
+                    <!-- Modal Body -->
                     <div class="modal-body">
-                        <dl class="row">
-                            <dt class="col-sm-4">Part Name</dt>
-                            <dd class="col-sm-8">
-                                @(rm.PartName ?? Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                            </dd>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped align-middle w-100">
+                                <tbody>
+                                    <tr>
+                                        <th class="col-sm-4">Part Id</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(rm.Id ?? Html.Raw("<span class='badge bg-danger'>-</span>"))
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-sm-4">Part Name</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(rm.PartName ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-sm-4">Part Code</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(rm.PartCode ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                                        </td>
+                                    </tr>
 
-                            <dt class="col-sm-4">Machine Category</dt>
-                            <dd class="col-sm-8">
-                                @(rm.MachineCategories?.CategoryName ?? Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                            </dd>
+                                    <tr>
+                                        <th class="col-sm-4">Machine Category</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(rm.MachineCategories?.CategoryName ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-sm-4">Raw Material</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(rm.RawMaterials?.Name ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                                        </td>
+                                    </tr>
 
-                            <dt class="col-sm-4">External Cost ($)</dt>
-                            <dd class="col-sm-8">
-                                @(rm.ExternalFabCost != null ? rm.ExternalFabCost.ToString() : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                            </dd>
+                                    <tr>
+                                        <th class="col-sm-4">External Cost ($)</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(rm.ExternalFabCost != null ? rm.ExternalFabCost.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                                        </td>
+                                    </tr>
 
-                            <dt class="col-sm-4">Fabrication Time</dt>
-                            <dd class="col-sm-8">
-                                @(rm.FabricationTime != null ? rm.FabricationTime.ToString() : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                            </dd>
+                                    <tr>
+                                        <th class="col-sm-4">Fabrication Time</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(rm.FabricationTime != null ? rm.FabricationTime.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                                        </td>
+                                    </tr>
 
-                            @if (rm.MachineCategoryId == 2)
-                            {
-                                <dt class="col-sm-4">Weight</dt>
-                                <dd class="col-sm-8">
-                                    @(rm.Weight != null ? rm.Weight.ToString() : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                                </dd>
-                            }
+                                    @if (rm.MachineCategoryId == 2)
+                                    {
+                                        <tr>
+                                            <th class="col-sm-4">Weight</th>
+                                            <td class="col-sm-8" style="word-break: break-word;">
+                                                @(rm.Weight != null ? rm.Weight.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                                            </td>
+                                        </tr>
+                                    }
+                                    <tr>
+                                        <th class="col-sm-4">Fabrication Unit</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(rm.Unit ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-sm-4">Saving Cost Calculation</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @if (rm.IsCalculateSaving)
+                                            {
+                                                <span class="badge bg-success">Yes</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">No</span>
+                                            }
+                                        </td>
+                                    </tr>
 
-                            <dt class="col-sm-4">Part Code</dt>
-                            <dd class="col-sm-8">
-                                @(rm.PartCode ?? Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                            </dd>
-                        </dl>
+                                    <tr>
+                                        <th class="col-sm-4">Request Date</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(rm.CreatedAt != null
+                                                ? rm.CreatedAt.ToString("dd-MM-yyyy")
+                                                : Html.Raw("<span class='badge bg-danger'>-</span>"))
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-sm-4">CRD</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(rm.CRD != null
+                                                ? rm.CRD.ToString("dd-MM-yyyy")
+                                                : Html.Raw("<span class='badge bg-danger'>-</span>"))
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <th class="col-sm-4">OCD</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(rm.OCD != null
+                                                ? rm.OCD.ToString("dd-MM-yyyy")
+                                                : Html.Raw("<span class='badge bg-danger'>-</span>"))
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-sm-4">Design</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @if (!string.IsNullOrEmpty(rm.DesignPath))
+                                            {
+                                                <a href="@Url.Content(rm.DesignPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Download</a>
+                                            }
+                                            else
+                                            {
+                                                <span>-</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-sm-4">Ref Drawing</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @if (!string.IsNullOrEmpty(rm.DrawingPath))
+                                            {
+                                                <a href="@Url.Content(rm.DrawingPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye-fill"></i> View</a>
+                                            }
+                                            else
+                                            {
+                                                <span>-</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-sm-4">Ref Quotation</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @if (!string.IsNullOrEmpty(rm.QuantationPath))
+                                            {
+                                                <a href="@Url.Content(rm.QuantationPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye-fill"></i> View</a>
+                                            }
+                                            else
+                                            {
+                                                <span>-</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-sm-4">Description</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(rm.Description ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
+                    <!-- Modal Footer -->
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                     </div>
                 </div>
             </div>
         </div>
+
+
     }
 }
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const tableBody = document.querySelector('table.table tbody');
@@ -544,21 +714,49 @@
                             </button>
                         `;
                     } else if (rq.status === "WaitingFabrication") {
-                        buttons += `
-                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#fabrikasiModal-${rq.id}">
+
+                        const externalCostIsNull = rq.externalFabCost === null ;
+                        const fabTimeIsNull = rq.fabricationTime === null ;
+                        const rawMaterialIsNull = rq.rawMaterialId === null ;
+                        const weightIsNull = rq.weight === null;
+
+                        if (rq.machineCategoryId === 1) {
+                        const isDisabled = externalCostIsNull || fabTimeIsNull || rawMaterialIsNull;
+                        buttons = `
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" ${isDisabled ? 'disabled' : ''} data-bs-target="#fabrikasiModal-${rq.id}">
                                 Fabrikasi
                             </button>
-                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-${rq.id}">
+                            <button type="button" class="btn btn-warning btn-sm position-relative" data-bs-toggle="modal" data-bs-target="#modalEdit-${rq.id}">
                                 Edit Data
+                                ${isDisabled ? `
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    !
+                                    </span>
+                                ` : ''}
                             </button>
                         `;
-                    } 
+                    } else if (rq.machineCategoryId === 2) {
+                        const isDisabled = externalCostIsNull || fabTimeIsNull || rawMaterialIsNull || weightIsNull;
+                        buttons = `
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" ${isDisabled ? 'disabled' : ''} data-bs-target="#fabrikasiModal-${rq.id}">
+                                Fabrikasi
+                            </button>
+                            <button type="button" class="btn btn-warning btn-sm position-relative" data-bs-toggle="modal" data-bs-target="#modalEdit-${rq.id}">
+                                Edit Data
+                                ${isDisabled ? `
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    !
+                                    </span>
+                                ` : ''}
+                            </button>
+                        `;
+                    }
                         buttons += `
                             <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-${rq.id}">
                                 Detail
                             </button>
                         `;
-                    
+                    }
 
                     html += `
                         <tr>
@@ -598,6 +796,53 @@
             tab.addEventListener("click", function () {
                 currentStatus = this.getAttribute("data-bs-target"); 
                 performSearch();
+            });
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const maxSize = 1 * 1024 * 1024; // 1MB
+
+        const fileInputs = [
+            { id: 'fileDrawing', type: 'pdf' },
+            { id: 'fileQuotation', type: 'pdf' },
+            { id: 'fileDesign', type: 'zip' }
+        ];
+
+        fileInputs.forEach(item => {
+            const input = document.getElementById(item.id);
+            if (!input) return; // pastikan elemen ada di halaman
+
+            input.addEventListener('change', function () {
+                const file = this.files[0];
+                if (!file) return;
+
+                const fileName = file.name.toLowerCase();
+                const fileSize = file.size;
+                const isPDF = file.type === "application/pdf" || fileName.endsWith(".pdf");
+                const isZIP = file.type === "application/zip" || fileName.endsWith(".zip");
+
+                // Validasi format sesuai ID
+                if (item.type === 'pdf' && !isPDF) {
+                    alert("Hanya file berformat PDF yang diizinkan.");
+                    this.value = "";
+                    return;
+                }
+
+                if (item.type === 'zip' && !isZIP) {
+                    alert("Hanya file berformat ZIP yang diizinkan.");
+                    this.value = "";
+                    return;
+                }
+
+                // Validasi ukuran
+                if (fileSize > maxSize) {
+                    alert("Ukuran file maksimal 1MB. Silakan pilih file yang lebih kecil.");
+                    this.value = "";
+                    return;
+                }
             });
         });
     });

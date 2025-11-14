@@ -152,9 +152,13 @@
                     <a href="/Requestor/Dashboard" class="nav-link px-3 @(Context.Request.Path == "/Requestor/Dashboard" ? "active" : "")">
                         <i class="bi bi-house-door"></i> Dashboard
                     </a>
-                    <a href="/Requestor/FabricationHistory" class="nav-link px-3 @(Context.Request.Path == "/Requestor/FabricationHistory" ? "active" : "")">
-                        <i class="bi bi-clock-history"></i> Fabrication History
-                    </a>
+                    @* Tampilkan Fabrication History hanya jika role-nya Requestor saja *@
+                    @if (isRequestor && !isAdminFabrication && isSupervisor)
+                    {
+                        <a href="/Requestor/FabricationHistory" class="nav-link px-3 @(Context.Request.Path == "/Requestor/FabricationHistory" ? "active" : "")">
+                            <i class="bi bi-clock-history"></i> Fabrication History
+                        </a>
+                    }
                     <a href="/Requestor/NewRequest" class="nav-link px-3 @(Context.Request.Path == "/Requestor/NewRequest" ? "active" : "")">
                         <i class="bi bi-file-earmark-plus"></i> Form Request
                     </a>
@@ -174,32 +178,15 @@
                 <div class="sidebar-section mt-3">
                     <h6 class="text-uppercase text-muted px-3 mb-2">Fabrication Menu</h6>
 
-
-
                     <a href="/AdminFabrication/NewRequest" class="@(Context.Request.Path == "/AdminFabrication/NewRequest" ? "active" : "")">
                         <i class="bi bi-box-fill"></i> New Order
                     </a>
                     <a href="/AdminFabrication/RepeatOrder" class="@(Context.Request.Path == "/AdminFabrication/RepeatOrder" ? "active" : "")">
                         <i class="bi bi-repeat"></i> Repeat Order
                     </a>
-
-                    <a class="d-flex align-items-center justify-content-between
-                                     @(Context.Request.Path.StartsWithSegments("/AdminFabrication/ItemFabrication") ? "active" : "")"
-                       data-bs-toggle="collapse" href="#submenuFabrication"
-                       role="button"
-                       aria-expanded="@(Context.Request.Path.StartsWithSegments("/AdminFabrication/ItemFabrication") ? "true" : "false")"
-                       aria-controls="submenuFabrication">
-                        <span><i class="bi bi-gear-wide-connected"></i> Data Fabrikasi</span>
-                        <i class="bi bi-plus"></i>
+                    <a href="/Requestor/FabricationHistory" class="nav-link px-3 @(Context.Request.Path == "/Requestor/FabricationHistory" ? "active" : "")">
+                        <i class="bi bi-clock-history"></i> Fabrication History
                     </a>
-                    <div class="collapse ps-4 @(Context.Request.Path.StartsWithSegments("/AdminFabrication/ItemFabrication") ? "show" : "")" id="submenuFabrication">
-                        <a href="/AdminFabrication/ItemFabrication/Onprogress" class="d-block @(ViewBag.CurrentStatus == "Onprogress" ? "active" : "")">
-                            <i class="bi bi-circle"></i> Onprogress
-                        </a>
-                        <a href="/AdminFabrication/ItemFabrication/Done" class="d-block @(ViewBag.CurrentStatus == "Done" ? "active" : "")">
-                            <i class="bi bi-circle"></i> Done
-                        </a>
-                    </div>
                 </div>
             }
 
