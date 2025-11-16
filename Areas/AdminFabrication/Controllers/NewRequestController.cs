@@ -25,7 +25,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                                 .Include(u => u.Users)
                                 .Include(rs => rs.RequestStatus)
                                     .ThenInclude(u => u.Users)
-                                .Where(rq => rq.Status == "FabricationApproval")
+                                .Where(rq => rq.Status == "WaitingApproval")
                                 .ToListAsync();
 
             // --- Data modal untuk semua status ---
@@ -273,6 +273,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             existingData.MachineCategoryId = itemRequest.MachineCategoryId;
             existingData.ExternalFabCost = itemRequest.ExternalFabCost;
             existingData.FabricationTime = itemRequest.FabricationTime;
+            existingData.Weight = itemRequest.Weight;
             existingData.Unit = itemRequest.Unit;
             existingData.PartCode = itemRequest.PartCode;
             existingData.UpdatedAt = DateTime.Now;
@@ -298,7 +299,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 return Redirect("index");
             }
 
-            // 1️⃣ Ambil tahun aktif
+            //  Ambil tahun aktif
             int tahunSekarang = DateTime.Now.Year;
             var getTahun = await _context.YearsSetting
                 .Where(y => y.StartDate <= DateTime.Now)
@@ -372,8 +373,9 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             //ambil data mesin
             var machine = await _context.Machines.FindAsync(MachineId);
 
-
+            //hitung saving
             decimal totalSaving = 0m;
+            decimal fabricationTime = requestData.FabricationTime ?? 0m;
             if (requestData.IsCalculateSaving)
             {
                 decimal rawMaterialCost = 0m;
@@ -414,6 +416,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                     WeeksSettingId = mingguSekarang.Id,
                     Status = "Onprogress",
                     Quantity = 1,
+                    FabricationTime =fabricationTime,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };

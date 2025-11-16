@@ -1,0 +1,23 @@
+﻿@model List<EWOS_MVC.Models.YearsSettingModel>
+
+@{
+    int? selectedId = ViewData["SelectedId"] as int?;
+    int currentYear = DateTime.Now.Year;
+}
+
+<select name="YearSettingId" class="form-select" aria-label="Default select example" required>
+    <option value="" disabled>-- Pilih Tahun --</option>
+    @foreach (var y in Model)
+    {
+        bool isSelected = selectedId.HasValue ? (y.Id == selectedId.Value) : (y.Year == currentYear);
+
+        if (isSelected)
+        {
+            <option value="@y.Id" selected>@y.Year</option>
+        }
+        else
+        {
+            <option value="@y.Id">@y.Year</option>
+        }
+    }
+</select>

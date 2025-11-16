@@ -41,6 +41,7 @@ namespace EWOS_MVC.Models
         [Required(ErrorMessage = "Status wajib diisi")]
         public string Status { get; set; }
         public decimal? TotalSaving { get; set; } 
+        public decimal FabricationTime { get; set; } 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 

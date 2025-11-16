@@ -106,7 +106,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         //Result Pass
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Pass(long? ItemRequestId)
+        public async Task<IActionResult> Pass(long? ItemRequestId, string Reason)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
 
@@ -115,6 +115,12 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 TempData["Error"] = "ItemRequestId tidak boleh kosong.";
                 return RedirectToAction("Index");
             }
+            if (Reason == null)
+            {
+                TempData["Error"] = "Reason tidak boleh kosong.";
+                return RedirectToAction("Index");
+            }
+
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
@@ -135,7 +141,8 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             var approvalRequest = new RequestStatusModel
             {
                 ItemRequestId = ItemRequestId,
-                Status = "ResultPass",
+                Status = "Buyoff Pass",
+                Reason = Reason,
                 UserId = userId,
                 CreatedAt = DateTime.Now
             };
@@ -144,7 +151,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Berhasil Update Data.";
-            return Redirect("/MyRequest/WaitingConfirmation");
+            return Redirect("index");
         }
 
         // result fail
@@ -156,6 +163,11 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             if (ItemRequestId == null)
             {
                 TempData["Error"] = "ItemRequestId tidak boleh kosong.";
+                return RedirectToAction("Index");
+            }
+            if (Reason == null)
+            {
+                TempData["Error"] = "Reason tidak boleh kosong.";
                 return RedirectToAction("Index");
             }
             if (!ModelState.IsValid)
@@ -179,7 +191,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             var approvalRequest = new RequestStatusModel
             {
                 ItemRequestId = ItemRequestId,
-                Status = "ResultFail",
+                Status = "Buyoff Fail",
                 Reason = Reason,
                 UserId = userId,
                 CreatedAt = DateTime.Now

@@ -131,9 +131,9 @@
                     type="button"
                     role="tab">
                 Waiting Buyoff
-                @if (GetCount("WaitingBuyOff") > 0)
+                @if (GetCount("WaitingBuyoff") > 0)
                 {
-                    <span class="badge bg-danger rounded-pill">@GetCount("WaitingBuyOff")</span>
+                    <span class="badge bg-danger rounded-pill">@GetCount("WaitingBuyoff")</span>
                 }
             </button>
         </li>
@@ -349,11 +349,11 @@
                             </div>
                             <div class="form-group mb-3">
                                 <label>External Fab Cost($)</label>
-                                <input name="ExternalFabCost" class="form-control" type="number" step="0.01" placeholder="0,00" value="@(ir.ExternalFabCost != null ? ir.ExternalFabCost.ToString("0.00") : ""))" />
+                                <input name="ExternalFabCost" class="form-control" type="number" step="0.01" placeholder="0,00" value="@ir.ExternalFabCost" />
                             </div>
                             <div class="form-group mb-3">
                                 <label>Fabrication Time</label>
-                                <input name="FabricationTime" class="form-control" type="number" step="0.01" placeholder="0,00" value="@(ir.FabricationTime != null ? ir.FabricationTime.ToString("0.00") : "")" />
+                                <input name="FabricationTime" class="form-control" type="number" step="0.01" placeholder="0,00" value="@ir.FabricationTime" />
                             </div>
                             <div class="form-group mb-3">
                                 <label asp-for="RawMaterials">Raw Material</label>
@@ -735,7 +735,7 @@
                                 ` : ''}
                             </button>
                         `;
-                    } else if (rq.machineCategoryId === 2) {
+                        } else if (rq.machineCategoryId === 2) {
                         const isDisabled = externalCostIsNull || fabTimeIsNull || rawMaterialIsNull || weightIsNull;
                         buttons = `
                             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" ${isDisabled ? 'disabled' : ''} data-bs-target="#fabrikasiModal-${rq.id}">
@@ -750,13 +750,20 @@
                                 ` : ''}
                             </button>
                         `;
+                        }else if (rq.machineCategoryId === 3) {
+                        buttons = `
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#fabrikasiModal-${rq.id}">
+                                Drawing
+                            </button>
+
+                        `;
+                        }
                     }
                         buttons += `
                             <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-${rq.id}">
                                 Detail
                             </button>
                         `;
-                    }
 
                     html += `
                         <tr>

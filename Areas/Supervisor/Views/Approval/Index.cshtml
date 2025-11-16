@@ -227,113 +227,132 @@
     }
 }
 
-<!-- Modal Detail -->
 @if (Model != null && Model.Any())
 {
     foreach (var rm in Model)
     {
         <!-- Modal Detail -->
         <div class="modal fade" id="modalDetail-@rm.Id" tabindex="-1" aria-labelledby="detailLabel-@rm.Id" aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
-                    <div class="modal-header bg-info text-white">
+                    <!-- Modal Header -->
+                    <div class="modal-header bg-gradient ">
                         <h5 class="modal-title" id="detailLabel-@rm.Id">Detail Data</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
 
+                    <!-- Modal Body -->
                     <div class="modal-body">
-                        <dl class="row">
-                            <dt class="col-sm-4">Part Name</dt>
-                            <dd class="col-sm-8">
-                                @(!string.IsNullOrEmpty(rm.PartName)
-                                                        ? rm.PartName
-                                                        : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                                                                                                                          </dd>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped align-middle w-100">
+                                <tbody>
+                                    <tr>
+                                        <th class="col-sm-4">Part Id</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @rm.Id
+                                        </td>
+                                    </tr>
 
+                                    <tr>
+                                        <th class="col-sm-4">Part Name</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(string.IsNullOrEmpty(rm.PartName)
+                                                ? Html.Raw("<span class='badge bg-danger'>Belum di set</span>")
+                                                : rm.PartName)
+                                        </td>
+                                    </tr>
 
-                            <dt class="col-sm-4">Machine Category</dt>
-                            <dd class="col-sm-8">
-                                @(rm.MachineCategories.CategoryName != null
-                                                        ? rm.MachineCategories.CategoryName
-                                                        : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                                                                                                                          </dd>
+                                    <tr>
+                                        <th class="col-sm-4">Machine Category</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(rm.MachineCategories?.CategoryName != null
+                                                ? rm.MachineCategories.CategoryName
+                                                : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                                        </td>
+                                    </tr>
 
-                            <dt class="col-sm-4">External Cost ($)</dt>
-                            <dd class="col-sm-8">
-                                @(rm.ExternalFabCost.HasValue
-                                                        ? rm.ExternalFabCost.ToString()
-                                                        : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                                                                                                                          </dd>
+                                    <tr>
+                                        <th class="col-sm-4">Fabrication Unit</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @rm.Unit
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-sm-4">Request Date</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @rm.CreatedAt.ToString("dd-MM-yyyy")
+                                        </td>
+                                    </tr>
 
-                            <dt class="col-sm-4">Fabrication Time</dt>
-                            <dd class="col-sm-8">
-                                @(rm.FabricationTime.HasValue
-                                                        ? rm.FabricationTime.ToString()
-                                                        : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                    </dd>
+                                    <tr>
+                                        <th class="col-sm-4">CRD</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @rm.CRD.ToString("dd-MM-yyyy")
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-sm-4">Design</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @if (!string.IsNullOrEmpty(rm.DesignPath))
+                                            {
+                                                <a href="@Url.Content(rm.DesignPath)" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-download"></i> Download
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span>-</span>
+                                            }
+                                        </td>
+                                    </tr>
 
-                            @*         <dt class="col-sm-4">Raw Material</dt>
-                                    <dd class="col-sm-8">
-                                        @(rm.RawMaterials.Name != null
-                                                                ? rm.RawMaterials.Name
-                                                                : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                            </dd> *@
+                                    <tr>
+                                        <th class="col-sm-4">Ref Drawing</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @if (!string.IsNullOrEmpty(rm.DrawingPath))
+                                            {
+                                                <a href="@Url.Content(rm.DrawingPath)" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye-fill"></i> View
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span>-</span>
+                                            }
+                                        </td>
+                                    </tr>
 
-                    @if (rm.MachineCategoryId == 2)
-                            {
-                                <dt class="col-sm-4">Weight</dt>
-                                <dd class="col-sm-8">
-                                    @(rm.Weight != null
-                                                            ? rm.Weight.ToString()
-                                                            : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                    </dd>
-                                        }
+                                    <tr>
+                                        <th class="col-sm-4">Ref Quotation</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @if (!string.IsNullOrEmpty(rm.QuantationPath))
+                                            {
+                                                <a href="@Url.Content(rm.QuantationPath)" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye-fill"></i> View
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span>-</span>
+                                            }
+                                        </td>
+                                    </tr>
 
-                    <dt class="col-sm-4">Part Code</dt>
-                    <dd class="col-sm-8">
-                        @(!string.IsNullOrEmpty(rm.PartCode)
-                            ? rm.PartCode
-                            : Html.Raw("<span class='text-muted fst-italic'>Belum di set</span>"))
-                    </dd>
-                    <dt class="col-sm-4">Design</dt>
-                    <dd class="col-sm-8">
-                        @if (!string.IsNullOrEmpty(rm.DesignPath))
-                                {
-                                    <a href="@Url.Content(rm.DesignPath)" target="_blank">Download</a>
-                                }
-                                else
-                                {
-                                    <span class="text-muted fst-italic">-</span>
-                                }
-                            </dd>
+                                    <tr>
+                                        <th class="col-sm-4">Description</th>
+                                        <td class="col-sm-8" style="word-break: break-word;">
+                                            @(string.IsNullOrEmpty(rm.Description)
+                                                ? Html.Raw("<span class='badge bg-danger'>Belum di set</span>")
+                                                : rm.Description)
+                                        </td>
+                                    </tr>
 
-                            <dt class="col-sm-4">Link Drawing</dt>
-                            <dd class="col-sm-8">
-                                @if (!string.IsNullOrEmpty(rm.DrawingPath))
-                                {
-                                    <a href="@Url.Content(rm.DrawingPath)" target="_blank">View</a>
-                                }
-                                else
-                                {
-                                    <span class="text-muted fst-italic">-</span>
-                                }
-                            </dd>
-
-                            <dt class="col-sm-4">Quotation</dt>
-                            <dd class="col-sm-8">
-                                @if (!string.IsNullOrEmpty(rm.QuantationPath))
-                                {
-                                    <a href="@Url.Content(rm.QuantationPath)" target="_blank">View</a>
-                                }
-                                else
-                                {
-                                    <span class="text-muted fst-italic">-</span>
-                                }
-                            </dd>
-
-                        </dl>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
+                    <!-- Modal Footer -->
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                     </div>
