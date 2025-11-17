@@ -55,6 +55,7 @@ namespace EWOS_MVC.Models
 
         [StringLength(50, ErrorMessage = "Status tidak boleh lebih dari 50 karakter")]
         public string? Status { get; set; }
+        public int? RevisiNo { get; set; }
 
         public bool IsCalculateSaving { get; set; } = true;
         public DateTime? OCD { get; set; }

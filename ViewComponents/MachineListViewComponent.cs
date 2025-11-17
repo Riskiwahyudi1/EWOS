@@ -17,9 +17,14 @@ namespace EWOS_MVC.ViewComponents
         {
             var mcCategoryId = SelectedId ?? MachineCategoryId;
 
-            var MachineList = await _context.Machines
-                .Where(m => m.MachineCategoryId == mcCategoryId)
-                .ToListAsync();
+            var query = _context.Machines.AsQueryable();
+
+            if (mcCategoryId != null) 
+            {
+                query = query.Where(m => m.MachineCategoryId == mcCategoryId);
+            }
+
+            var MachineList = await query.ToListAsync();
 
             ViewData["SelectedId"] = SelectedId;
             return View(MachineList);

@@ -204,5 +204,58 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             return Redirect("index");
         }
 
+        //Revisi 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Revisi(long? ItemRequestId, string Reason)
+        {
+            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+
+            if (ItemRequestId == null)
+            {
+                TempData["Error"] = "ItemRequestId tidak boleh kosong.";
+                return RedirectToAction("Index");
+            }
+
+            if (string.IsNullOrWhiteSpace(Reason))
+            {
+                TempData["Error"] = "Reason wajib diisi.";
+                return RedirectToAction("Index");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+
+                TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
+                return View("Index");
+            }
+
+            var findRequest = await _context.ItemRequests.FindAsync(ItemRequestId);
+            if (findRequest == null)
+            {
+                return NotFound();
+            }
+
+            //tambahkan revisi ke data request
+
+            if (findRequest.Status?.Equals("Fail", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                findRequest.RevisiNo = (findRequest.RevisiNo ?? 0) + 1;
+            }
+
+            // Update proses
+            findRequest.Status = "WaitingApproval";
+            findRequest.Description = Reason;
+            findRequest.UpdatedAt = DateTime.Now;
+
+            await _context.RequestStatus
+                        .Where(rs => rs.ItemRequestId == ItemRequestId)
+                        .ExecuteDeleteAsync();
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Berhasil Mengajukan revisi.";
+            return Redirect("index");
+        }
     }
 }

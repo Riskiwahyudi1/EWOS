@@ -236,8 +236,13 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         //Proses Finish
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Finish(long ItemRequestId)
+        public async Task<IActionResult> Finish(int Id, long ItemRequestId)
         {
+            if (Id <= 0)
+            {
+                TempData["Error"] = "Id fabrikasi tidak valid.";
+                return Redirect("index");
+            }
             if (ItemRequestId <= 0)
             {
                 TempData["Error"] = "ItemRequestId tidak valid.";
@@ -256,7 +261,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             {
                 // Cari 1 data ItemFabrication yang terkait
                 var fabricationData = await _context.ItemFabrications
-                    .FirstOrDefaultAsync(f => f.ItemRequestId == ItemRequestId);
+                    .FirstOrDefaultAsync(f => f.Id == Id);
 
                 if (fabricationData != null)
                 {

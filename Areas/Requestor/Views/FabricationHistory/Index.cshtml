@@ -88,7 +88,7 @@
                                 <td>@ifab.ItemRequest.PartName</td>
                                 <td>@ifab.Quantity @ifab.ItemRequest.Unit</td>
                                 <td>@ifab.TotalSaving</td>
-                                <td>@ifab.ItemRequest.FabricationTime</td>
+                                <td>@(ifab.ItemRequest.FabricationTime?.ToString() ?? "-")</td>
                                 <td>@ifab.Status</td>
                                 <td class="text-center">
                                     @{
@@ -156,6 +156,7 @@
 
                             <!-- Hidden untuk kirim ID request -->
                             <input type="hidden" name="ItemRequestId" value="@rq.ItemRequest?.Id" />
+                            <input type="hidden" name="Id" value="@rq.Id" />
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>

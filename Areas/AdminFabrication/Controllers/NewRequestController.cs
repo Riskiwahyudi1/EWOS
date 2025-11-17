@@ -302,11 +302,10 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             //  Ambil tahun aktif
             int tahunSekarang = DateTime.Now.Year;
             var getTahun = await _context.YearsSetting
-                .Where(y => y.StartDate <= DateTime.Now)
-                .OrderByDescending(y => y.StartDate)
+                .Where(y => y.Year == tahunSekarang)
                 .FirstOrDefaultAsync();
 
-            // buat default jika belum ada
+            // tampilkan pesan jika belum ada
             if (getTahun == null)
             {
                 TempData["Error"] = "Tahun Fabrikasi sekarang belum tersedia, minta admin sistem menambahkan!! ";
