@@ -15,50 +15,107 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
         {
             _context = contex;
         }
+        //show new order
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Evaluation()
         {
-            var waitingApproval = await _context.ItemRequests
-                                    .Include(u => u.Users)
-                                    .Include(i => i.MachineCategories)
-                                    .Where(i =>i.Status == "WaitingApproval")
-                                    .ToListAsync();
+            // get ItemRequests yang menunggu approval
+            var waitingApprovalEval = await _context.ItemRequests
+                                     .Include(u => u.Users)
+                                     .Include(i => i.MachineCategories)
+                                     .Where(i => i.Status == "WaitingApproval")
+                                     .ToListAsync();
 
-            return View(waitingApproval);
+            // Hitung RepeatOrders yang menunggu approval
+            var waitingApprovalROCount = await _context.RepeatOrders
+                                     .Where(s => s.Status == "WaitingApproval")
+                                     .CountAsync();
+
+            // Hitung ItemRequests yang menunggu approval
+            var waitingApprovalEvalCount = waitingApprovalEval.Count();
+
+            ViewBag.ApprovalROCount = waitingApprovalROCount;
+            ViewBag.ApprovalEvalCount = waitingApprovalEvalCount;
+
+            return View(waitingApprovalEval);
         }
 
-        //Approve Request
+        // Show Repeat Order
+        [HttpGet]
+        public async Task<IActionResult> RepeatOrder()
+        {
+            // get RepeatOrders yang menunggu approval
+            var waitingApprovalRepeat = await _context.RepeatOrders
+                                     .Include(u => u.Users)
+                                     .Include(i => i.ItemRequests)
+                                         .ThenInclude(mc => mc.MachineCategories)
+                                     .Where(i => i.Status == "WaitingApproval")
+                                     .ToListAsync();
+
+            // Hitung ItemRequests yang menunggu approval
+            var waitingApprovalEvalCount = await _context.ItemRequests
+                                     .Where(s => s.Status == "WaitingApproval")
+                                     .CountAsync();
+
+            // Hitung RepeatOrders yang menunggu approval
+            var waitingApprovalRepeatCount = waitingApprovalRepeat.Count();
+
+            ViewBag.ApprovalROCount = waitingApprovalRepeatCount;
+            ViewBag.ApprovalEvalCount = waitingApprovalEvalCount;
+
+            return View(waitingApprovalRepeat);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult>Approve(long ItemRequestId)
+        public async Task<IActionResult> Approve(long itemRequestId, long? repeatOrderId)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
 
-            if (ItemRequestId == null)
+            //validasi
+            if (itemRequestId <= 0)
             {
                 TempData["Error"] = "ItemRequestId tidak boleh kosong.";
                 return RedirectToAction("Index");
             }
+
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-
                 TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
                 return View("Index");
             }
 
-            var findRequest = await _context.ItemRequests.FindAsync(ItemRequestId);
-            if (findRequest == null)
+            string redirectUrl = "/Supervisor/Approval/Evaluation";
+
+            //menerima data dari file Supervisor/Approval/RepeatOrder.cshtml
+            if (repeatOrderId.HasValue)
             {
-                return NotFound();
+                var repeatOrder = await _context.RepeatOrders.FindAsync(repeatOrderId.Value);
+                if (repeatOrder == null)
+                    return NotFound();
+
+                repeatOrder.Status = "FabricationApproval";
+                repeatOrder.UpdatedAt = DateTime.Now;
+
+                redirectUrl = "/Supervisor/Approval/RepeatOrder";
             }
-            // Update proses
-            findRequest.Status = "FabricationApproval";
-            findRequest.UpdatedAt = DateTime.Now;
+
+            //menerima data dari file Supervisor/Approval/Evaluation.cshtml
+            else
+            {
+                var itemRequest = await _context.ItemRequests.FindAsync(itemRequestId);
+                if (itemRequest == null)
+                    return NotFound();
+
+                itemRequest.Status = "FabricationApproval";
+                itemRequest.UpdatedAt = DateTime.Now;
+            }
 
             var approvalRequest = new RequestStatusModel
             {
-                ItemRequestId = ItemRequestId,
+                ItemRequestId = itemRequestId,
+                RepeatOrderId = repeatOrderId,
                 Status = "SupervisorApproved",
                 UserId = userId,
                 CreatedAt = DateTime.Now
@@ -68,52 +125,72 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Berhasil melakukan Approve.";
-            return Redirect("/Supervisor/Approval");
+            return Redirect(redirectUrl);
         }
 
-        //Reject Request
+
+        // Reject Request
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Reject(long ItemRequestId, string Reason)
+        public async Task<IActionResult> Reject(long itemRequestId, long? repeatOrderId, string reason)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
-            if (ItemRequestId == null)
+
+            // Validasi input
+            if (itemRequestId <= 0 )
             {
-                TempData["Error"] = "ItemRequestId tidak boleh kosong.";
+                TempData["Error"] = "ItemRequestId atau RepeatOrderId harus diisi.";
                 return RedirectToAction("Index");
             }
+
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage);
                 TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
                 return View("Index");
             }
 
-            var findRequest = await _context.ItemRequests.FindAsync(ItemRequestId);
-            if (findRequest == null)
+            string redirectUrl = "/Supervisor/Approval/Evaluation";
+
+            //menerima data dari file Supervisor/Approval/RepeatOrder.cshtml
+            if (repeatOrderId.HasValue)
             {
-                return NotFound();
+                var repeatOrder = await _context.RepeatOrders.FindAsync(repeatOrderId.Value);
+                if (repeatOrder == null) return NotFound();
+
+                repeatOrder.Status = "Reject";
+                repeatOrder.UpdatedAt = DateTime.Now;
+
+                redirectUrl = "/Supervisor/Approval/RepeatOrder";
+            }
+            //menerima data dari file Supervisor/Approval/Evaluation.cshtml
+            else
+            {
+                var itemRequest = await _context.ItemRequests.FindAsync(itemRequestId);
+                if (itemRequest == null) return NotFound();
+
+                itemRequest.Status = "Reject";
+                itemRequest.UpdatedAt = DateTime.Now;
             }
 
-            // Update proses
-            findRequest.Status = "Reject";
-            findRequest.UpdatedAt = DateTime.Now;
-
-            var approvalRequest = new RequestStatusModel
+            // Catat status reject di RequestStatusModel
+            var rejectRequest = new RequestStatusModel
             {
-                ItemRequestId = ItemRequestId,
+                ItemRequestId = itemRequestId,
+                RepeatOrderId = repeatOrderId,
                 Status = "SupervisorReject",
-                Reason = Reason,
+                Reason = reason,
                 UserId = userId,
                 CreatedAt = DateTime.Now
             };
 
-            _context.RequestStatus.Add(approvalRequest);
+            _context.RequestStatus.Add(rejectRequest);
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Berhasil melakukan Reject.";
-            return Redirect("/Supervisor/Approval");
+            return Redirect(redirectUrl);
         }
+
     }
 }

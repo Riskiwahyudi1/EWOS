@@ -14,9 +14,9 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         {
             _context = context;
         }
-
+        //new order
         [HttpGet]
-        public async Task<IActionResult> Index(string status)
+        public async Task<IActionResult> Evaluation(string status)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
 
@@ -41,12 +41,56 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 .ToListAsync();
 
             // --- Summary semua status ---
-            var statusSummary = await _context.ItemRequests
+            var statusSummary = await _context.RepeatOrders
                 .Where(u => u.UserId == userId)
                 .GroupBy(r => r.Status ?? "Unknown")
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
 
             ViewBag.StatusSummary = statusSummary;
+            ViewBag.CurrentStatus = "WaitingApproval";
+            ViewBag.ModalData = modalData;
+
+            return View(tableData);
+        }
+
+        //RepeatOrder 
+        [HttpGet]
+        public async Task<IActionResult> RepeatOrder(string status)
+        {
+            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+
+            // --- Data tabel hanya untuk status awal ---
+            var tableData = await _context.RepeatOrders
+                .Include(ir => ir.ItemRequests)
+                    .ThenInclude(mc => mc.MachineCategories)
+                .Where(u => u.UserId == userId)
+                .Where(s => s.Status == "WaitingApproval" || s.Status == "FabricationApproval")
+                .ToListAsync();
+
+            // --- Data modal untuk semua status ---
+            var modalData = await _context.RepeatOrders
+                .Include(ir => ir.ItemRequests)
+                    .ThenInclude(mc => mc.MachineCategories)
+                .Include(u => u.Users)
+                .Include(rs => rs.RequestStatus)
+                    .ThenInclude(u => u.Users)
+                .Where(u => u.UserId == userId)
+                .ToListAsync();
+
+            // --- Summary semua status ---
+            var statusSummaryRepeat = await _context.RepeatOrders
+                .Where(u => u.UserId == userId)
+                .GroupBy(r => r.Status ?? "Unknown")
+                .ToDictionaryAsync(g => g.Key, g => g.Count());
+
+            // --- Summary semua status evaluasi---
+            var statusSummaryEval = await _context.ItemRequests
+                .Where(u => u.UserId == userId)
+                .GroupBy(r => r.Status ?? "Unknown")
+                .ToDictionaryAsync(g => g.Key, g => g.Count());
+
+            ViewBag.StatusSummaryRepeat = statusSummaryRepeat;
+            ViewBag.StatusSummaryEval = statusSummaryEval;
             ViewBag.CurrentStatus = "WaitingApproval";
             ViewBag.ModalData = modalData;
 

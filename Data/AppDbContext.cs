@@ -49,6 +49,12 @@ public class AppDbContext : DbContext
             .WithMany(ir => ir.RequestStatus)
             .HasForeignKey(rs => rs.ItemRequestId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<RequestStatusModel>()
+             .HasOne(rs => rs.RepeatOrders)
+             .WithMany(ro => ro.RequestStatus)
+             .HasForeignKey(rs => rs.RepeatOrderId)
+             .OnDelete(DeleteBehavior.Cascade);
     }
 
 }

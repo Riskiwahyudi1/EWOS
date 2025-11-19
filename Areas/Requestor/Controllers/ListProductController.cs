@@ -104,7 +104,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 return View("Index");
             }
 
-            data.UsersId = userId;
+            data.UserId = userId;
             data.Status = "WaitingApproval";
             data.QuantityReq = data.QuantityReq;
             data.CRD = data.CRD;

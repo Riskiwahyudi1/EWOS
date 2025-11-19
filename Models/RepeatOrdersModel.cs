@@ -10,9 +10,9 @@ namespace EWOS_MVC.Models
         [Key]
         public long Id { get; set; }
 
-        public int UsersId { get; set; }
+        public int UserId { get; set; }
 
-        [ForeignKey("UsersId")]
+        [ForeignKey("UserId")]
         [ValidateNever]
         public UserModel? Users { get; set; }
 
@@ -45,5 +45,7 @@ namespace EWOS_MVC.Models
 
         [Required]
         public DateTime UpdatedAt { get; set; }
+
+        public ICollection<RequestStatusModel> RequestStatus { get; set; } = new List<RequestStatusModel>();
     }
 }

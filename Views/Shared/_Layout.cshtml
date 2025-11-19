@@ -165,9 +165,42 @@
                     <a href="/Requestor/ListProduct" class="nav-link px-3 @(Context.Request.Path == "/Requestor/ListProduct" ? "active" : "")">
                         <i class="bi bi-list-check"></i> List Product
                     </a>
-                    <a href="/Requestor/MyRequest" class="nav-link px-3 @(Context.Request.Path == "/Requestor/MyRequest" ? "active" : "")">
-                        <i class="bi bi-person-lines-fill"></i> My Request
-                    </a>
+                    @{
+                        var isMyRequestActive = Context.Request.Path.StartsWithSegments("/Requestor/MyRequest");
+                    }
+
+                    <li class="nav-item">
+                        <a class="nav-link px-3 d-flex justify-content-between align-items-center @(isMyRequestActive ? "active" : "")"
+                           data-bs-toggle="collapse"
+                           href="#collapseMyRequest"
+                           role="button"
+                           aria-expanded="@(isMyRequestActive ? "true" : "false")"
+                           aria-controls="collapseMyRequest">
+
+                            <span><i class="bi bi-person-lines-fill"></i> My Request</span>
+                            <i class="bi bi-chevron-down small"></i>
+                        </a>
+
+                        <div class="collapse ms-4 @(isMyRequestActive ? "show" : "")" id="collapseMyRequest">
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link @(Context.Request.Path == "/Requestor/MyRequest/Evaluation" ? "active" : "")"
+                                       href="/Requestor/MyRequest/Evaluation">
+                                        Evaluation
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link @(Context.Request.Path == "/Requestor/MyRequest/RepeatOrder" ? "active" : "")"
+                                       href="/Requestor/MyRequest/RepeatOrder">
+                                        Repeat Order
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+
                     
                 </div>
             }
@@ -195,7 +228,7 @@
             {
                 <div class="sidebar-section mt-3">
                     <h6 class="text-uppercase text-muted px-3 mb-2">Supervisor Menu</h6>
-                    <a href="/Supervisor/Approval" class="nav-link px-3 @(Context.Request.Path == "/Supervisor/Approval" ? "active" : "")">
+                    <a href="/Supervisor/Approval/Evaluation" class="nav-link px-3 @(Context.Request.Path == "/Supervisor/Approval" ? "active" : "")">
                         <i class="bi bi-hourglass-split"></i> Waiting Approval
                     </a>
                 </div>
