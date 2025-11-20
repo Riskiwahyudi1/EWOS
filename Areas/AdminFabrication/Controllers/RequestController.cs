@@ -9,16 +9,17 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
     [Authorize(Roles = "AdminSystem,AdminFabrication")]
     [Area("AdminFabrication")]
 
-    public class NewRequestController : BaseController
+    public class RequestController : BaseController
     {
         private readonly AppDbContext _context;
 
-        public NewRequestController(AppDbContext context)
+        public RequestController(AppDbContext context)
         {
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        //request baru(Evaluasi)
+        public async Task<IActionResult> Evaluation()
         {
             var requestList = await _context.ItemRequests
                                 .Include(mc => mc.MachineCategories)
@@ -43,14 +44,47 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
 
             ViewBag.StatusSummary = statusSummary;
-            ViewBag.CurrentStatus = "FabricationApproval";
+            ViewBag.CurrentStatus = "FabricationApproval"; //!!
             ViewBag.ModalData = modalData;
             return View(requestList);
         }
 
-        // search
+        //request lama(Repeat Order)
+        public async Task<IActionResult> RepeatOrder()
+        {
+            var requestList = await _context.RepeatOrders
+                .Include(rq => rq.ItemRequests)
+                    .ThenInclude(mc => mc.MachineCategories)
+                .Include(u => u.Users)
+                .Where(rq => rq.Status == "WaitingApproval" && rq.QuantityReq >= 0)
+                .ToListAsync();
+
+            //data modal
+            var modalData = await _context.RepeatOrders
+                .Include(rq => rq.ItemRequests)
+                    .ThenInclude(mc => mc.MachineCategories)
+                .Include(rq => rq.ItemRequests)
+                    .ThenInclude(rm => rm.RawMaterials)
+                .Include(u => u.Users)
+                .Include(rs => rs.RequestStatus)
+                    .ThenInclude(u => u.Users)
+                .ToListAsync();
+
+
+            var statusSummary = await _context.RepeatOrders
+               .Where(qty => qty.QuantityReq > 0)
+               .GroupBy(r => r.Status ?? "Unknown")
+               .ToDictionaryAsync(g => g.Key, g => g.Count());
+
+            ViewBag.StatusSummary = statusSummary;
+            ViewBag.CurrentStatus = "FabricationApproval"; //!!
+            ViewBag.ModalData = modalData;
+            return View(requestList);
+        }
+
+        // search req baru
         [HttpGet]
-        public IActionResult Search(string keyword, int? categoryId, string status)
+        public IActionResult SearchNew(string keyword, int? categoryId, string status)
         {
             var query = _context.ItemRequests
                 .Include(m => m.MachineCategories)
@@ -93,39 +127,102 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             return Json(result);
         }
 
-        //Approve Request
+        // search RO
+        [HttpGet]
+        public IActionResult SearchRO(string keyword, int? categoryId, string status)
+        {
+            var query = _context.RepeatOrders
+                 .Include(rq => rq.ItemRequests)
+                    .ThenInclude(mc => mc.MachineCategories)
+                .Include(u => u.Users)
+                .Where(qty => qty.QuantityReq > 0)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                query = query.Where(r => r.ItemRequests.PartName.Contains(keyword));
+            }
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(r => r.ItemRequests.MachineCategoryId == categoryId.Value);
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(r => r.Status == status);
+            }
+
+            var result = query
+                .Select(r => new
+                {
+                    r.Id,
+                    partName = r.ItemRequests.PartName,
+                    CategoryName = r.ItemRequests.MachineCategories.CategoryName,
+                    machineCategoryId = r.ItemRequests.MachineCategories.Id,
+                    Users = r.Users.Name,
+                    r.QuantityReq,
+                    r.QuantityDone,
+                    r.CRD,
+                    r.Status,
+                    r.CreatedAt
+                })
+                .ToList();
+
+            return Json(result);
+        }
+
+        //Approve request
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Approve(long? ItemRequestId, DateTime OCD)
+        public async Task<IActionResult> Approve(long ItemRequestId, DateTime OCD, long? repeatOrderId)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
 
-            if (ItemRequestId == null)
+            //validasi
+            if (ItemRequestId <= 0)
             {
                 TempData["Error"] = "ItemRequestId tidak boleh kosong.";
                 return RedirectToAction("Index");
             }
+
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-
                 TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
                 return View("Index");
             }
 
-            var findRequest = await _context.ItemRequests.FindAsync(ItemRequestId);
-            if (findRequest == null)
+            string redirectUrl = "/AdminFabrication/Request/Evaluation";
+
+            //menerima data dari file AdminFabrication/Request/RepeatOrder.cshtml
+            if (repeatOrderId.HasValue)
             {
-                return NotFound();
+                var repeatOrder = await _context.RepeatOrders.FindAsync(repeatOrderId.Value);
+                if (repeatOrder == null)
+                    return NotFound();
+                repeatOrder.OCD = OCD;
+                repeatOrder.Status = "WaitingFabrication";
+                repeatOrder.UpdatedAt = DateTime.Now;
+
+                redirectUrl = "/AdminFabrication/Request/RepeatOrder";
             }
-            // Update proses
-            findRequest.Status = "WaitingFabrication";
-            findRequest.OCD = OCD;
-            findRequest.UpdatedAt = DateTime.Now;
+            //menerima data dari file AdminFabrication/Request/Evaluation.cshtml
+            else
+            {
+                var itemRequest = await _context.ItemRequests.FindAsync(ItemRequestId);
+                if (itemRequest == null)
+                    return NotFound();
+
+                itemRequest.OCD = OCD;
+                itemRequest.Status = "WaitingFabrication";
+                itemRequest.UpdatedAt = DateTime.Now;
+            }
 
             var approvalRequest = new RequestStatusModel
             {
                 ItemRequestId = ItemRequestId,
+                RepeatOrderId = repeatOrderId,
                 Status = "FabricationApproved",
                 UserId = userId,
                 CreatedAt = DateTime.Now
@@ -135,16 +232,16 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Berhasil melakukan Approve.";
-            return Redirect("index");
+            return Redirect(redirectUrl);
         }
 
         //Reject Request
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Reject(long? ItemRequestId, string Reason)
+        public async Task<IActionResult> Reject(long ItemRequestId, string Reason)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
-            if (ItemRequestId == null)
+            if (ItemRequestId >= 0)
             {
                 TempData["Error"] = "ItemRequestId tidak boleh kosong.";
                 return RedirectToAction("Index");
@@ -183,8 +280,8 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             return Redirect("index");
         }
 
+        //edit data
         [HttpPost]
-        [Route("/AdminFabrication/NewRequest/Edit")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
         ItemRequestModel itemRequest,
@@ -203,7 +300,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             if (existingData == null)
             {
                 TempData["Error"] = "Data tidak ditemukan.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Evaluation");
             }
 
             async Task<string?> SaveFileAsync(IFormFile? file, string folderName, string allowedExt, long maxSizeBytes)
@@ -260,11 +357,12 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 if (designPath != null) existingData.DesignPath = designPath;
                 if (drawingPath != null) existingData.DrawingPath = drawingPath;
                 if (quotationPath != null) existingData.QuantationPath = quotationPath;
+
             }
             catch (Exception ex)
             {
                 TempData["Error"] = "Gagal upload file: " + ex.Message;
-                return RedirectToAction("Index");
+                return RedirectToAction("Evaluation");
             }
 
             // Update data lain
@@ -281,13 +379,13 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Data dan file berhasil diupdate.";
-            return RedirectToAction("Index");
+            return RedirectToAction("Evaluation");
         }
 
         //tambah fabrikasi
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddFabrikasi(int MachineId, int ItemRequestId)
+        public async Task<IActionResult> AddFabrikasi(int MachineId, long ItemRequestId, long? RepeatOrderId, int? Quantity)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
             if (!ModelState.IsValid)
@@ -305,7 +403,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 .Where(y => y.Year == tahunSekarang)
                 .FirstOrDefaultAsync();
 
-            // tampilkan pesan jika belum ada
+            // buat default jika belum ada
             if (getTahun == null)
             {
                 TempData["Error"] = "Tahun Fabrikasi sekarang belum tersedia, minta admin sistem menambahkan!! ";
@@ -360,7 +458,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 return Redirect("index");
             }
 
-            // Ambil data request
+            // Ambil data request baru
             var requestData = await _context.ItemRequests
                  .Include(r => r.RawMaterials)
                  .FirstOrDefaultAsync(r => r.Id == ItemRequestId);
@@ -368,37 +466,81 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             if (requestData == null)
                 return NotFound();
 
+            // Ambil data RO
+            var requestDataRo = await _context.RepeatOrders
+                 .Include(ir => ir.ItemRequests)
+                    .ThenInclude(r => r.RawMaterials)
+                 .FirstOrDefaultAsync(r => r.Id == RepeatOrderId);
 
             //ambil data mesin
             var machine = await _context.Machines.FindAsync(MachineId);
+            if (machine == null)
+                return NotFound();
 
-            //hitung saving
+
+            //pisah req baru dan RO
             decimal totalSaving = 0m;
             decimal fabricationTime = requestData.FabricationTime ?? 0m;
-            if (requestData.IsCalculateSaving)
+            var RedirectUrl = "/AdminFabrication/Request/Evaluation";
+            //hitung saving RO
+            if (RepeatOrderId.HasValue)
             {
-                decimal rawMaterialCost = 0m;
-                decimal inhouseCost = 0m;
-
-                if (requestData.MachineCategoryId == 1)
+                if (requestDataRo.ItemRequests.IsCalculateSaving)
                 {
-                    // Perhitungan untuk kategori mesin CNC
-                    rawMaterialCost = (requestData.RawMaterials?.Price ?? 0m);
-                    inhouseCost =
-                        (requestData.FabricationTime ?? 0m)
-                        * (getTahun.ElectricalCost ?? 0m)
-                        * (machine.MachinePower);
+                    decimal rawMaterialCost = 0m;
+                    decimal inhouseCost = 0m;
+                    decimal externalCost = (requestDataRo.ItemRequests.ExternalFabCost ?? 0m) * (Quantity ?? 0);
+                    fabricationTime = (requestDataRo.ItemRequests.FabricationTime ?? 0m) * (Quantity ?? 0);
 
-                    totalSaving = (requestData.ExternalFabCost ?? 0m) - (inhouseCost + rawMaterialCost);
+                    if (requestDataRo.ItemRequests.MachineCategoryId == 1)
+                    {
+                        // Perhitungan untuk kategori mesin CNC
+                        rawMaterialCost = (requestDataRo.ItemRequests.RawMaterials?.Price ?? 0m) * (Quantity ?? 0m);
+                        inhouseCost = fabricationTime * (getTahun.ElectricalCost ?? 0m) * (machine.MachinePower);
+                        totalSaving = externalCost - (inhouseCost + rawMaterialCost);
+
+                    }
+                    if (requestDataRo.ItemRequests.MachineCategoryId == 2)
+                    {
+                        // Perhitungan untuk kategori mesin 3d Printing
+                        rawMaterialCost = ((requestDataRo.ItemRequests.Weight ?? 0m) / 1000) * (requestDataRo.ItemRequests.RawMaterials?.Price ?? 0m);
+                        inhouseCost = ((requestDataRo.ItemRequests.FabricationTime ?? 0m)) * ((getTahun.ElectricalCost ?? 0m) * (machine.MachinePower));
+                        totalSaving = (requestDataRo.ItemRequests.ExternalFabCost ?? 0m) - (inhouseCost + rawMaterialCost);
+
+                    }
                 }
-                if (requestData.MachineCategoryId == 2)
+
+                RedirectUrl = "/AdminFabrication/Request/RepeatOrder";
+            }
+            else
+            {
+                //hitung saving New Request
+                
+                if (requestData.IsCalculateSaving)
                 {
-                    // Perhitungan untuk kategori mesin 3d Printing
-                    rawMaterialCost = ((requestData.Weight ?? 0m) / 1000) * (requestData.RawMaterials?.Price ?? 0m);
-                    inhouseCost = ((requestData.FabricationTime ?? 0m)) * ((getTahun.ElectricalCost ?? 0m) * (machine.MachinePower));
-                    totalSaving = (requestData.ExternalFabCost ?? 0m) - (inhouseCost + rawMaterialCost);
+                    decimal rawMaterialCost = 0m;
+                    decimal inhouseCost = 0m;
+
+                    if (requestData.MachineCategoryId == 1)
+                    {
+                        // Perhitungan untuk kategori mesin CNC
+                        rawMaterialCost = (requestData.RawMaterials?.Price ?? 0m);
+                        inhouseCost =
+                            (requestData.FabricationTime ?? 0m)
+                            * (getTahun.ElectricalCost ?? 0m)
+                            * (machine.MachinePower);
+
+                        totalSaving = (requestData.ExternalFabCost ?? 0m) - (inhouseCost + rawMaterialCost);
+                    }
+                    if (requestData.MachineCategoryId == 2)
+                    {
+                        // Perhitungan untuk kategori mesin 3d Printing
+                        rawMaterialCost = ((requestData.Weight ?? 0m) / 1000) * (requestData.RawMaterials?.Price ?? 0m);
+                        inhouseCost = ((requestData.FabricationTime ?? 0m)) * ((getTahun.ElectricalCost ?? 0m) * (machine.MachinePower));
+                        totalSaving = (requestData.ExternalFabCost ?? 0m) - (inhouseCost + rawMaterialCost);
 
 
+                    }
                 }
             }
 
@@ -410,43 +552,50 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 var item = new ItemFabricationModel
                 {
                     ItemRequestId = ItemRequestId,
+                    RepeatOrderId = RepeatOrderId,
                     MachineId = MachineId,
                     TotalSaving = totalSaving,
                     WeeksSettingId = mingguSekarang.Id,
                     Status = "Onprogress",
-                    Quantity = 1,
-                    FabricationTime =fabricationTime,
+                    Quantity = Quantity ?? 1,
+                    FabricationTime = fabricationTime,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
 
                 _context.ItemFabrications.Add(item);
-                
-                var StatusLog = new RequestStatusModel
+
+                if (RepeatOrderId.HasValue)
+                {
+                    requestDataRo.QuantityReq -= Quantity ?? 0;
+                }
+                var statusLog = new RequestStatusModel
                 {
                     ItemRequestId = ItemRequestId,
+                    RepeatOrderId = RepeatOrderId,
                     Status = "FabricationStarted",
                     UserId = userId,
                     CreatedAt = DateTime.Now,
                 };
 
-                _context.RequestStatus.Add(StatusLog);
+                _context.RequestStatus.Add(statusLog);
 
                 requestData.Status = "InFabrication";
                 requestData.UpdatedAt = DateTime.Now;
+
                 _context.ItemRequests.Update(requestData);
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 TempData["Success"] = "Plan has been created.";
-                return Redirect("index");
+                return Redirect(RedirectUrl);
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 TempData["Error"] = "Terjadi kesalahan: " + ex.Message;
-                return Redirect("index");
+                return Redirect(RedirectUrl);
             }
 
 

@@ -40,13 +40,20 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 .Where(u => u.UserId == userId)
                 .ToListAsync();
 
-            // --- Summary semua status ---
-            var statusSummary = await _context.RepeatOrders
+             // --- Summary semua status ---
+            var statusSummaryRepeat = await _context.RepeatOrders
                 .Where(u => u.UserId == userId)
                 .GroupBy(r => r.Status ?? "Unknown")
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
 
-            ViewBag.StatusSummary = statusSummary;
+            // --- Summary semua status evaluasi---
+            var statusSummaryEval = await _context.ItemRequests
+                .Where(u => u.UserId == userId)
+                .GroupBy(r => r.Status ?? "Unknown")
+                .ToDictionaryAsync(g => g.Key, g => g.Count());
+
+            ViewBag.StatusSummaryRepeat = statusSummaryRepeat;
+            ViewBag.StatusSummaryEval = statusSummaryEval;
             ViewBag.CurrentStatus = "WaitingApproval";
             ViewBag.ModalData = modalData;
 
@@ -71,6 +78,8 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             var modalData = await _context.RepeatOrders
                 .Include(ir => ir.ItemRequests)
                     .ThenInclude(mc => mc.MachineCategories)
+                .Include(ir => ir.ItemRequests)
+                    .ThenInclude(rm => rm.RawMaterials)
                 .Include(u => u.Users)
                 .Include(rs => rs.RequestStatus)
                     .ThenInclude(u => u.Users)
@@ -98,9 +107,9 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         }
 
 
-        // Search request
+        // Search request baru
         [HttpGet]
-        public async Task<IActionResult> Search(string keyword, int? categoryId, List<string> status)
+        public async Task<IActionResult> SearchNew(string keyword, int? categoryId, List<string> status)
         {
             // Base query
             var query = _context.ItemRequests
@@ -138,6 +147,54 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     r.MachineCategoryId,
                     CategoryName = r.MachineCategories.CategoryName,
                     r.CRD,
+                    r.Status,
+                    r.CreatedAt
+                })
+                .ToListAsync();
+
+            return Json(result);
+        }
+         // Search RO
+        [HttpGet]
+        public async Task<IActionResult> SearchRo(string keyword, int? categoryId, List<string> status)
+        {
+            // Base query
+            var query = _context.RepeatOrders
+                .Include(ir => ir.ItemRequests)
+                    .ThenInclude(m => m.MachineCategories)
+                .AsQueryable();
+
+            // Filter by keyword
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                query = query.Where(r => r.ItemRequests.PartName.Contains(keyword));
+            }
+
+            // Filter by category
+            if (categoryId.HasValue && categoryId.Value > 0)
+            {
+                query = query.Where(r => r.ItemRequests.MachineCategoryId == categoryId.Value);
+            }
+
+            // Filter by multiple statuses
+            if (status != null && status.Any())
+            {
+                query = query.Where(r => r.Status != null && status.Contains(r.Status));
+            }
+
+            // Execute query asynchronously
+            var result = await query
+                .Select(r => new
+                {
+                    r.Id,
+                    r.ItemRequests.PartName,
+                    r.ItemRequests.Weight,
+                    r.ItemRequests.ExternalFabCost,
+                    r.ItemRequests.FabricationTime,
+                    CategoryName = r.ItemRequests.MachineCategories.CategoryName,
+                    r.CRD,
+                    r.QuantityReq,
+                    r.QuantityDone,
                     r.Status,
                     r.CreatedAt
                 })
@@ -186,6 +243,63 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             {
                 ItemRequestId = ItemRequestId,
                 Status = "Buyoff Pass",
+                Reason = Reason,
+                UserId = userId,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.RequestStatus.Add(approvalRequest);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Berhasil Update Data.";
+            return Redirect("index");
+        }
+        
+        //Result Close
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Close(long ItemRequestId, long RepeatOrderId, string Reason)
+        {
+            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+
+            if (RepeatOrderId <= 0)
+            {
+                TempData["Error"] = "RepearOrderId tidak boleh kosong.";
+                return RedirectToAction("Index");
+            }
+            if (ItemRequestId <= 0)
+            {
+                TempData["Error"] = "RepeatOrderId tidak boleh kosong.";
+                return RedirectToAction("Index");
+            }
+            if (Reason == null)
+            {
+                TempData["Error"] = "Reason tidak boleh kosong.";
+                return RedirectToAction("Index");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+
+                TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
+                return View("Index");
+            }
+
+            var findRequest = await _context.RepeatOrders.FindAsync(RepeatOrderId);
+            if (findRequest == null)
+            {
+                return NotFound();
+            }
+            // Update proses
+            findRequest.Status = "Close";
+            findRequest.UpdatedAt = DateTime.Now;
+
+            var approvalRequest = new RequestStatusModel
+            {
+                ItemRequestId = ItemRequestId,
+                RepeatOrderId = RepeatOrderId,
+                Status = "Close",
                 Reason = Reason,
                 UserId = userId,
                 CreatedAt = DateTime.Now

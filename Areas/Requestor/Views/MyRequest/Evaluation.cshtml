@@ -54,7 +54,7 @@
 
 
 @{
-    var summary = ViewBag.StatusSummary as Dictionary<string, int>;
+    var summary = ViewBag.StatusSummaryEval as Dictionary<string, int>;
     int GetCount(string status) => summary != null && summary.ContainsKey(status) ? summary[status] : 0;
 }
 
@@ -743,7 +743,7 @@
         }, 400);
 
         try {
-          const url = new URL("/Requestor/MyRequest/Search", window.location.origin);
+          const url = new URL("/Requestor/MyRequest/SearchNew", window.location.origin);
           if (keyword) url.searchParams.append("keyword", keyword);
           if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
 
