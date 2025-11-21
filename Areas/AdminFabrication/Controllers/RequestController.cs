@@ -569,18 +569,22 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 {
                     requestDataRo.QuantityReq -= Quantity ?? 0;
                 }
-                var statusLog = new RequestStatusModel
+                else
                 {
-                    ItemRequestId = ItemRequestId,
-                    RepeatOrderId = RepeatOrderId,
-                    Status = "FabricationStarted",
-                    UserId = userId,
-                    CreatedAt = DateTime.Now,
-                };
+                requestData.Status = "InFabrication";
+
+                }
+                    var statusLog = new RequestStatusModel
+                    {
+                        ItemRequestId = ItemRequestId,
+                        RepeatOrderId = RepeatOrderId,
+                        Status = "FabricationStarted",
+                        UserId = userId,
+                        CreatedAt = DateTime.Now,
+                    };
 
                 _context.RequestStatus.Add(statusLog);
 
-                requestData.Status = "InFabrication";
                 requestData.UpdatedAt = DateTime.Now;
 
                 _context.ItemRequests.Update(requestData);

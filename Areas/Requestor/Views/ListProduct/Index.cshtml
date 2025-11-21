@@ -750,6 +750,16 @@
         }, 400);
 
         try {
+
+           clearTimeout(loadingTimer);
+
+            // Tampilkan "memuat data..." setelah 500ms
+            loadingTimer = setTimeout(() => {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-primary">Memuat data...</td>
+                    </tr>`;
+            }, 500);
           const url = new URL("/Requestor/ListProduct/Search", window.location.origin);
           if (keyword) url.searchParams.append("keyword", keyword);
           if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);

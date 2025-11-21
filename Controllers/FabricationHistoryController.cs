@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using EWOS_MVC.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace EWOS_MVC.Areas.Requestor.Controllers
 {
     [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,Supervisor")]
-    [Area("Requestor")]
     public class FabricationHistoryController : BaseController
     {
         private readonly AppDbContext _context;
@@ -138,7 +138,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             // =========================
 
             //ambil week sekarang
-            var mingguSekarang =_context.WeeksSetting
+            var mingguSekarang = _context.WeeksSetting
                 .FirstOrDefault(w =>
                     DateTime.Now >= w.StartDate &&
                     DateTime.Now <= w.EndDate);
@@ -174,7 +174,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             {
                 // Ambil semua mesin dalam kategori
                 mesinIds = _context.Machines
-                    .Where(m => m.MachineCategoryId == categoryId.Value )
+                    .Where(m => m.MachineCategoryId == categoryId.Value)
                     .Select(m => m.Id)
                     .ToList();
 
@@ -227,28 +227,30 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             {
                 data = result,
                 utilization = percentase,
-                machineName = machineName,    
+                machineName = machineName,
                 categoryName = categoryName,
 
             });
         }
 
-        //Proses Finish
+        // Proses Finish
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Finish(int Id, long ItemRequestId)
+        public async Task<IActionResult> Finish(int Id, long ItemRequestId, long? RepeatOrderId)
         {
             if (Id <= 0)
             {
                 TempData["Error"] = "Id fabrikasi tidak valid.";
                 return Redirect("index");
             }
+
             if (ItemRequestId <= 0)
             {
                 TempData["Error"] = "ItemRequestId tidak valid.";
                 return Redirect("index");
             }
 
+            // Ambil data new ItemRequest
             var requestData = await _context.ItemRequests.FindAsync(ItemRequestId);
             if (requestData == null)
             {
@@ -256,49 +258,77 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 return Redirect("index");
             }
 
-            await using var ProcesingData = await _context.Database.BeginTransactionAsync();
+            // Ambil data RepeatOrder hanya jika RepeatOrderId ada
+            RepeatOrderModel? requestDataRo = null;
+            if (RepeatOrderId.HasValue)
+            {
+                requestDataRo = await _context.RepeatOrders.FindAsync(RepeatOrderId.Value);
+                if (requestDataRo == null)
+                {
+                    TempData["Error"] = "Data Repeat Order tidak ditemukan.";
+                    return Redirect("index");
+                }
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
             try
             {
-                // Cari 1 data ItemFabrication yang terkait
+                // Cari data fabrikasi
                 var fabricationData = await _context.ItemFabrications
                     .FirstOrDefaultAsync(f => f.Id == Id);
 
-                if (fabricationData != null)
+                if (fabricationData == null)
                 {
-                    // Update status fabrication
-                    fabricationData.Status = "FabricationDone";
+                    TempData["Warning"] = "Tidak ditemukan data ItemFabrication yang terkait.";
+                    return Redirect("index");
+                }
 
-                    requestData.Status = "WaitingBuyoff";
-                    requestData.UpdatedAt = DateTime.Now;
+                // Jika ini request dari RepeatOrder
+                if (RepeatOrderId.HasValue)
+                {
+                    requestDataRo.QuantityDone = (requestDataRo.QuantityDone ?? 0) + fabricationData.Quantity;
 
-                    //update data ke db
-                    _context.ItemFabrications.Update(fabricationData);
-                    _context.ItemRequests.Update(requestData);
-                    await _context.SaveChangesAsync();
-
-                    await ProcesingData.CommitAsync();
-                    TempData["Success"] = "Data Berhasil disimpan.";
-                  
+                    // finish jika sudah habis
+                    if(requestDataRo.QuantityReq == 0)
+                    {
+                        requestDataRo.Status = "Done";
+                    }
+                    _context.RepeatOrders.Update(requestDataRo);
                 }
                 else
                 {
-                    TempData["Warning"] = "Tidak ditemukan data ItemFabrication yang terkait.";
+                    // Jika request biasa
+                    requestData.Status = "WaitingBuyoff";
+                    requestData.UpdatedAt = DateTime.Now;
+
+                    _context.ItemRequests.Update(requestData);
                 }
 
+                // Update data fabrikasi
+                  fabricationData.Status = "FabricationDone";
+                _context.ItemFabrications.Update(fabricationData);
+
+                // Simpan seluruh perubahan
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                TempData["Success"] = "Data berhasil disimpan.";
                 return Redirect("index");
             }
             catch (Exception ex)
             {
-                await ProcesingData.RollbackAsync();
-                TempData["Error"] = "Terjadi kesalahan saat memproses : " + ex.Message;
+                await transaction.RollbackAsync();
+                TempData["Error"] = "Terjadi kesalahan saat memproses: " + ex.Message;
                 return Redirect("index");
             }
         }
 
+
         //Proses cancel
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Cancel(long ItemRequestId, long itemFabId)
+        public async Task<IActionResult> Cancel(long ItemRequestId, long itemFabId, long? RepeatOrderId)
         {
             if (ItemRequestId <= 0)
             {
@@ -315,7 +345,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             }
             //cari requesst ulang
 
-            var repeatOrderData = await _context.RepeatOrders.FirstOrDefaultAsync(r => r.ItemRequestId == ItemRequestId);
+            var repeatOrderData = await _context.RepeatOrders.FirstOrDefaultAsync(r => r.Id == RepeatOrderId);
 
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -332,7 +362,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     _context.ItemFabrications.Remove(fabricationData);
 
                     //cek request baru atau repeat
-                    if (fabricationData.RepeatOrderId == null)
+                    if (RepeatOrderId == null)
                     {
                         //jika baru
                         requestData.UpdatedAt = DateTime.Now;
@@ -347,12 +377,8 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     }
                     else
                     {
-                        //Kembalikan quantity
-                        var quantityWaiting = repeatOrderData.QuantityReq;
-                        var quantityCancel = fabricationData.Quantity;
 
-                        repeatOrderData.Status = "WaitingFabrication";
-                        repeatOrderData.QuantityReq = quantityWaiting + quantityCancel;
+                        repeatOrderData.QuantityReq += fabricationData.Quantity;
                         repeatOrderData.UpdatedAt = DateTime.Now;
 
                         _context.RepeatOrders.Update(repeatOrderData);

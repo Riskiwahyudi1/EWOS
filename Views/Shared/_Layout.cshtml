@@ -155,7 +155,7 @@
                     @* Tampilkan Fabrication History hanya jika role-nya Requestor saja *@
                     @if (isRequestor && !isAdminFabrication && isSupervisor)
                     {
-                        <a href="/Requestor/FabricationHistory" class="nav-link px-3 @(Context.Request.Path == "/Requestor/FabricationHistory" ? "active" : "")">
+                        <a href="/FabricationHistory" class="nav-link px-3 @(Context.Request.Path == "/FabricationHistory" ? "active" : "")">
                             <i class="bi bi-clock-history"></i> Fabrication History
                         </a>
                     }
@@ -217,7 +217,7 @@
                     <a href="/AdminFabrication/Request/RepeatOrder" class="@(Context.Request.Path == "/AdminFabrication/Request/RepeatOrder" ? "active" : "")">
                         <i class="bi bi-repeat"></i> Repeat Order
                     </a>
-                    <a href="/Requestor/FabricationHistory" class="nav-link px-3 @(Context.Request.Path == "/Requestor/FabricationHistory" ? "active" : "")">
+                    <a href="/FabricationHistory" class="nav-link px-3 @(Context.Request.Path == "/FabricationHistory" ? "active" : "")">
                         <i class="bi bi-clock-history"></i> Fabrication History
                     </a>
                 </div>
@@ -304,10 +304,12 @@
                     let spinnerTimeout = setTimeout(() => {
                         const overlay = document.getElementById("globalLoadingOverlay");
                         if (overlay) overlay.style.display = "flex";
-                    }, 1000); 
+                    }, 500); 
 
                     // Kirim form setelah submit
                     form.submit();
+
+                    clearTimeout(spinnerTimeout);
                 });
             });
         });
