@@ -1,4 +1,5 @@
 ﻿using EWOS_MVC.Models;
+using EWOS_MVC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,9 +10,11 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
     public class FabricationHistoryController : BaseController
     {
         private readonly AppDbContext _context;
-        public FabricationHistoryController(AppDbContext context)
+        private readonly WeekHelper _weekHelper;
+        public FabricationHistoryController(AppDbContext context, WeekHelper weekHelper)
         {
             _context = context;
+            _weekHelper = weekHelper;
         }
 
         public async Task<IActionResult> Index()
@@ -402,6 +405,68 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 TempData["Error"] = "Terjadi kesalahan saat membatalkan data: " + ex.Message;
                 return Redirect("index");
             }
+        }
+
+        //Edit quantity
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int Quantity, int ItemFabricationId, long RepeatOrderId)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+
+                TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
+                return View("Index");
+            }
+
+            var existingData = await _context.ItemFabrications.FindAsync(ItemFabricationId);
+            if (existingData == null)
+            {
+                return NotFound();
+            }
+            var exitingRepeatOdr = await _context.RepeatOrders.FindAsync(RepeatOrderId);
+            if (exitingRepeatOdr == null)
+            {
+                return NotFound();
+            }
+
+            //var weekToday = await _weekHelper.GetMingguAktifTodayAsync();
+
+            ////data week
+
+            //var weekId = WeekSettingId ?? weekToday.Id;
+
+            //Data saving edit
+            var bagiSaving = (existingData.TotalSaving / existingData.Quantity);
+            var DataSavingBaru = bagiSaving * Quantity;
+
+            //data time fab edit
+            var bagiWkt = (existingData.FabricationTime / existingData.Quantity);
+            var dataWktBaru = bagiWkt * Quantity;
+
+            //Edit quantity fabrikasi
+            var selisih = Quantity - existingData.Quantity;
+
+            if (selisih > 0)
+            {
+
+                exitingRepeatOdr.QuantityReq -= selisih;
+            }
+            else if (selisih < 0)
+            {
+                exitingRepeatOdr.QuantityReq += Math.Abs(selisih);
+            }
+            existingData.TotalSaving = DataSavingBaru;
+            existingData.Quantity = Quantity;
+            existingData.FabricationTime = dataWktBaru;
+            //existingData.WeeksSettingId = weekId;
+            existingData.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Data berhasil diubah.";
+            return Redirect("index");
         }
     }
 }

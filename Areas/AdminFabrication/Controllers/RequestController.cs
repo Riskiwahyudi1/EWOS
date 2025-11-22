@@ -1,4 +1,5 @@
 ﻿using EWOS_MVC.Models;
+using EWOS_MVC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,14 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
     public class RequestController : BaseController
     {
         private readonly AppDbContext _context;
+        private readonly WeekHelper _weekHelper;
+        private readonly YearsHelper _yearHelper;
 
-        public RequestController(AppDbContext context)
+        public RequestController(AppDbContext context, WeekHelper weekHelper, YearsHelper yearsHelper)
         {
             _context = context;
+            _weekHelper = weekHelper;
+            _yearHelper = yearsHelper;
         }
 
         //request baru(Evaluasi)
@@ -399,9 +404,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
 
             //  Ambil tahun aktif
             int tahunSekarang = DateTime.Now.Year;
-            var getTahun = await _context.YearsSetting
-                .Where(y => y.Year == tahunSekarang)
-                .FirstOrDefaultAsync();
+            var getTahun = await _yearHelper.GetCurrentYearAsync();
 
             // buat default jika belum ada
             if (getTahun == null)
@@ -411,46 +414,10 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
 
             }
 
-            // generate minggu jika belum ada
-            if (!await _context.WeeksSetting.AnyAsync(w => w.YearSettingId == getTahun.Id))
-            {
-                var weekStart = getTahun.StartDate;
-                int weekNumber = 1;
-                var akhirTahun = new DateTime(tahunSekarang, 12, 31, 23, 59, 59);
+            
 
-                while (weekStart <= akhirTahun)
-                {
-                    var nextWeekDate = weekStart.AddDays(7);
-                    DateTime weekEnd = new DateTime(
-                        nextWeekDate.Year, nextWeekDate.Month, nextWeekDate.Day,
-                        6, 59, 59
-                    );
-                    if (weekEnd > akhirTahun)
-                        weekEnd = akhirTahun;
-
-                    _context.WeeksSetting.Add(new WeeksSettingModel
-                    {
-                        YearSettingId = getTahun.Id,
-                        Week = weekNumber,
-                        Month = weekStart.Month,
-                        WorkingDays = 5.5m,
-                        StartDate = weekStart,
-                        EndDate = weekEnd
-                    });
-
-                    weekNumber++;
-                    weekStart = weekEnd.AddSeconds(1);
-                }
-
-                await _context.SaveChangesAsync();
-            }
-
-            //  Dapatkan minggu aktif
-            var mingguSekarang = await _context.WeeksSetting
-                .Where(w => w.YearSettingId == getTahun.Id &&
-                            DateTime.Now >= w.StartDate &&
-                            DateTime.Now <= w.EndDate)
-                .FirstOrDefaultAsync();
+            //  get mg aktif dari helper
+            var mingguSekarang = await _weekHelper.GetMingguAktifAsync(getTahun.Id);
 
             if (mingguSekarang == null)
             {
@@ -478,10 +445,13 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 return NotFound();
 
 
+
+
             //pisah req baru dan RO
             decimal totalSaving = 0m;
             decimal fabricationTime = requestData.FabricationTime ?? 0m;
             var RedirectUrl = "/AdminFabrication/Request/Evaluation";
+
             //hitung saving RO
             if (RepeatOrderId.HasValue)
             {
@@ -515,7 +485,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             else
             {
                 //hitung saving New Request
-                
+
                 if (requestData.IsCalculateSaving)
                 {
                     decimal rawMaterialCost = 0m;
@@ -546,24 +516,43 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
 
             //  Jalankan semua perubahan dalam 1 transaksi
             using var transaction = await _context.Database.BeginTransactionAsync();
+
             try
             {
-                // buat record baru
-                var item = new ItemFabricationModel
-                {
-                    ItemRequestId = ItemRequestId,
-                    RepeatOrderId = RepeatOrderId,
-                    MachineId = MachineId,
-                    TotalSaving = totalSaving,
-                    WeeksSettingId = mingguSekarang.Id,
-                    Status = "Onprogress",
-                    Quantity = Quantity ?? 1,
-                    FabricationTime = fabricationTime,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
-                };
 
-                _context.ItemFabrications.Add(item);
+                var cekItemFab = await _context.ItemFabrications
+                    .FirstOrDefaultAsync(r => r.RepeatOrderId == RepeatOrderId && r.MachineId == MachineId);
+
+                if(cekItemFab == null)
+                {
+                    // buat record baru
+                    var item = new ItemFabricationModel
+                    {
+                        ItemRequestId = ItemRequestId,
+                        RepeatOrderId = RepeatOrderId,
+                        MachineId = MachineId,
+                        TotalSaving = totalSaving,
+                        WeeksSettingId = mingguSekarang.Id,
+                        Status = "Onprogress",
+                        Quantity = Quantity ?? 1,
+                        FabricationTime = fabricationTime,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
+                    };
+
+                    _context.ItemFabrications.Add(item);
+
+                }
+                else
+                {
+                    var savingCostActual = cekItemFab.TotalSaving;
+
+                    // Update jika sudah ada
+                    cekItemFab.TotalSaving = savingCostActual + totalSaving;
+                    cekItemFab.Quantity += Quantity ?? 0;
+                    cekItemFab.UpdatedAt = DateTime.Now;
+                    _context.ItemFabrications.Update(cekItemFab);
+                }
 
                 if (RepeatOrderId.HasValue)
                 {
@@ -571,17 +560,17 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 }
                 else
                 {
-                requestData.Status = "InFabrication";
+                    requestData.Status = "InFabrication";
 
                 }
-                    var statusLog = new RequestStatusModel
-                    {
-                        ItemRequestId = ItemRequestId,
-                        RepeatOrderId = RepeatOrderId,
-                        Status = "FabricationStarted",
-                        UserId = userId,
-                        CreatedAt = DateTime.Now,
-                    };
+                var statusLog = new RequestStatusModel
+                {
+                    ItemRequestId = ItemRequestId,
+                    RepeatOrderId = RepeatOrderId,
+                    Status = "FabricationStarted",
+                    UserId = userId,
+                    CreatedAt = DateTime.Now,
+                };
 
                 _context.RequestStatus.Add(statusLog);
 
@@ -604,5 +593,8 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
 
 
         }
+
+
+        
     }
 }

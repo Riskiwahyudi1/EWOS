@@ -1,30 +1,50 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
+﻿using EWOS_MVC.Models;
+using EWOS_MVC.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EWOS_MVC.ViewComponents
 {
     public class WeeksSettingViewComponent : ViewComponent
     {
-        private readonly AppDbContext _context;
+        private readonly WeekHelper _weekHelper;
+        private readonly YearsHelper _yearHelper;
 
-        public WeeksSettingViewComponent(AppDbContext context)
+        public WeeksSettingViewComponent(WeekHelper weekHelper, YearsHelper yearHelper)
         {
-            _context = context;
+            _weekHelper = weekHelper;
+            _yearHelper = yearHelper;
         }
 
-        public async Task<IViewComponentResult> InvokeAsync(int YearSettingId, int? SelectedId = null, int? MonthSelect = null)
+        public async Task<IViewComponentResult> InvokeAsync(int? YearSettingId, int? SelectedId = null, int? MonthSelect = null)
         {
-            int currentYear = YearSettingId;
-            int currentMonth = MonthSelect ?? DateTime.Now.Month;
+            int currentYear = DateTime.Now.Year;
 
-            var weeks = await _context.WeeksSetting
-                .Include(w => w.YearsSetting)
-                .Where(w => w.YearsSetting.Id == currentYear && w.Month == currentMonth)
-                .OrderBy(w => w.Week)
-                .ToListAsync();
+            // Ambil year berdasarkan helper
+            var yearById = await _yearHelper.GetYearByValueAsync(currentYear);
+            if (yearById == null)
+            {
+                TempData["Error"] = $"Tahun {currentYear} tidak ditemukan.";
+                return View(new List<WeeksSettingModel>());
+            }
+
+            int year = yearById.Id;
+            int month = MonthSelect ?? DateTime.Now.Month;
+
+            // Ambil minggu berdasarkan helper
+            var weeks = await _weekHelper.GetMingguByTahunBulanAsync(year, month);
+
+            // Jika belum memilih week → otomatis ambil minggu aktif
+            if (SelectedId == null)
+            {
+                var mingguAktif = await _weekHelper.GetMingguAktifAsync(year);
+                if (mingguAktif != null)
+                {
+                    SelectedId = mingguAktif.Id;
+                }
+            }
 
             ViewData["SelectedId"] = SelectedId;
+
             return View(weeks);
         }
 

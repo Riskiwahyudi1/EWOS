@@ -1,30 +1,24 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
-using System.Linq;
+﻿using EWOS_MVC.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EWOS_MVC.ViewComponents
 {
     public class YearsSettingViewComponent : ViewComponent
     {
-        private readonly AppDbContext _context;
+        private readonly YearsHelper _yearsHelper;
 
-        public YearsSettingViewComponent(AppDbContext context)
+        public YearsSettingViewComponent(YearsHelper yearsHelper)
         {
-            _context = context;
+            _yearsHelper = yearsHelper;
         }
 
         public async Task<IViewComponentResult> InvokeAsync(int? SelectedId = null)
         {
-            var query = _context.YearsSetting.AsQueryable();
 
-
-            var Years = await query
-                                .OrderBy(r => r.Year)
-                                .ToListAsync();
+            var years = await _yearsHelper.GetAllYearsAsync();
 
             ViewData["SelectedId"] = SelectedId;
-            return View(Years);
+            return View(years);
         }
     }
 }

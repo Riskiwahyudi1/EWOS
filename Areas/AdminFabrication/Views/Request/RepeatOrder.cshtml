@@ -383,7 +383,7 @@
                                         <tr>
                                             <th class="col-sm-4">Weight</th>
                                             <td class="col-sm-8" style="word-break: break-word;">
-                                                @(rm.Weight != null ? rm.Weight.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                                                @(rm.ItemRequests.Weight != null ? rm.ItemRequests.Weight.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
                                             </td>
                                         </tr>
                                     }

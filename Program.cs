@@ -21,6 +21,8 @@ builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = options.DefaultPolicy;
 });
 builder.Services.AddScoped<AdUserService>();
+builder.Services.AddScoped<WeekHelper>();
+builder.Services.AddScoped<YearsHelper>();
 // Tambahkan memory cache 
 builder.Services.AddMemoryCache();
 
