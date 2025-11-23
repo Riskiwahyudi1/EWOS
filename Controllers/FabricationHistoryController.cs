@@ -76,6 +76,29 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             return View(fabricationList);
         }
 
+
+        public IActionResult LoadData(int id, string type)
+        {
+            var data = _context.ItemFabrications
+                .Include(i => i.ItemRequest)
+                .Include(m => m.Machine)
+                .Include(i => i.RepeatOrder)
+                .FirstOrDefault(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Edit" => PartialView("~/Views/modals/AdminFabrication/FabricationHistory/EditItemFabModal.cshtml", data),
+                "Finish" => PartialView("~/Views/modals/AdminFabrication/FabricationHistory/FinishItemFabModal.cshtml", data),
+                "Cancel" => PartialView("~/Views/modals/AdminFabrication/FabricationHistory/CancelItemFabModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/AdminFabrication/FabricationHistory/DetailItemFabModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        }
+
         // search
         [HttpGet]
         public IActionResult Search(string keyword, int? categoryId, string status, int? weekSettingId, int? MachineId, int? yearSettingId)

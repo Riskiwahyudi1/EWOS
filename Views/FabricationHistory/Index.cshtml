@@ -93,34 +93,38 @@
                                 <td class="text-center">
                                     @{
                                         var roles = (ViewBag.Roles as List<string>) ?? new List<string>();
-
-                                        // cek role
-                                        bool isAdminSystem = roles.Contains("AdminSystem");
                                         bool isAdminFabrication = roles.Contains("AdminFabrication");
-                                        bool isSupervisor = roles.Contains("Supervisor");
-                                        bool isRequestor = roles.Contains("Requestor");
-
-                                        // cek status
                                         var status = ifab.Status?.Trim().ToLower();
-                                        bool disableEdit = ifab.RepeatOrderId == null;
                                     }
+
+                                    <script>
+                                        if (!window.roleMap) window.roleMap = {};
+                                        window.roleMap[@ifab.Id] = {
+                                            isAdminFabrication: @(isAdminFabrication ? "true" : "false")
+                                        };
+                                    </script>
 
                                     @if (status == "onprogress" && isAdminFabrication)
                                     {
-                                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#finishModal-@ifab.Id">
+                                        
+                                        <button class="btn btn-primary btn-sm open-modal"
+                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Finish">
                                             Done
                                         </button>
-
-                                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalCancel-@ifab.Id">
+                                        
+                                        <button class="btn btn-danger btn-sm open-modal"
+                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Cancel">
                                             Cancel
                                         </button>
-
-                                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditQty-@ifab.Id" @(disableEdit ? "disabled" : "")>
-                                            Edit Qty
+                                        <button class="btn btn-warning btn-sm open-modal"
+                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Edit">
+                                            Edit
                                         </button>
 
+
                                     }
-                                    <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-@ifab.Id">
+                                    <button class="btn btn-info btn-sm open-modal"
+                                            data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Detail">
                                         Detail
                                     </button>
 
@@ -135,217 +139,6 @@
     </div>
 </div>
 
-@if (Model != null && Model.Any())
-
-{
-    foreach (var rq in Model)
-
-    {
-        <!-- Modal Done fabrikasi -->
-        <div class="modal fade" id="finishModal-@rq.Id" tabindex="-1" aria-labelledby="modalFinishLabel-@rq.Id" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <form method="post" action="/FabricationHistory/Finish">
-                        @Html.AntiForgeryToken()
-                        <div class="modal-header bg-success text-white">
-                            <h5 class="modal-title" id="modalFinishLabel-@rq.Id">Finish Fabrikasi</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Yakin ingin menyelesaikan fabrikasi untuk <b>"@rq.ItemRequest?.PartName"</b></p>
-
-                            <!-- Hidden untuk kirim ID request -->
-                            <input type="hidden" name="ItemRequestId" value="@rq.ItemRequest?.Id" />
-                            <input type="hidden" name="RepeatOrderId" value="@rq.RepeatOrder?.Id" />
-                            <input type="hidden" name="Id" value="@rq.Id" />
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-primary">Ya</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    }
-}
-
-
-@if (Model != null && Model.Any())
-{
-    foreach (var rm in Model)
-    {
-        <!-- Modal Edit Qty -->
-        <div class="modal fade" id="modalEditQty-@rm.Id" tabindex="-1" aria-labelledby="requestModalLabel-@rm.Id" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content rounded-3 shadow">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="requestModalLabel-@rm.Id">New Request</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                    </div>
-
-                    <form method="post" action="/FabricationHistory/Edit">
-                        @Html.AntiForgeryToken()
-
-                        <div class="modal-body">
-
-                            <!-- Hidden ID -->
-                            <input type="hidden" name="ItemFabricationId" value="@rm.Id" />
-                            <input type="hidden" name="RepeatOrderId" value="@rm.RepeatOrder?.Id" />
-
-                            <!-- Part Name (readonly) -->
-                            <div class="mb-3">
-                                <label class="form-label">Part Name</label>
-                                <input type="text" class="form-control" value="@rm.ItemRequest?.PartName" readonly />
-                            </div>
-                            <!-- Part Name (readonly) -->
-                            <div class="mb-3">
-                                <label class="form-label">Quantity Waiting Fabrication</label>
-                                <input type="text" class="form-control" value="@rm.RepeatOrder?.QuantityReq" readonly />
-                            </div>
-                            
-                            <!-- Quantity -->
-                            <div class="mb-3">
-                                <label for="Quantity-@rm.Id" class="form-label">Quantity</label>
-                                <input type="number" class="form-control" id="QuantityReq-@rm.Id" name="Quantity" value="@rm.Quantity" placeholder="Input quantity" min="1" max="@(rm.RepeatOrder?.QuantityReq + rm.Quantity ?? 1)" required />
-                            </div>
-
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Simpan</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    }
-}
-
-@if (Model != null && Model.Any())
-
-{
-    foreach (var rq in Model)
-
-    {
-        <!-- Modal cancel -->
-        <div class="modal fade" id="modalCancel-@rq.Id" tabindex="-1" aria-labelledby="modalCancelLabel-@rq.Id" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <form method="post" action="/FabricationHistory/Cancel">
-                        @Html.AntiForgeryToken()
-                        <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title" id="modalCancelLabel-@rq.Id">Batalkan Fabrikasi</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Yakin ingin batalkan fabrikasi untuk <b>"@rq.ItemRequest?.PartName"</b></p>
-
-                            <!-- Hidden untuk kirim dataa -->
-                            <input type="hidden" name="ItemRequestId" value="@rq.ItemRequest?.Id" />
-                            <input type="hidden" name="RepeatOrderId" value="@rq.RepeatOrder?.Id" />
-                            <input type="hidden" name="itemFabId" value="@rq.Id" />
-
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-primary">Ya</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    }
-}
-
-@if (Model != null && Model.Any())
-{
-    foreach (var rm in Model)
-    {
-        <!-- Modal Detail -->
-        <div class="modal fade" id="modalDetail-@rm.Id" tabindex="-1" aria-labelledby="detailLabel-@rm.Id" aria-hidden="true">
-            <div class="modal-dialog modal-md modal-dialog-scrollable">
-                <div class="modal-content">
-                    <!-- Modal Header -->
-                    <div class="modal-header bg-gradient ">
-                        <h5 class="modal-title" id="detailLabel-@rm.Id">Detail Data</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                    </div>
-                    <!-- Modal Body -->
-                    <div class="modal-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped align-middle w-100">
-                                <tbody>
-                                    <tr>
-                                        <th class="col-sm-4">Part Id</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.ItemRequest?.Id
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">Part Name</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.ItemRequest?.PartName
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Quantity</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.Quantity @rm.ItemRequest?.Unit
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Machine</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.Machine?.MachineName
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Requestor Name</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(
-                                                rm.RepeatOrder?.Users?.Name
-                                                ?? rm.ItemRequest?.Users?.Name
-                                                ?? "-"
-                                                )
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Saving Cost(USD)</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @((rm.TotalSaving != null)
-                                                ? rm.TotalSaving
-                                                : "-")
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Fabrication Time</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.FabricationTime
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Request Date</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.CreatedAt.ToString("dd-MM-yyyy")
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Modal Footer -->
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-}
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -379,6 +172,7 @@
                 chart.render();
     </script>
     }
+
 <script>
        document.addEventListener('DOMContentLoaded', () => {
            const tableBody = document.querySelector('table.table tbody');
@@ -388,7 +182,7 @@
            const weekFab = document.querySelector('select[name="WeekSettingId"]')
            const yearFab = document.querySelector('select[name="YearSettingId"]')
            const currentStatus = '@ViewBag.CurrentStatus';
-
+           let loadingTimer = null;
 
     if (!tableBody || !searchBox || !categoryFilter || !weekFab || !mcFilter || !yearFab) return;
            const initialHTML = tableBody.innerHTML;
@@ -408,6 +202,17 @@
                }
 
                try {
+
+               clearTimeout(loadingTimer);
+
+                // Tampilkan "memuat data..." setelah 500ms
+                loadingTimer = setTimeout(() => {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center text-primary">Memuat data...</td>
+                        </tr>`;
+                }, 350);
+
                    const url = new URL("/FabricationHistory/Search", window.location.origin);
                    if (keyword) url.searchParams.append("keyword", keyword);
                    if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
@@ -420,6 +225,7 @@
                    if (!res.ok) throw new Error('Network response was not ok');
 
                    const data = await res.json();
+                   clearTimeout(loadingTimer);
 
                    if (data.utilization !== undefined && !isNaN(data.utilization)) {
                        chart.updateSeries([data.utilization]);
@@ -443,38 +249,39 @@
                    }
 
                    let html = '';
-                   data.data.forEach((rq, idx) => {
-                       let buttons = "";
+                     data.data.forEach((rq, idx) => {
 
-                          if (rq.status?.trim().toLowerCase() === "onprogress") {
-                               const disableEdit = rq.repeatOrderId == null;
+    let buttons = "";
+                    const status = rq.status?.trim().toLowerCase();
+                   const isAdmin = rq.isAdminFabrication === true || window.roleMap?.[rq.id]?.isAdminFabrication === true;
 
-                               buttons += `
-                                   <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#finishModal-${rq.id}">
-                                       Done
-                                   </button>
-                                   <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalCancel-${rq.id}">
-                                       Cancel
-                                   </button>
-                                   <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditQty-${rq.id}" ${disableEdit ? "disabled" : ""}>
-                                       Edit Qty
-                                   </button>
-                                   <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-${rq.id}">
-                                       Detail
-                                   </button>
-                               `;
-                           }
-                          else if (rq.status?.trim().toLowerCase() === "fabricationdone") {
-                               buttons += `
-                                   <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-${rq.id}">
-                                       Detail
-                                   </button>
-                               `;
-                           }
-                           else {
-                               buttons = `<span class="text-muted">-</span>`;
-                           }
 
+                    if (status === "onprogress" && isAdmin) {
+
+                        buttons += `
+                            <button class="btn btn-primary btn-sm open-modal"
+                                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Finish">
+                                Done
+                            </button>
+
+                            <button class="btn btn-danger btn-sm open-modal"
+                                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Cancel">
+                                Cancel
+                            </button>
+
+                            <button class="btn btn-warning btn-sm open-modal"
+                                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Edit">
+                                Edit
+                            </button>
+                        `;
+                    }
+
+                    buttons += `
+                        <button class="btn btn-info btn-sm open-modal"
+                                data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Detail">
+                            Detail
+                        </button>
+                    `;
 
                        html += `
                            <tr>
