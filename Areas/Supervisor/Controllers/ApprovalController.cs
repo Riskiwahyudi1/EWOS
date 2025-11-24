@@ -109,6 +109,80 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
             ;
         }
 
+
+        //search baru
+        [HttpGet]
+        public IActionResult SearchNew(string keyword, int? categoryId)
+        {
+            var query = _context.ItemRequests
+                .Include(m => m.MachineCategories)
+                .Include(u => u.Users)
+                .Where(s => s.Status == "WaitingApproval")
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                query = query.Where(r => r.PartName.Contains(keyword));
+            }
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(r => r.MachineCategoryId == categoryId.Value);
+            }
+
+            var result = query
+                .Select(r => new
+                {
+                    r.Id,
+                    r.PartName,
+                    CategoryName = r.MachineCategories.CategoryName,
+                    Users = r.Users.Name,
+                    r.MachineCategoryId,
+                    r.CreatedAt
+                })
+                .ToList();
+
+            return Json(result);
+        }
+        //search baru
+        [HttpGet]
+        public IActionResult SearchRo(string keyword, int? categoryId)
+        {
+            var query = _context.RepeatOrders
+                .Include(i => i.ItemRequests)
+                    .ThenInclude(mc => mc.MachineCategories)
+                .Include(u => u.Users)
+                .Include(u => u.Users)
+                .Where(s => s.Status == "WaitingApproval")
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                query = query.Where(r => r.ItemRequests.PartName.Contains(keyword));
+            }
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(r => r.ItemRequests.MachineCategoryId == categoryId.Value);
+            }
+
+            var result = query
+                .Select(r => new
+                {
+                    r.Id,
+                    r.ItemRequests.PartName,
+                    CategoryName = r.ItemRequests.MachineCategories.CategoryName,
+                    Users = r.Users.Name,
+                    r.ItemRequests.MachineCategoryId,
+                    r.CreatedAt
+                })
+                .ToList();
+
+            return Json(result);
+        }
+
+
+        //approve
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Approve(long itemRequestId, long? repeatOrderId)
