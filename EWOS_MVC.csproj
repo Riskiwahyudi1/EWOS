@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Views\Modals\AdminFabrication\RequestFabrication\" />
     <Folder Include="wwwroot\uploads\design\" />
     <Folder Include="wwwroot\uploads\drawing\" />
     <Folder Include="wwwroot\uploads\quotation\" />

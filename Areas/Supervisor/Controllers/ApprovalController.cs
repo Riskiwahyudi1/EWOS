@@ -66,6 +66,49 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
             return View(waitingApprovalRepeat);
         }
 
+        //load data modal evaluasi
+        [HttpGet]
+        public async Task<IActionResult> LoadData(long id, string type)
+        {
+            var data = await _context.ItemRequests
+                .Include(m => m.MachineCategories)
+                .Include(u => u.Users)
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Approve" => PartialView("~/Views/modals/Supervisor/Evaluation/ApproveModal.cshtml", data),
+                "Reject" => PartialView("~/Views/modals/Supervisor/Evaluation/RejectModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/Supervisor/Evaluation/DetailModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        }
+        //load data modal RO
+        [HttpGet]
+        public async Task<IActionResult> LoadDataRo(long id, string type)
+        {
+            var data = await _context.RepeatOrders
+                .Include(i => i.ItemRequests)
+                    .ThenInclude(mc => mc.MachineCategories)
+                .Include(u => u.Users)
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Approve" => PartialView("~/Views/modals/Supervisor/RepeatOrder/ApproveModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/Supervisor/RepeatOrder/DetailModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Approve(long itemRequestId, long? repeatOrderId)
