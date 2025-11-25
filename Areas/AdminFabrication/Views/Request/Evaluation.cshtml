@@ -151,10 +151,13 @@
                     <td class="text-center">
                         @if (rq.Status == "ApprovalFabrication")
                         {
-                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalApprove-@rq.Id">
+
+                            <button class="btn btn-success btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Approve">
                                 Approve
                             </button>
-                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalReject-@rq.Id">
+                            <button class="btn btn-danger btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Reject">
                                 Reject
                             </button>
                         }
@@ -166,28 +169,34 @@
                             var rawMaterial = rq.RawMaterialId == null;
                             var weight = rq.Weight == null;
 
-                            if(rq.MachineCategoryId == 1)
+                            if (rq.MachineCategoryId == 1)
                             {
-                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" @(externalCost || FabTime || rawMaterial ? "disabled" : "") data-bs-target="#fabrikasiModal-@rq.Id">
-                                    Fabrikasi
-                                </button>
-                                
-                            }else if(rq.MachineCategoryId == 2)
-                            {
-                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" @(externalCost || FabTime || rawMaterial || weight ? "disabled" : "") data-bs-target="#fabrikasiModal-@rq.Id">
+
+                                <button class="btn btn-primary btn-sm open-modal @(externalCost || FabTime || rawMaterial ? "disabled" : "")"
+                                        data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Fabrikasi">
                                     Fabrikasi
                                 </button>
 
                             }
-                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-@rq.Id">
+                            else if (rq.MachineCategoryId == 2)
+                            {
+                                <button class="btn btn-primary btn-sm open-modal @(externalCost || FabTime || rawMaterial || weight? "disabled" : "")"
+                                        data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Fabrikasi">
+                                    Fabrikasi
+                                </button>
+
+                            }
+                            <button class="btn btn-warning btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Edit">
                                 Edit
                             </button>
-                        } 
+                        }
 
-                             <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-@rq.Id">
-                                Detail
-                            </button>
-                        
+                        <button class="btn btn-info btn-sm open-modal"
+                                data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Detail">
+                            Detail
+                        </button>
+
                     </td>
 
                 </tr>
@@ -196,424 +205,6 @@
         }
     </tbody>
 </table>
-
-@if (ViewBag.ModalData != null)
-{
-    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
-    {
-        <!-- Modal Approve -->
-        <div class="modal fade" id="modalApprove-@ir.Id" tabindex="-1" aria-labelledby="editLabel-@ir.Id" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="post" action="/AdminFabrication/Request/Approve" enctype="multipart/form-data">
-                        @Html.AntiForgeryToken()
-                        <div class="modal-header bg-success">
-                            <h5 class="modal-title mb-2 text-white" id="modalApprove">Approve Request</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label class="my-2" asp-for="ItemRequestId">Id Request</label>
-                                <input class="form-control" value="@ir.Id" readonly />
-                                <span asp-validation-for="PartName" class="text-danger"></span>
-                            </div>
-                            <div class="form-group">
-                                <label class="my-2" asp-for="ItemRequestId">Item Name</label>
-                                <input type="hidden" name="ItemRequestId" value="@ir.Id" />
-                                <input name="PartName" class="form-control" value="@ir.PartName" readonly />
-                                <span asp-validation-for="PartName" class="text-danger"></span>
-                            </div>
-                            <div class="form-group">
-                                <label class="my-2" asp-for="OCD">Prediction Complete</label>
-                                <input name="OCD" type="date" class="form-control" value="" required />
-                                <span asp-validation-for="OCD" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-success">Approve</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    }
-}
-
-@if (ViewBag.ModalData != null)
-{
-    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
-    {
-
-        <!-- Modal Reject -->
-        <div class="modal fade" id="modalReject-@ir.Id" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="post" action="/AdminFabrication/Request/Reject">
-                        @Html.AntiForgeryToken()
-
-                        <div class="modal-header bg-danger">
-                            <h5 class="modal-title mb-2 text-white" id="modalTambahLabel">Reject Request</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label class="my-2" asp-for="ItemRequestId">ID Request</label>
-                                <input class="form-control" value="@ir.Id" readonly />
-                                <span asp-validation-for="SapId" class="text-danger"></span>
-                            </div>
-                            <div class="form-group">
-                                <label class="my-2" asp-for="ItemRequestId">Item Name</label>
-                                <input type="hidden" name="ItemRequestId" value="@ir.Id" />
-                                <input name="PartName" class="form-control" value="@ir.PartName" readonly />
-                                <span asp-validation-for="SapId" class="text-danger"></span>
-                            </div>
-                            <div class="form-group">
-                                <label class="my-2" asp-for="ItemRequestId">Reason</label>
-                                <textarea class="form-control" id="Reason" name="Reason" rows="3" placeholder="Input Reason..."></textarea>
-                                <span asp-validation-for="SapId" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-danger">Reject</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    }
-}
-
-@if (ViewBag.ModalData != null)
-{
-    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
-    {
-        <!-- Modal Edit data -->
-        <div class="modal fade" id="modalEdit-@ir.Id" tabindex="-1" aria-labelledby="approveLabel-@ir.Id" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="post" action="/AdminFabrication/Request/Edit" enctype="multipart/form-data">
-                        @Html.AntiForgeryToken()
-                        <div class="modal-header bg-warning text-white">
-                            <h5 class="modal-title" id="approveLabel-@ir.Id">Edit Data</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                        </div>
-                        <div class="modal-body">
-                            <input type="hidden" name="Id" value="@ir.Id" />
-                            <input type="hidden" name="Description" value="@ir.Description" />
-                            <div class="form-group mb-3">
-                                <label>Id Request</label>
-                                <input name="Id" class="form-control" value="@ir.Id" readonly />
-                            </div>
-                            <div class="form-group mb-3">
-                                <label>Part Name</label>
-                                <input name="PartName" class="form-control" value="@ir.PartName" required />
-                            </div>
-                            
-                            <div class="form-group mb-3">
-                                <label asp-for="MachineCategories">Machine Category</label>
-                                @await Component.InvokeAsync("MachineCategories", new { selectedId = ir.MachineCategoryId })
-                                <span asp-validation-for="MachineCategories" class="text-danger"></span>
-                            </div>
-                            <div class="form-group mb-3">
-                                <label>External Fab Cost($)</label>
-                                <input name="ExternalFabCost" class="form-control" type="number" step="0.01" placeholder="0,00" value="@ir.ExternalFabCost" />
-                            </div>
-                            <div class="form-group mb-3">
-                                <label>Fabrication Time</label>
-                                <input name="FabricationTime" class="form-control" type="number" step="0.01" placeholder="0,00" value="@ir.FabricationTime" />
-                            </div>
-                            <div class="form-group mb-3">
-                                <label asp-for="RawMaterials">Raw Material</label>
-                                @await Component.InvokeAsync("RawMaterials", new { selectedId = ir.RawMaterialId, machineCategoryId = ir.MachineCategoryId })
-                                <span asp-validation-for="RawMaterials" class="text-danger"></span>
-                            </div>
-                            @if (ir.MachineCategoryId == 2)
-                            {
-                                <div class="form-group mb-3">
-                                    <label>Weight</label>
-                                    <input name="Weight" class="form-control" type="number" step="0.01" placeholder="0,00" value="@(ir.Weight != null ? ir.Weight.ToString("0.00") : "")" />
-                                </div>
-                            }
-                            <div class="form-group mb-3">
-                                <label>Part Code</label>
-                                <input name="PartCode" class="form-control" placeholder="Input Part Code" value="@ir.PartCode" />
-                            </div>
-                            <div class="form-group mb-3" id="unitcontainer">
-                                <label for="unit" class="form-label">
-                                    <i class="bi bi-list me-1"></i> Unit
-                                </label>
-                                <select class="form-select" id="unit" name="Unit">
-                                    <option selected value="@ir.Unit">@ir.Unit</option>
-
-                                    @if (ir.Unit != "Pcs")
-                                    {
-                                        <option value="Pcs">Pcs</option>
-                                    }
-                                    @if (ir.Unit != "Set")
-                                    {
-                                        <option value="Set">Set</option>
-                                    }
-                                </select>
-                            </div>
-
-                            <!-- File Design -->
-                            <div class="form-group mb-3">
-                                <label for="fileDesign" class="form-label">
-                                    <i class="bi bi-file-earmark-text me-1"></i> Update File Design
-                                </label>
-                                <input class="form-control" type="file" id="fileDesign" name="fileDesign" />
-                                <div class="form-text text-muted text-sm">Max 1MB, .zip only is allowed.</div>
-                            </div>
-
-                            <!-- File Drawing -->
-                            <div class="form-group mb-3">
-                                <label for="fileDrawing" class="form-label">
-                                    <i class="bi bi-file-earmark-text me-1"></i> Update File Drawing
-                                </label>
-                                <input class="form-control" type="file" id="fileDrawing" name="fileDrawing" />
-                                <div class="form-text text-muted text-sm">Max 1MB, .pdf only is allowed.</div>
-                            </div>
-
-                            <!-- File Quotation -->
-                            <div class="form-group mb-3" id="quatationcontainer">
-                                <label for="fileQuotation" class="form-label">
-                                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Update File Quotation
-                                </label>
-                                <input class="form-control" type="file" id="fileQuotation" name="fileQuotation" />
-                                <div class="form-text text-muted text-sm">Max 1MB, .pdf only is allowed.</div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-primary">Simpan</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    }
-}
-
-@if (ViewBag.ModalData != null)
-{
-    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
-    {
-        <!-- Modal Fabrikasi -->
-        <div class="modal fade" id="fabrikasiModal-@ir.Id" tabindex="-1" aria-labelledby="fabrikasiModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content rounded-3 shadow">
-                    <div class="modal-header bg-primary">
-                        <h5 class="modal-title" id="fabrikasiModalLabel">Fabrikasi</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form method="post" action="/AdminFabrication/Request/AddFabrikasi">
-                            @Html.AntiForgeryToken()
-
-                            <input type="hidden" name="ItemRequestId" value="@ir.Id" />
-                            <div class="form-group mb-3">
-                                <label for="MachineId" class="mb-2">Mesin Fabrikasi</label>
-                                @await Component.InvokeAsync("MachineList", new { selectedId = ir.MachineCategoryId })
-                                <span asp-validation-for="Machine" class="text-danger"></span>
-                            </div>
-
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                <button type="submit" class="btn btn-primary">Proses</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-}
-
-
-@if (ViewBag.ModalData != null)
-{
-    foreach (var rm in (IEnumerable<dynamic>)ViewBag.ModalData)
-    {
-        <!-- Modal Detail -->
-        <div class="modal fade" id="modalDetail-@rm.Id" tabindex="-1" aria-labelledby="detailLabel-@rm.Id" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                <div class="modal-content">
-                    <!-- Modal Header -->
-                    <div class="modal-header bg-gradient ">
-                        <h5 class="modal-title" id="detailLabel-@rm.Id">Detail Data</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                    </div>
-
-                    <!-- Modal Body -->
-                    <div class="modal-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped align-middle w-100">
-                                <tbody>
-                                    <tr>
-                                        <th class="col-sm-4">Part Id</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.Id ?? Html.Raw("<span class='badge bg-danger'>-</span>"))
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Part Name</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.PartName ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Part Code</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.PartCode ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">Machine Category</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.MachineCategories?.CategoryName ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Raw Material</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.RawMaterials?.Name ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">External Cost ($)</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.ExternalFabCost != null ? rm.ExternalFabCost.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">Fabrication Time</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.FabricationTime != null ? rm.FabricationTime.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-
-                                    @if (rm.MachineCategoryId == 2)
-                                    {
-                                        <tr>
-                                            <th class="col-sm-4">Weight</th>
-                                            <td class="col-sm-8" style="word-break: break-word;">
-                                                @(rm.Weight != null ? rm.Weight.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                            </td>
-                                        </tr>
-                                    }
-                                    <tr>
-                                        <th class="col-sm-4">Fabrication Unit</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.Unit ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Saving Cost Calculation</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @if (rm.IsCalculateSaving)
-                                            {
-                                                <span class="badge bg-success">Yes</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-danger">No</span>
-                                            }
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">Request Date</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.CreatedAt != null
-                                                ? rm.CreatedAt.ToString("dd-MM-yyyy")
-                                                : Html.Raw("<span class='badge bg-danger'>-</span>"))
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">CRD</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.CRD != null
-                                                ? rm.CRD.ToString("dd-MM-yyyy")
-                                                : Html.Raw("<span class='badge bg-danger'>-</span>"))
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">OCD</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.OCD != null
-                                                ? rm.OCD.ToString("dd-MM-yyyy")
-                                                : Html.Raw("<span class='badge bg-danger'>-</span>"))
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Design</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @if (!string.IsNullOrEmpty(rm.DesignPath))
-                                            {
-                                                <a href="@Url.Content(rm.DesignPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Download</a>
-                                            }
-                                            else
-                                            {
-                                                <span>-</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Ref Drawing</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @if (!string.IsNullOrEmpty(rm.DrawingPath))
-                                            {
-                                                <a href="@Url.Content(rm.DrawingPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye-fill"></i> View</a>
-                                            }
-                                            else
-                                            {
-                                                <span>-</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Ref Quotation</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @if (!string.IsNullOrEmpty(rm.QuantationPath))
-                                            {
-                                                <a href="@Url.Content(rm.QuantationPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye-fill"></i> View</a>
-                                            }
-                                            else
-                                            {
-                                                <span>-</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Description</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.Description ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Modal Footer -->
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-    }
-}
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -677,10 +268,13 @@
 
                     if (rq.status === "FabricationApproval") {
                         buttons += `
-                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalApprove-${rq.id}">
+                            <button type="button" class="btn btn-success btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Approve">
                                 Approve
                             </button>
-                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalReject-${rq.id}">
+
+                            <button type="button" class="btn btn-danger btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Reject">
                                 Reject
                             </button>
                         `;
@@ -693,48 +287,48 @@
 
                         if (rq.machineCategoryId === 1) {
                         const isDisabled = externalCostIsNull || fabTimeIsNull || rawMaterialIsNull;
-                        buttons = `
-                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" ${isDisabled ? 'disabled' : ''} data-bs-target="#fabrikasiModal-${rq.id}">
+                        buttons += `
+                            <button type="button"
+                                    class="btn btn-primary btn-sm open-modal ${isDisabled ? "disabled" : ""}"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Fabrikasi">
                                 Fabrikasi
                             </button>
-                            <button type="button" class="btn btn-warning btn-sm position-relative" data-bs-toggle="modal" data-bs-target="#modalEdit-${rq.id}">
-                                Edit Data
-                                ${isDisabled ? `
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                    !
-                                    </span>
-                                ` : ''}
+
+                            <button type="button" class="btn btn-warning btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Edit">
+                                Edit
                             </button>
                         `;
                         } else if (rq.machineCategoryId === 2) {
                         const isDisabled = externalCostIsNull || fabTimeIsNull || rawMaterialIsNull || weightIsNull;
-                        buttons = `
-                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" ${isDisabled ? 'disabled' : ''} data-bs-target="#fabrikasiModal-${rq.id}">
+                        buttons += `
+                            <button type="button"
+                                    class="btn btn-primary btn-sm open-modal ${isDisabled ? "disabled" : ""}"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Fabrikasi">
                                 Fabrikasi
                             </button>
-                            <button type="button" class="btn btn-warning btn-sm position-relative" data-bs-toggle="modal" data-bs-target="#modalEdit-${rq.id}">
-                                Edit Data
-                                ${isDisabled ? `
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                    !
-                                    </span>
-                                ` : ''}
+
+                            <button type="button" class="btn btn-warning btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Edit">
+                                Edit
                             </button>
                         `;
                         }else if (rq.machineCategoryId === 3) {
-                        buttons = `
-                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#fabrikasiModal-${rq.id}">
+                        buttons += `
+                            <button type="button"
+                                    class="btn btn-primary btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Fabrikasi">
                                 Drawing
                             </button>
-
                         `;
                         }
                     }
-                        buttons += `
-                            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-${rq.id}">
-                                Detail
-                            </button>
-                        `;
+                            buttons += `
+                                <button type="button" class="btn btn-info btn-sm open-modal"
+                                        data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Detail">
+                                    Detail
+                                </button>
+                            `;
 
                     html += `
                         <tr>

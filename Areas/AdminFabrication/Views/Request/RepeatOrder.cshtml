@@ -139,23 +139,23 @@
                     <td class="text-center">
                         @if (rq.Status == "ApprovalFabrication")
                         {
-                         
-                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalApprove-@rq.Id">
+
+                            <button class="btn btn-success btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadDataRo?id=@rq.Id&amp;type=Approve">
                                 Approve
                             </button>
-                            @* <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalReject-@rq.Id">
-                                Reject
-                            </button> *@
                         }
                         else if (rq.Status == "WaitingFabrication")
                         {
 
-                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#fabrikasiModal-@rq.Id">
-                                    Fabrikasi
-                                </button>
+                            <button class="btn btn-primary btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadDataRo?id=@rq.Id&amp;type=Fabrikasi">
+                                Fabrikasi
+                            </button>
                         }
 
-                        <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-@rq.Id">
+                        <button class="btn btn-info btn-sm open-modal"
+                                data-url="/AdminFabrication/Request/LoadDataRo?id=@rq.Id&amp;type=Detail">
                             Detail
                         </button>
 
@@ -167,333 +167,6 @@
         }
     </tbody>
 </table>
-
- @if (ViewBag.ModalData != null)
-{
-    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
-    {
-        <!-- Modal Approve -->
-        <div class="modal fade" id="modalApprove-@ir.Id" tabindex="-1" aria-labelledby="editLabel-@ir.Id" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="post" action="/AdminFabrication/Request/Approve" enctype="multipart/form-data">
-                        @Html.AntiForgeryToken()
-                        <div class="modal-header bg-success">
-                            <h5 class="modal-title mb-2 text-white" id="modalApprove">Approve Request</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label class="my-2" asp-for="ItemRequestId">Id Request</label>
-                                <input class="form-control" value="@ir.Id" readonly />
-                                <span asp-validation-for="PartName" class="text-danger"></span>
-                            </div>
-                            <div class="form-group">
-                                <label class="my-2" asp-for="ItemRequestId">Item Name</label>
-                                <input type="hidden" name="RepeatOrderId" value="@ir.Id" />
-                                <input type="hidden" name="ItemRequestId" value="@ir.ItemRequests.Id" />
-                                <input name="PartName" class="form-control" value="@ir.ItemRequests.PartName" readonly />
-                                <span asp-validation-for="PartName" class="text-danger"></span>
-                            </div>
-                            <div class="form-group">
-                                <label class="my-2" asp-for="OCD">Prediction Complete</label>
-                                <input name="OCD" type="date" class="form-control" value="" required />
-                                <span asp-validation-for="OCD" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-success">Approve</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    }
-}
-@* 
-@if (ViewBag.ModalData != null)
-{
-    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
-    {
-
-        <!-- Modal Reject -->
-        <div class="modal fade" id="modalReject-@ir.Id" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="post" action="/AdminFabrication/Request/Reject">
-                        @Html.AntiForgeryToken()
-
-                        <div class="modal-header bg-danger">
-                            <h5 class="modal-title mb-2 text-white" id="modalTambahLabel">Reject Request</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label class="my-2" asp-for="ItemRequestId">ID Request</label>
-                                <input class="form-control" value="@ir.Id" readonly />
-                                <span asp-validation-for="SapId" class="text-danger"></span>
-                            </div>
-                            <div class="form-group">
-                                <label class="my-2" asp-for="ItemRequestId">Item Name</label>
-                                <input type="hidden" name="ItemRequestId" value="@ir.Id" />
-                                <input name="PartName" class="form-control" value="@ir.PartName" readonly />
-                                <span asp-validation-for="SapId" class="text-danger"></span>
-                            </div>
-                            <div class="form-group">
-                                <label class="my-2" asp-for="ItemRequestId">Reason</label>
-                                <textarea class="form-control" id="Reason" name="Reason" rows="3" placeholder="Input Reason..."></textarea>
-                                <span asp-validation-for="SapId" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-danger">Reject</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    }
-} *@
-
-
-@if (ViewBag.ModalData != null)
-{
-    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
-    {
-        <!-- Modal Fabrikasi -->
-        <div class="modal fade" id="fabrikasiModal-@ir.Id" tabindex="-1" aria-labelledby="fabrikasiModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content rounded-3 shadow">
-                    <div class="modal-header bg-primary">
-                        <h5 class="modal-title" id="fabrikasiModalLabel">Fabrikasi</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form method="post" action="/AdminFabrication/Request/AddFabrikasi">
-                            @Html.AntiForgeryToken()
-
-                            <input type="hidden" name="RepeatOrderId" value="@ir.Id" />
-                            <input type="hidden" name="ItemRequestId" value="@ir.ItemRequests.Id" />
-                            <div class="form-group mb-3">
-                                <label for="MachineId" class="mb-2">Mesin Fabrikasi</label>
-                                @await Component.InvokeAsync("MachineList", new { selectedId = ir.ItemRequests.MachineCategoryId })
-                                <span asp-validation-for="Machine" class="text-danger"></span>
-                            </div>
-                            <div class="form-group mb-3">
-                                <label for="Quantity" class="mb-2">Quantity</label>
-                                <input name="Quantity" type="number" min="1" max="@ir.QuantityReq" placeholder="Masukan jumlah" class="form-control" required />
-                                <span asp-validation-for="Machine" class="text-danger"></span>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                <button type="submit" class="btn btn-primary">Proses</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-}
-
-
- @if (ViewBag.ModalData != null)
-{
-    foreach (var rm in (IEnumerable<dynamic>)ViewBag.ModalData)
-    {
-        <!-- Modal Detail -->
-        <div class="modal fade" id="modalDetail-@rm.Id" tabindex="-1" aria-labelledby="detailLabel-@rm.Id" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                <div class="modal-content">
-                    <!-- Modal Header -->
-                    <div class="modal-header bg-gradient ">
-                        <h5 class="modal-title" id="detailLabel-@rm.Id">Detail Data</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                    </div>
-
-                    <!-- Modal Body -->
-                    <div class="modal-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped align-middle w-100">
-                                <tbody>
-                                    <tr>
-                                        <th class="col-sm-4">Part Id</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.Id 
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Part Name</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.ItemRequests.PartName 
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Request Qty</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.QuantityReq
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Fabrication Done</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.QuantityDone != null ? rm.QuantityDone.ToString() : Html.Raw("<span>-</span>"))
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Part Code</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.ItemRequests.PartCode ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">Machine Category</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.ItemRequests.MachineCategories?.CategoryName
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Raw Material</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.ItemRequests.RawMaterials?.Name ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">External Cost ($)/Pcs</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.ItemRequests.ExternalFabCost != null ? rm.ItemRequests.ExternalFabCost.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-                                   
-                                    <tr>
-                                        <th class="col-sm-4">Fabrication Time/Pcs</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.ItemRequests.FabricationTime != null ? rm.ItemRequests.FabricationTime.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-                                    
-                                    @if (rm.ItemRequests.MachineCategoryId == 2)
-                                    {
-                                        <tr>
-                                            <th class="col-sm-4">Weight</th>
-                                            <td class="col-sm-8" style="word-break: break-word;">
-                                                @(rm.ItemRequests.Weight != null ? rm.ItemRequests.Weight.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                            </td>
-                                        </tr>
-                                    }
-                                    <tr>
-                                        <th class="col-sm-4">Fabrication Unit</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.ItemRequests.Unit ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-                                    
-                                    <tr>
-                                        <th class="col-sm-4">Saving Cost Calculation</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @if (rm.ItemRequests.IsCalculateSaving)
-                                            {
-                                                <span class="badge bg-success">Yes</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-danger">No</span>
-                                            }
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <th class="col-sm-4">Request Date</th>
-                                <td class="col-sm-8" style="word-break: break-word;">
-                                    @(rm.CreatedAt != null
-                                        ? rm.CreatedAt.ToString("dd-MM-yyyy")
-                                        : Html.Raw("<span class='badge bg-danger'>-</span>"))
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="col-sm-4">CRD</th>
-                                <td class="col-sm-8" style="word-break: break-word;">
-                                @(rm.CRD != null
-                                    ? rm.CRD.ToString("dd-MM-yyyy")
-                                    : Html.Raw("<span class='badge bg-danger'>-</span>"))
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <th class="col-sm-4">OCD</th>
-                                <td class="col-sm-8" style="word-break: break-word;">
-                                    @(rm.OCD != null
-                                        ? rm.OCD.ToString("dd-MM-yyyy")
-                                        : Html.Raw("<span class='badge bg-danger'>-</span>"))
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="col-sm-4">Design</th>
-                                <td class="col-sm-8" style="word-break: break-word;">
-                                    @if (!string.IsNullOrEmpty(rm.ItemRequests.DesignPath))
-                                            {
-                                                <a href="@Url.Content(rm.ItemRequests.DesignPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Download</a>
-                                            }
-                                            else
-                                            {
-                                                <span>-</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Ref Drawing</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @if (!string.IsNullOrEmpty(rm.ItemRequests.DrawingPath))
-                                            {
-                                                <a href="@Url.Content(rm.ItemRequests.DrawingPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye-fill"></i> View</a>
-                                            }
-                                            else
-                                            {
-                                                <span>-</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Ref Quotation</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @if (!string.IsNullOrEmpty(rm.ItemRequests.QuantationPath))
-                                            {
-                                                <a href="@Url.Content(rm.ItemRequests.QuantationPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye-fill"></i> View</a>
-                                            }
-                                            else
-                                            {
-                                                <span>-</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Description</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.Description ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr> 
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Modal Footer -->
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-    }
-}
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -558,32 +231,28 @@
 
                     if (rq.status === "FabricationApproval") {
                         buttons += `
-                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"  data-bs-target="#modalApprove-${rq.id}">
+                           <button type="button" class="btn btn-success btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadDataRo?id=${rq.id}&type=Approve">
                                 Approve
                             </button>
                             
                         `;
                     }else if (rq.status === "WaitingFabrication") {
 
-                        if (rq.machineCategoryId === 1 || rq.machineCategoryId === 2 && rq.status ) {
                         buttons = `
-                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" ${disabledAttr}  data-bs-target="#fabrikasiModal-${rq.id}">
+                            <button type="button"
+                                    class="btn btn-primary btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadDataRo?id=${rq.id}&type=Fabrikasi">
                                 Fabrikasi
-                            </button>
-                            
+                            </button> 
                         `;
-                       
-                        }else if (rq.machineCategoryId === 3) {
-                        buttons = `
-                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#fabrikasiModal-${rq.id}">
-                                Drawing
-                            </button>
-                        `;
-                        }
+
+                        
                     }
                         buttons += `
-                            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-${rq.id}">
-                                Detail
+                            <button type="button" class="btn btn-info btn-sm open-modal"
+                                        data-url="/AdminFabrication/Request/LoadDataRo?id=${rq.id}&type=Detail">
+                                    Detail
                             </button>
                         `;
 

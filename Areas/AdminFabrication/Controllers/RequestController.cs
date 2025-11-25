@@ -24,6 +24,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
         }
 
         //request baru(Evaluasi)
+        [HttpGet]
         public async Task<IActionResult> Evaluation()
         {
             var requestList = await _context.ItemRequests
@@ -34,14 +35,6 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                                 .Where(rq => rq.Status == "WaitingApproval")
                                 .ToListAsync();
 
-            // --- Data modal untuk semua status ---
-            var modalData = await _context.ItemRequests
-                .Include(mc => mc.MachineCategories)
-                .Include(u => u.Users)
-                .Include(rm => rm.RawMaterials)
-                .Include(rs => rs.RequestStatus)
-                    .ThenInclude(u => u.Users)
-                .ToListAsync();
 
             // --- Summary semua status ---
             var statusSummary = await _context.ItemRequests
@@ -49,12 +42,13 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
 
             ViewBag.StatusSummary = statusSummary;
-            ViewBag.CurrentStatus = "FabricationApproval"; //!!
-            ViewBag.ModalData = modalData;
+            ViewBag.CurrentStatus = "FabricationApproval"; 
             return View(requestList);
         }
 
+
         //request lama(Repeat Order)
+        [HttpGet]
         public async Task<IActionResult> RepeatOrder()
         {
             var requestList = await _context.RepeatOrders
@@ -64,27 +58,65 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 .Where(rq => rq.Status == "WaitingApproval" && rq.QuantityReq >= 0)
                 .ToListAsync();
 
-            //data modal
-            var modalData = await _context.RepeatOrders
-                .Include(rq => rq.ItemRequests)
-                    .ThenInclude(mc => mc.MachineCategories)
-                .Include(rq => rq.ItemRequests)
-                    .ThenInclude(rm => rm.RawMaterials)
-                .Include(u => u.Users)
-                .Include(rs => rs.RequestStatus)
-                    .ThenInclude(u => u.Users)
-                .ToListAsync();
-
-
             var statusSummary = await _context.RepeatOrders
                .Where(qty => qty.QuantityReq > 0)
                .GroupBy(r => r.Status ?? "Unknown")
                .ToDictionaryAsync(g => g.Key, g => g.Count());
 
             ViewBag.StatusSummary = statusSummary;
-            ViewBag.CurrentStatus = "FabricationApproval"; //!!
-            ViewBag.ModalData = modalData;
+            ViewBag.CurrentStatus = "FabricationApproval";
+      
             return View(requestList);
+        }
+
+        //load modal new request
+        [HttpGet]
+        public IActionResult LoadData(long id, string type)
+        {
+            var data = _context.ItemRequests
+                .Include(mc => mc.MachineCategories)
+                .Include(u => u.Users)
+                .FirstOrDefault(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Approve" => PartialView("~/Views/modals/AdminFabrication/Evaluation/ApproveModal.cshtml", data),
+                "Reject" => PartialView("~/Views/modals/AdminFabrication/Evaluation/RejectModal.cshtml", data),
+                "Fabrikasi" => PartialView("~/Views/modals/AdminFabrication/Evaluation/FabrikasiModal.cshtml", data),
+                "Edit" => PartialView("~/Views/modals/AdminFabrication/Evaluation/EditModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/General/ItemRequestDetailModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        }
+
+        //load modal Ro
+        [HttpGet]
+        public IActionResult LoadDataRo(long id, string type)
+        {
+            var data = _context.RepeatOrders
+                .Include(rq => rq.ItemRequests)
+                    .ThenInclude(mc => mc.MachineCategories)
+                .Include(rq => rq.ItemRequests)
+                    .ThenInclude(r => r.RawMaterials)
+                .Include(u => u.Users)
+                .FirstOrDefault(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Approve" => PartialView("~/Views/modals/AdminFabrication/RepeatOrder/ApproveModal.cshtml", data),
+                "Edit" => PartialView("~/Views/modals/AdminFabrication/RepeatOrder/EditModal.cshtml", data),
+                "Fabrikasi" => PartialView("~/Views/modals/AdminFabrication/RepeatOrder/FabrikasiModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/General/ItemRequestRoDetailModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
         }
 
         // search req baru
