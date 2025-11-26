@@ -1,0 +1,118 @@
+﻿@model EWOS_MVC.Models.ItemRequestModel
+
+<!-- Modal Header -->
+<div class="modal-header bg-gradient ">
+    <h5 class="modal-title" >Detail Data</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+</div>
+
+<!-- Modal Body -->
+<div class="modal-body">
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle w-100">
+            <tbody>
+                <tr>
+                    <th class="col-sm-4">Part Id</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.Id
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class="col-sm-4">Part Name</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.PartName
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class="col-sm-4">Machine Category</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.MachineCategories?.CategoryName
+                </tr>
+
+                <tr>
+                    <th class="col-sm-4">Fabrication Unit</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.Unit
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Request Date</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.CreatedAt.ToString("dd-MM-yyyy")
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class="col-sm-4">CRD</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.CRD.ToString("dd-MM-yyyy")
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Design</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @if (!string.IsNullOrEmpty(Model.DesignPath))
+                        {
+                            <a href="@Url.Content(Model.DesignPath)" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download
+                            </a>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class="col-sm-4">Ref Drawing</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @if (!string.IsNullOrEmpty(Model.DrawingPath))
+                        {
+                            <a href="@Url.Content(Model.DrawingPath)" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye-fill"></i> View
+                            </a>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class="col-sm-4">Ref Quotation</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @if (!string.IsNullOrEmpty(Model.QuantationPath))
+                        {
+                            <a href="@Url.Content(Model.QuantationPath)" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye-fill"></i> View
+                            </a>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class="col-sm-4">Description</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @(string.IsNullOrEmpty(Model.Description)
+                            ? Html.Raw("<span class='badge bg-danger'>Belum di set</span>")
+                            : Model.Description)
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Footer -->
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+</div>

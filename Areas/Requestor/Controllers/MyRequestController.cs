@@ -30,16 +30,6 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 .Where(s => s.Status == "WaitingApproval" || s.Status == "FabricationApproval")
                 .ToListAsync();
 
-            // --- Data modal untuk semua status ---
-            var modalData = await _context.ItemRequests
-                .Include(mc => mc.MachineCategories)
-                .Include(u => u.Users)
-                .Include(rm => rm.RawMaterials)
-                .Include(rs => rs.RequestStatus)
-                    .ThenInclude(u => u.Users)
-                .Where(u => u.UserId == userId)
-                .ToListAsync();
-
              // --- Summary semua status ---
             var statusSummaryRepeat = await _context.RepeatOrders
                 .Where(u => u.UserId == userId)
@@ -55,7 +45,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             ViewBag.StatusSummaryRepeat = statusSummaryRepeat;
             ViewBag.StatusSummaryEval = statusSummaryEval;
             ViewBag.CurrentStatus = "WaitingApproval";
-            ViewBag.ModalData = modalData;
+         
 
             return View(tableData);
         }
@@ -106,6 +96,56 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             return View(tableData);
         }
 
+
+        //load modal new request
+        [HttpGet]
+        public IActionResult LoadData(long id, string type)
+        {
+            var data = _context.ItemRequests
+                .Include(mc => mc.MachineCategories)
+                .Include(rs => rs.RequestStatus)
+                .Include(u => u.Users)
+                .FirstOrDefault(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Pass" => PartialView("~/Views/modals/Requestor/Evaluation/BuyOffPassModal.cshtml", data),
+                "Status" => PartialView("~/Views/modals/General/StatusRequestModal.cshtml", data),
+                "Fail" => PartialView("~/Views/modals/Requestor/Evaluation/BuyOffFailModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/General/RequestDetailSummaryModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        } 
+        //load modal Ro
+        [HttpGet]
+        public IActionResult LoadDataRo(long id, string type)
+        {
+            var data = _context.RepeatOrders
+                .Include(ir => ir.ItemRequests)
+                    .ThenInclude(mc => mc.MachineCategories)
+                .Include(ir => ir.ItemRequests)
+                    .ThenInclude(rm => rm.RawMaterials)
+                .Include(u => u.Users)
+                .Include(rs => rs.RequestStatus)
+                    .ThenInclude(u => u.Users)
+                .FirstOrDefault(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Recived" => PartialView("~/Views/modals/Requestor/RepeatOrder/ReciveModal.cshtml", data),
+                "Status" => PartialView("~/Views/modals/General/StatusRequestRoModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/General/RequestRoDetailSummaryModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        }
 
         // Search request baru
         [HttpGet]

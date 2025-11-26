@@ -170,20 +170,12 @@
                     <td>@ir.QuantityDone</td>
                     <td>@ir.CreatedAt</td>
                     <td class="text-center">
-                        @if (ir.Status == "WaitingConfirmation")
-                        {
-                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalPass-@ir.Id">
-                                <i class="bi bi-check"></i> Pass
-                            </button>
-                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalFail-@ir.Id">
-                                <i class="bi bi-x-lg"></i> Fail
-                            </button>
-
-                        }
-                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-@ir.Id">
+                        <button class="btn btn-warning btn-sm open-modal"
+                                data-url="/Requestor/MyRequest/LoadDataRo?id=@ir.Id&amp;type=Detail">
                             <i class="bi bi-info-circle"></i> Detail
                         </button>
-                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalStatus-@ir.Id">
+                        <button class="btn btn-info btn-sm open-modal"
+                                data-url="/Requestor/MyRequest/LoadDataRo?id=@ir.Id&amp;type=Status">
                             <i class="bi bi-ticket-detailed"></i> Status
                         </button>
                     </td>
@@ -194,430 +186,6 @@
 
     </tbody>
 </table>
-@if (ViewBag.ModalData != null)
-{
-    foreach (var rm in (IEnumerable<dynamic>)ViewBag.ModalData)
-    {
-        <!-- Modal Detail -->
-        <div class="modal fade" id="modalDetail-@rm.Id" tabindex="-1" aria-labelledby="detailLabel-@rm.Id" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                <div class="modal-content">
-                    <!-- Modal Header -->
-                    <div class="modal-header bg-gradient ">
-                        <h5 class="modal-title" id="detailLabel-@rm.Id">Detail Data</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                    </div>
-
-                    <!-- Modal Body -->
-                    <div class="modal-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped align-middle w-100">
-                                <tbody>
-                                    <tr>
-                                        <th class="col-sm-4">Part Id</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.Id
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Part Name</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.ItemRequests.PartName
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Request Qty</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.QuantityReq
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Fabrication Done</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.QuantityDone != null ? rm.QuantityDone.ToString() : Html.Raw("<span>-</span>"))
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Part Code</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.ItemRequests.PartCode ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">Machine Category</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @rm.ItemRequests.MachineCategories?.CategoryName
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Raw Material</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.ItemRequests.RawMaterials?.Name ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">External Cost ($)/Pcs</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.ItemRequests.ExternalFabCost != null ? rm.ItemRequests.ExternalFabCost.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">Fabrication Time/Pcs</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.ItemRequests.FabricationTime != null ? rm.ItemRequests.FabricationTime.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-
-                                    @if (rm.ItemRequests.MachineCategoryId == 2)
-                                    {
-                                        <tr>
-                                            <th class="col-sm-4">Weight</th>
-                                            <td class="col-sm-8" style="word-break: break-word;">
-                                                @(rm.ItemRequests.Weight != null ? rm.Weight.ItemRequests.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                            </td>
-                                        </tr>
-                                    }
-                                    <tr>
-                                        <th class="col-sm-4">Fabrication Unit</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.ItemRequests.Unit ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">Saving Cost Calculation</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @if (rm.ItemRequests.IsCalculateSaving)
-                                            {
-                                                <span class="badge bg-success">Yes</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-danger">No</span>
-                                            }
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">Request Date</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.CreatedAt != null
-                                                ? rm.CreatedAt.ToString("dd-MM-yyyy")
-                                                : Html.Raw("<span class='badge bg-danger'>-</span>"))
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">CRD</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.CRD != null
-                                                ? rm.CRD.ToString("dd-MM-yyyy")
-                                                : Html.Raw("<span class='badge bg-danger'>-</span>"))
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th class="col-sm-4">OCD</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.OCD != null
-                                                ? rm.OCD.ToString("dd-MM-yyyy")
-                                                : Html.Raw("<span class='badge bg-danger'>-</span>"))
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Design</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @if (!string.IsNullOrEmpty(rm.ItemRequests.DesignPath))
-                                            {
-                                                <a href="@Url.Content(rm.ItemRequests.DesignPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Download</a>
-                                            }
-                                            else
-                                            {
-                                                <span>-</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Ref Drawing</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @if (!string.IsNullOrEmpty(rm.ItemRequests.DrawingPath))
-                                            {
-                                                <a href="@Url.Content(rm.ItemRequests.DrawingPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye-fill"></i> View</a>
-                                            }
-                                            else
-                                            {
-                                                <span>-</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Ref Quotation</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @if (!string.IsNullOrEmpty(rm.ItemRequests.QuantationPath))
-                                            {
-                                                <a href="@Url.Content(rm.ItemRequests.QuantationPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye-fill"></i> View</a>
-                                            }
-                                            else
-                                            {
-                                                <span>-</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-sm-4">Description</th>
-                                        <td class="col-sm-8" style="word-break: break-word;">
-                                            @(rm.Description ?? Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Modal Footer -->
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-    }
-}
-
- @if (ViewBag.ModalData != null)
-{
-    foreach (var rm in (IEnumerable<dynamic>)ViewBag.ModalData)
-    {
-        // cek apakah status terakhir reject
-        var isRejected = rm.Status?.ToString().Equals("Reject", StringComparison.OrdinalIgnoreCase) == true;
-
-        var latestReject = (rm.RequestStatus as IEnumerable<dynamic>)?
-            .FirstOrDefault(s =>
-                s.Status != null && s.Status.ToString().Contains("Reject", StringComparison.OrdinalIgnoreCase)
-            );
-
-        <div class="modal fade" id="modalStatus-@rm.Id" tabindex="-1" aria-labelledby="modalApprove" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <!-- Header berubah warna -->
-                    <div class="modal-header @(isRejected ? "bg-danger" : "bg-success")">
-                        <h5 class="modal-title mb-2 text-white" id="modalApprove">Detail Status</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-body">
-                                <ul class="list-group list-group-flush border-start border-3 @(isRejected ? "border-danger" : "border-success")">
-
-                                    <!-- Request -->
-                                    <li class="list-group-item ps-4 position-relative">
-                                        <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-success p-2">
-                                            <i class="bi bi-person-plus"></i>
-                                        </span>
-                                        <strong>Request By:</strong> @(rm.Users?.Name ?? "-")
-                                        <br><small class="text-muted">@rm.CreatedAt</small>
-                                    </li>
-
-                                    <!-- Supervisor -->
-                                    @{
-                                        var approvedStatus = (rm.RequestStatus as IEnumerable<dynamic>)?
-                                        .FirstOrDefault(s => s.Status?.ToString() == "SupervisorApproved");
-                                    }
-                                    <li class="list-group-item ps-4 position-relative">
-                                        @if (approvedStatus != null)
-                                        {
-                                            <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-success p-2">
-                                                <i class="bi bi-check-circle"></i>
-                                            </span>
-                                            <strong>Approved By Supervisor:</strong>
-
-                                            @(approvedStatus.Users?.Name ?? "-")
-                                            <br>
-                                            <small class="text-muted">@approvedStatus.CreatedAt</small>
-                                        }
-                                        else
-                                        {
-                                            <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-secondary p-2">
-                                                <i class="bi bi-clock"></i>
-                                            </span>
-                                            <strong>Approved By Supervisor:</strong>
-
-                                            <i class="text-muted">-</i>
-                                            <br>
-                                            <small class="text-muted">-</small>
-                                        }
-                                    </li>
-
-                                    <!-- Tim Fabricasi -->
-                                    @{
-                                        var fabApprove = (rm.RequestStatus as IEnumerable<dynamic>)?
-                                        .FirstOrDefault(s => s.Status?.ToString() == "FabricationApproved");
-                                    }
-                                    <li class="list-group-item ps-4 position-relative">
-                                        @if (fabApprove != null)
-                                        {
-                                            <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-success p-2">
-                                                <i class="bi bi-check-circle"></i>
-                                            </span>
-                                            <strong>Approved By Fabrication Tim:</strong>
-
-                                            @(fabApprove.Users?.Name ?? "-")
-                                            <br>
-                                            <small class="text-muted">@fabApprove.CreatedAt</small>
-                                        }
-                                        else
-                                        {
-                                            <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-secondary p-2">
-                                                <i class="bi bi-clock"></i>
-                                            </span>
-                                            <strong>Approved By Fabrication Tim:</strong>
-
-                                            <i class="text-muted">-</i>
-                                            <br>
-                                            <small class="text-muted">-</small>
-                                        }
-                                    </li>
-
-                                    <!-- Fabrication -->
-                                    @{
-                                        var InFabrication = (rm.RequestStatus as IEnumerable<dynamic>)?
-                                        .FirstOrDefault(s => s.Status?.ToString() == "FabricationStarted");
-                                    }
-                                    <li class="list-group-item ps-4 position-relative">
-
-                                        @if (InFabrication != null)
-                                        {
-                                            <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-success p-2">
-                                                <i class="bi bi-check-circle"></i>
-                                            </span>
-                                            <strong>Fabrication By:</strong>
-
-                                            @(InFabrication.Users?.Name ?? "-")
-                                            <br>
-                                            <small class="text-muted">@InFabrication.CreatedAt</small>
-                                        }
-                                        else
-                                        {
-                                            <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-secondary p-2">
-                                                <i class="bi bi-clock"></i>
-                                            </span>
-                                            <strong>Fabrication By:</strong>
-
-                                            <i class="text-muted">-</i>
-                                            <br>
-                                            <small class="text-muted">-</small>
-                                        }
-                                    </li>
-
-                                    <!-- Received -->
-                                    @{
-                                        var recivedStatus = (rm.RequestStatus as IEnumerable<dynamic>)?
-                                        .FirstOrDefault(s => s.Status?.ToString() == "Close" );
-                                    }
-
-                                    <li class="list-group-item ps-4 position-relative">
-                                        @if (recivedStatus != null)
-                                        {
-                                            var isFail = recivedStatus.Status?.Contains("Fail", StringComparison.OrdinalIgnoreCase) == true;
-                                            var badgeColor = isFail ? "bg-danger" : "bg-success";
-                                            var borderColor = isFail ? "border-danger" : "border-success";
-                                            var textColor = isFail ? "text-danger" : "text-muted";
-
-                                            <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle @badgeColor p-2">
-                                                <i class="bi @(isFail ? "bi-x-circle" : "bi-check-circle")"></i>
-                                            </span>
-
-                                            <strong>Confirmation Close By:</strong> @(recivedStatus.Users?.Name ?? "-")
-                                            <br />
-                                            <small>@recivedStatus.CreatedAt</small>
-
-                                            <div class="mt-2 border-start border-2 @borderColor ps-3">
-                                                <div class="@(isFail ? "text-danger" : "")">
-                                                    <small><strong>Description:</strong> @recivedStatus.Reason</small>
-                                                </div>
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-secondary p-2">
-                                                <i class="bi bi-clock"></i>
-                                            </span>
-
-                                            <strong>Confirmation Close By:</strong> <i class="text-muted">-</i>
-                                            <br />
-                                            <small class="text-muted">-</small>
-
-                                            <div class="mt-2 border-start border-2 border-secondary ps-3">
-                                                <small><strong>Description:</strong> -</small>
-                                            </div>
-                                        }
-                                    </li>
-
-
-
-                                   
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-}
-
-<!-- Modal Terima -->
-@if (ViewBag.ModalData != null)
-{
-    foreach (var ir in (IEnumerable<dynamic>)ViewBag.ModalData)
-    {
-        <div class="modal fade" id="modalClose-@ir.Id" tabindex="-1" aria-labelledby="modalApprove" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="post" action="/Requestor/MyRequest/Close" enctype="multipart/form-data">
-                        @Html.AntiForgeryToken()
-                        <div class="modal-header bg-success">
-                            <h5 class="modal-title mb-2 text-white" id="modalApprove">Confirmation Finish</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label class="my-2">Id Request</label>
-                                <input class="form-control" value="@ir.Id" readonly />
-                            </div>
-                            <div class="form-group">
-                                <label class="my-2">Item Name</label>
-                                <input type="hidden" name="RepeatOrderId" value="@ir.Id" />
-                                <input type="hidden" name="ItemRequestId" value="@ir.ItemRequests.Id" />
-                                <input name="PartName" class="form-control" value="@ir.ItemRequests.PartName" readonly />
-                            </div>
-                           
-                            <div class="form-group">
-                                <label class="my-2" asp-for="ItemRequestId">Description</label>
-                                <textarea class="form-control" id="Reason" name="Reason" rows="3" placeholder="Input Description..." required></textarea>
-                                <span asp-validation-for="SapId" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-success">Lanjut</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    }
-}
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -627,7 +195,7 @@
       const categoryFilter = document.querySelector('select[name="MachineCategoryId"]');
       const tabs = document.querySelectorAll('#statusTabs .nav-link');
 
-      let currentStatusList = ['@ViewBag.CurrentStatus']; // ubah jadi array
+      let currentStatusList = ['@ViewBag.CurrentStatus']; 
       let debounceTimer = null;
       let loadingTimer = null;
 
@@ -674,30 +242,26 @@
             const id = rq.id ?? '';
             let buttons = '';
 
-            if (rq.status === "WaitingBuyoff") {
-              buttons += `
-                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalPass-${id}">
-                  <i class="bi bi-check"></i> Pass
-                </button>
-                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalFail-${id}">
-                  <i class="bi bi-x-lg"></i> Fail
+            if(rq.status == "Done"){
+                buttons += `
+                
+                <button class="btn btn-success btn-sm open-modal"
+                        data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Recived">
+                    <i class="bi bi-circular-check"></i> Recive
                 </button>
                 `;
-            } else if(rq.status == "Done"){
-                buttons += `
-                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalClose-${id}">
-                  <i class="bi bi-circular-check"></i> Recive
-                </button>`;
             }
               buttons += `
-                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail-${id}">
-                  <i class="bi bi-info-circle"></i> Detail
+                <button class="btn btn-warning btn-sm open-modal"
+                        data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Detail">
+                    <i class="bi bi-info-circle"></i> Detail
                 </button>
-                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalStatus-${id}">
-                  <i class="bi bi-ticket-detailed"></i> Status
-                </button>`;
 
-
+                <button class="btn btn-info btn-sm open-modal"
+                        data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Status">
+                    <i class="bi bi-ticket-detailed"></i> Status
+                </button>
+                `;
             html += `
               <tr>
                 <td class="text-center">${idx + 1}</td>
