@@ -15,22 +15,14 @@
 
     <!-- Filter bar -->
     <div class="d-flex align-items-center mb-4 gap-2 flex-wrap">
-        <!-- Dropdown Tahun -->
-        <div class="col-2 col-sm-2">
-            <select class="form-select" id="yearSelect" name="yearSelect" aria-label="Pilih Tahun">
-                <option value="2025" selected>2025</option>
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-                <option value="2022">2022</option>
-            </select>
-        </div>
-        <!-- Kategori-->
-        <div class="col-12 col-sm-3 col-md-2 p-0">
-            <select class="form-select" id="machineCategory" name="machineCategory" aria-label="Pilih Kategori">
-                <option value="">-- Pilih Kategori --</option>
-                <option value="CNC-Milling">CNC Milling</option>
-                <option value="3D-Printing">3D Printing</option>
-            </select>
+        <div class="row gy-2 align-items-end">
+            <div class="col-md-4 col-12">
+                @await Component.InvokeAsync("YearsSetting")
+            </div>
+            <div class="col-md-8 col-12">
+                @await Component.InvokeAsync("MachineCategories")
+            </div>
+
         </div>
 
     </div>
@@ -81,19 +73,21 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            var requestCount = {
-                chart: {
-                    type: 'bar',
-                    height: 250
-                },
-                series: [{
-                    name: 'Quantity',
-                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.series))
-                }],
-                xaxis: {
-                    categories: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.categories))
-                }
-            };
+                var requestCountOptions = {
+                    chart: { type: 'bar', height: 250 },
+                    series: [{
+                        name: 'Quantity',
+                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.series))
+                    }],
+                    xaxis: {
+                        categories: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.categories))
+                    }
+                };
+                // Simpan chart global
+                window.barChart = new ApexCharts(document.querySelector("#barChart"), requestCountOptions);
+                window.barChart.render();
+
+
             // Progress Fabrikasi pie
             var ProgressFabPie = {
                       series: [10, 20],
@@ -137,12 +131,12 @@
             type: 'line',
           },
           stroke: {
-            width: [0, 3],  // bar 0 (no stroke), line 3 px tebal
+            width: [0, 3],  
             curve: ['straight', 'smooth']
           },
           dataLabels: {
             enabled: true,
-            enabledOnSeries: [0, 1],  // data label untuk bar dan cumulative line
+            enabledOnSeries: [0, 1],  
             formatter: function (val) {
               return val;
             }
@@ -307,8 +301,9 @@
             var chart = new ApexCharts(document.querySelector("#machineUtilization"), machineUtilization);
             chart.render();
 
-            var fabCountChart = new ApexCharts(document.querySelector("#fabricationCount"), fabricationCount);
-            fabCountChart.render();
+            window.fabCountChart = new ApexCharts(document.querySelector("#fabricationCount"), fabricationCount);
+            window.fabCountChart.render();
+
 
             var fabPieChart = new ApexCharts(document.querySelector("#ProgressFabPie"), ProgressFabPie);
             fabPieChart.render();
@@ -316,10 +311,62 @@
             var savingChart = new ApexCharts(document.querySelector("#savingChart"), savingData);
             savingChart.render();
 
-            var barChart = new ApexCharts(document.querySelector("#barChart"), requestCount);
-            barChart.render();
 
             });
 
     </script>
 }
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        async function loadChartData() {
+            const yearSelect = document.querySelector('select[name="YearSettingId"]');
+            const categorySelect = document.querySelector('select[name="MachineCategoryId"]');
+
+            if (!yearSelect || !categorySelect) return;
+
+            const year = yearSelect.value || 0;
+            const categoryId = categorySelect.value || 0;
+
+            try {
+                const response = await fetch(`/Requestor/Dashboard/Filter?year=${year}&categoryId=${categoryId}`);
+                const data = await response.json();
+
+                if (window.barChart) {
+                    window.barChart.updateSeries(
+                        [{ name: "Quantity", data: data.series }],
+                        {
+                            animate: true,
+                            redraw: true,
+                            dynamicAnimation: {
+                                enabled: true,
+                                speed: 800
+                            }
+                        }
+                    );
+
+                    window.barChart.updateOptions({
+                        xaxis: { categories: data.categories }
+                    });
+                }
+
+               
+            } catch (error) {
+                console.error("Error loading chart data:", error);
+            }
+        }
+
+        // Event listener filter
+        const yearSelect = document.querySelector('select[name="YearSettingId"]');
+        const categorySelect = document.querySelector('select[name="MachineCategoryId"]');
+
+        if (yearSelect) yearSelect.addEventListener("change", loadChartData);
+        if (categorySelect) categorySelect.addEventListener("change", loadChartData);
+
+        // Jika ingin load awal dari fetch:
+        // loadChartData();
+
+    });
+</script>
+
