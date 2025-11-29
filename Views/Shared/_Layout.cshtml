@@ -4,7 +4,7 @@
     // Buat flag boolean supaya mudah di layout
     bool isAdminSystem = roles.Contains("AdminSystem");
     bool isAdminFabrication = roles.Contains("AdminFabrication");
-    bool isSupervisor = roles.Contains("Supervisor");
+    bool isEngineerFabrication = roles.Contains("EngineerFabrication");
     bool isRequestor = roles.Contains("Requestor");
 }
 
@@ -100,39 +100,20 @@
             font-size: 14px;
         }
     </style>
-    <style>
-         /* loading efek */
-        #globalLoadingOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.6);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000; /* lebih tinggi dari modal */
-        }
-
-            #globalLoadingOverlay .spinner-border {
-                width: 3rem;
-                height: 3rem;
-            }
-    </style>
 </head>
 <body>
     <!-- loading efek -->
     <div id="globalLoadingOverlay">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
+        <div id="loadingBox">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div id="loadingText">Loading...</div>
         </div>
     </div>
     <div class="wrapper">
         <!-- Sidebar -->
-       
+
         <div class="sidebar"
-             style="background-color:
+             style="zoom:0.9; background-color:
          @(isAdminSystem ? "#212529" :
                         isAdminFabrication ? "#212529" :
                         isRequestor ? "#1e1e2f" : "#212529")">
@@ -144,21 +125,23 @@
             </nav>
 
             <!-- Requestor / Supervisor / AdminFabrication Menu -->
-            @if (isAdminFabrication || isRequestor || isSupervisor)
+            @if (isAdminFabrication || isRequestor || isEngineerFabrication)
             {
                 <div class="sidebar-section">
                     <h6 class="text-uppercase text-muted px-3 mt-3 mb-2">Main Menu</h6>
 
-                    <a href="/Requestor/Dashboard" class="nav-link px-3 @(Context.Request.Path == "/Requestor/Dashboard" ? "active" : "")">
+                    <a href="/Dashboard" class="nav-link px-3 @(Context.Request.Path == "/Dashboard" ? "active" : "")">
                         <i class="bi bi-house-door"></i> Dashboard
                     </a>
-                    @* Tampilkan Fabrication History hanya jika role-nya Requestor saja *@
-                    @if ((isRequestor || isSupervisor) && !isAdminFabrication )
+                    @if ((isRequestor || isEngineerFabrication) && !isAdminFabrication)
                     {
                         <a href="/FabricationHistory" class="nav-link px-3 @(Context.Request.Path == "/FabricationHistory" ? "active" : "")">
                             <i class="bi bi-clock-history"></i> Fabrication History
                         </a>
                     }
+                    <a href="/RequestHistory/NewRequest" class="nav-link px-3 @(Context.Request.Path.Value != null && Context.Request.Path.Value.Contains("/RequestHistory") ? "active" : "")">
+                        <i class="bi bi-list-check"></i> Request History
+                    </a>
                     <a href="/Requestor/NewRequest" class="nav-link px-3 @(Context.Request.Path == "/Requestor/NewRequest" ? "active" : "")">
                         <i class="bi bi-file-earmark-plus"></i> Form Request
                     </a>
@@ -200,8 +183,6 @@
                         </div>
                     </li>
 
-
-                    
                 </div>
             }
 
@@ -212,7 +193,7 @@
                     <h6 class="text-uppercase text-muted px-3 mb-2">Fabrication Menu</h6>
 
                     <a href="/AdminFabrication/Request/Evaluation" class="@(Context.Request.Path == "/AdminFabrication/Request/Evaluation" ? "active" : "")">
-                        <i class="bi bi-box-fill"></i> New Order
+                        <i class="bi bi-box-fill"></i> Evaluation
                     </a>
                     <a href="/AdminFabrication/Request/RepeatOrder" class="@(Context.Request.Path == "/AdminFabrication/Request/RepeatOrder" ? "active" : "")">
                         <i class="bi bi-repeat"></i> Repeat Order
@@ -224,11 +205,12 @@
             }
 
             <!-- Supervisor Menu -->
-            @if (isSupervisor)
+            @if (isEngineerFabrication)
             {
                 <div class="sidebar-section mt-3">
-                    <h6 class="text-uppercase text-muted px-3 mb-2">Supervisor Menu</h6>
-                    <a href="/Supervisor/Approval/Evaluation" class="nav-link px-3 @(Context.Request.Path == "/Supervisor/Approval" ? "active" : "")">
+                    <h6 class="text-uppercase text-muted px-3 mb-2">Approval Menu</h6>
+                    <a href="/EngineerFabrication/Approval/Evaluation" class="nav-link px-3 @(Context.Request.Path.Value != null && Context.Request.Path.Value.Contains("/EngineerFabrication/Approval")
+                              ? "active" : "")">
                         <i class="bi bi-hourglass-split"></i> Waiting Approval
                     </a>
                 </div>
@@ -248,7 +230,7 @@
 
         <!-- Main Content -->
         <div class="main-content">
-          
+
             <!-- Header -->
             <header class="header d-flex justify-content-between align-items-center px-3 py-2 bg-light border-bottom">
                 <h5 class="mb-0">EWOS Inhouse Fabrication</h5>
@@ -264,6 +246,7 @@
             <div class="content">
                 @RenderBody()
             </div>
+
             <!-- Global Modal -->
             <div class="modal fade" id="globalModal" tabindex="-1">
                 <div class="modal-dialog modal-md">
@@ -272,10 +255,9 @@
                     </div>
                 </div>
             </div>
-
             <!-- Footer -->
             <footer class="bg-light text-center py-2">
-                <p class="mb-0 small">&copy; @DateTime.Now.Year PT Excelitas Technologies Batam, Created by Riski Wahyudi (B60506)</p>
+                <p class="mb-0 small">&copy; @DateTime.Now.Year PT Excelitas Technologies Batam</p>
             </footer>
 
         </div>
@@ -287,10 +269,13 @@
     <!-- Sweetalert Toast -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/toast.js"></script>
+    @RenderBody()
+    @* <partial name="_NotificationPartial" /> *@
 
     <!-- Apex chart -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
+    <!-- Load Modal globall-->
     <script>
             document.addEventListener("click", function (e) {
             if (!e.target.classList.contains("open-modal")) return;
@@ -337,19 +322,15 @@
                     let spinnerTimeout = setTimeout(() => {
                         const overlay = document.getElementById("globalLoadingOverlay");
                         if (overlay) overlay.style.display = "flex";
-                    }, 500); 
+                    }, 1000);
 
                     // Kirim form setelah submit
                     form.submit();
-
-                    clearTimeout(spinnerTimeout);
                 });
             });
         });
     </script>
 
-  @*   @RenderBody()
-    <partial name="_NotificationPartial" /> *@
     @RenderSection("Scripts", required: false)
 </body>
 </html>

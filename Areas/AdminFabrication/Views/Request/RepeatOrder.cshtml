@@ -39,7 +39,7 @@
                     data-status="WaitingApproval"
                     type="button"
                     role="tab">
-                Supervisor Approval
+                 Approval Request
                 @if (GetCount("WaitingApproval") > 0)
                 {
                     <span class="badge bg-danger rounded-pill">@GetCount("WaitingApproval")</span>
@@ -75,21 +75,6 @@
                 @if (GetCount("WaitingFabrication") > 0)
                 {
                     <span class="badge bg-danger rounded-pill">@GetCount("WaitingFabrication")</span>
-                }
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link"
-                    id="infabrication-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#InFabrication"
-                    data-status="InFabrication"
-                    type="button"
-                    role="tab">
-                In Fabrication
-                @if (GetCount("InFabrication") > 0)
-                {
-                    <span class="badge bg-danger rounded-pill">@GetCount("InFabrication")</span>
                 }
             </button>
         </li>
@@ -168,6 +153,7 @@
     </tbody>
 </table>
 
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const tableBody = document.querySelector('table.table tbody');
@@ -226,7 +212,7 @@
                 // Generate HTML
                 let html = '';
                 data.forEach((rq, idx) => {
-                    let buttons = "";
+                     let buttons = "";
                     let disabledAttr = rq.quantityReq < 1 ? "disabled" : "";
 
                     if (rq.status === "FabricationApproval") {
@@ -235,7 +221,7 @@
                                     data-url="/AdminFabrication/Request/LoadDataRo?id=${rq.id}&type=Approve">
                                 Approve
                             </button>
-                            
+
                         `;
                     }else if (rq.status === "WaitingFabrication") {
 
@@ -244,10 +230,10 @@
                                     class="btn btn-primary btn-sm open-modal"
                                     data-url="/AdminFabrication/Request/LoadDataRo?id=${rq.id}&type=Fabrikasi">
                                 Fabrikasi
-                            </button> 
+                            </button>
                         `;
 
-                        
+
                     }
                         buttons += `
                             <button type="button" class="btn btn-info btn-sm open-modal"

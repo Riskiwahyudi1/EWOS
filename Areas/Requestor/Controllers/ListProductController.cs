@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EWOS_MVC.Areas.Requestor.Controllers
 {
-    [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,Supervisor")]
+    [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,EngineerFabrication")]
     [Area("Requestor")]
 
     public class ListProductController : BaseController
@@ -40,10 +40,35 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             return View(listProduct);
         }
 
+        // load data modal
+        [HttpGet]
+        public async Task<IActionResult> LoadData(long id, string type)
+        {
+            var data = await _context.ItemRequests
+                .Include(m => m.MachineCategories)
+                .Include(u => u.Users)
+                .Include(rm => rm.RawMaterials)
+                .Include(sr => sr.RequestStatus)
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Request" => PartialView("~/Views/modals/Requestor/ListProduct/RepeatOrderModal.cshtml", data),
+                "Edit" => PartialView("~/Views/modals/Requestor/ListProduct/EditModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/Requestor/ListProduct/DetailModal.cshtml", data),
+                "Status" => PartialView("~/Views/modals/General/DetailStatus/StatusRequestModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        }
         // Search request
         [HttpGet]
         public async Task<IActionResult> Search(string keyword, int? categoryId, List<string> status)
         {
+            //await Task.Delay(4000);
             // Base query
             var query = _context.ItemRequests
                 .Include(m => m.MachineCategories)
@@ -104,7 +129,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 return View("Index");
             }
 
-            data.UserId = userId;
+            data.UsersId = userId;
             data.Status = "WaitingApproval";
             data.QuantityReq = data.QuantityReq;
             data.CRD = data.CRD;

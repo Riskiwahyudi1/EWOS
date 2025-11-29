@@ -16,15 +16,14 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
         private readonly WeekHelper _weekHelper;
         private readonly YearsHelper _yearHelper;
 
-        public RequestController(AppDbContext context, WeekHelper weekHelper, YearsHelper yearsHelper)
+        public RequestController(AppDbContext context, WeekHelper weekHelper, YearsHelper yearHelper)
         {
             _context = context;
             _weekHelper = weekHelper;
-            _yearHelper = yearsHelper;
+            _yearHelper = yearHelper;
         }
 
         //request baru(Evaluasi)
-        [HttpGet]
         public async Task<IActionResult> Evaluation()
         {
             var requestList = await _context.ItemRequests
@@ -35,6 +34,14 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                                 .Where(rq => rq.Status == "WaitingApproval")
                                 .ToListAsync();
 
+            // --- Data modal untuk semua status ---
+            var modalData = await _context.ItemRequests
+                .Include(mc => mc.MachineCategories)
+                .Include(u => u.Users)
+                .Include(rm => rm.RawMaterials)
+                .Include(rs => rs.RequestStatus)
+                    .ThenInclude(u => u.Users)
+                .ToListAsync();
 
             // --- Summary semua status ---
             var statusSummary = await _context.ItemRequests
@@ -42,20 +49,19 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
 
             ViewBag.StatusSummary = statusSummary;
-            ViewBag.CurrentStatus = "FabricationApproval"; 
+            ViewBag.CurrentStatus = "FabricationApproval"; //!!
+            ViewBag.ModalData = modalData;
             return View(requestList);
         }
 
-
         //request lama(Repeat Order)
-        [HttpGet]
         public async Task<IActionResult> RepeatOrder()
         {
             var requestList = await _context.RepeatOrders
                 .Include(rq => rq.ItemRequests)
                     .ThenInclude(mc => mc.MachineCategories)
                 .Include(u => u.Users)
-                .Where(rq => rq.Status == "WaitingApproval" && rq.QuantityReq >= 0)
+                .Where(rq => rq.Status == "WaitingApproval" && rq.Status == "WaitingFabrication")
                 .ToListAsync();
 
             var statusSummary = await _context.RepeatOrders
@@ -64,8 +70,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                .ToDictionaryAsync(g => g.Key, g => g.Count());
 
             ViewBag.StatusSummary = statusSummary;
-            ViewBag.CurrentStatus = "FabricationApproval";
-      
+            ViewBag.CurrentStatus = "FabricationApproval"; //!!
             return View(requestList);
         }
 
@@ -86,7 +91,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 "Reject" => PartialView("~/Views/modals/AdminFabrication/Evaluation/RejectModal.cshtml", data),
                 "Fabrikasi" => PartialView("~/Views/modals/AdminFabrication/Evaluation/FabrikasiModal.cshtml", data),
                 "Edit" => PartialView("~/Views/modals/AdminFabrication/Evaluation/EditModal.cshtml", data),
-                "Detail" => PartialView("~/Views/modals/General/ItemRequestDetailModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/General/DetailRequest/ItemRequestDetailModal.cshtml", data),
                 _ => BadRequest("Unknown modal type")
             };
 
@@ -112,13 +117,12 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 "Approve" => PartialView("~/Views/modals/AdminFabrication/RepeatOrder/ApproveModal.cshtml", data),
                 "Edit" => PartialView("~/Views/modals/AdminFabrication/RepeatOrder/EditModal.cshtml", data),
                 "Fabrikasi" => PartialView("~/Views/modals/AdminFabrication/RepeatOrder/FabrikasiModal.cshtml", data),
-                "Detail" => PartialView("~/Views/modals/General/ItemRequestRoDetailModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/General/DetailRequest/ItemRequestRoDetailModal.cshtml", data),
                 _ => BadRequest("Unknown modal type")
             };
 
             ;
         }
-
         // search req baru
         [HttpGet]
         public IActionResult SearchNew(string keyword, int? categoryId, string status)
@@ -322,6 +326,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
         ItemRequestModel itemRequest,
+        string RedirectBack,
         IFormFile? fileDesign,
         IFormFile? fileDrawing,
         IFormFile? fileQuotation)
@@ -330,6 +335,10 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
+                if (!string.IsNullOrEmpty(RedirectBack))
+                {
+                    return Redirect(RedirectBack);
+                }
                 return RedirectToAction("Index");
             }
 
@@ -337,7 +346,11 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             if (existingData == null)
             {
                 TempData["Error"] = "Data tidak ditemukan.";
-                return RedirectToAction("Evaluation");
+                if (!string.IsNullOrEmpty(RedirectBack))
+                {
+                    return Redirect(RedirectBack);
+                }
+                return RedirectToAction("Index");
             }
 
             async Task<string?> SaveFileAsync(IFormFile? file, string folderName, string allowedExt, long maxSizeBytes)
@@ -399,7 +412,11 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = "Gagal upload file: " + ex.Message;
-                return RedirectToAction("Evaluation");
+                if (!string.IsNullOrEmpty(RedirectBack))
+                {
+                    return Redirect(RedirectBack);
+                }
+                return RedirectToAction("Index");
             }
 
             // Update data lain
@@ -410,13 +427,18 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             existingData.FabricationTime = itemRequest.FabricationTime;
             existingData.Weight = itemRequest.Weight;
             existingData.Unit = itemRequest.Unit;
+            existingData.IsCalculateSaving = itemRequest.IsCalculateSaving;
             existingData.PartCode = itemRequest.PartCode;
             existingData.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Data dan file berhasil diupdate.";
-            return RedirectToAction("Evaluation");
+            if (!string.IsNullOrEmpty(RedirectBack))
+            {
+                return Redirect(RedirectBack);
+            }
+            return RedirectToAction("Index");
         }
 
         //tambah fabrikasi
@@ -445,8 +467,6 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 return Redirect("index");
 
             }
-
-            
 
             //  get mg aktif dari helper
             var mingguSekarang = await _weekHelper.GetMingguAktifAsync(getTahun.Id);
@@ -487,12 +507,12 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             //hitung saving RO
             if (RepeatOrderId.HasValue)
             {
+                 fabricationTime = (requestDataRo.ItemRequests.FabricationTime ?? 0m) * (Quantity ?? 0);
                 if (requestDataRo.ItemRequests.IsCalculateSaving)
                 {
                     decimal rawMaterialCost = 0m;
                     decimal inhouseCost = 0m;
                     decimal externalCost = (requestDataRo.ItemRequests.ExternalFabCost ?? 0m) * (Quantity ?? 0);
-                    fabricationTime = (requestDataRo.ItemRequests.FabricationTime ?? 0m) * (Quantity ?? 0);
 
                     if (requestDataRo.ItemRequests.MachineCategoryId == 1)
                     {
@@ -553,9 +573,15 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             {
 
                 var cekItemFab = await _context.ItemFabrications
+                    .Where(s => s.Status == "Onprogress")
                     .FirstOrDefaultAsync(r => r.RepeatOrderId == RepeatOrderId && r.MachineId == MachineId);
 
-                if(cekItemFab == null)
+                var cekQtyItemFab = await _context.ItemFabrications
+                    .Where(r => r.RepeatOrderId == RepeatOrderId)
+                    .Where(s => s.Status == "Onprogress")
+                    .SumAsync(q => q.Quantity);
+
+                if (cekItemFab == null)
                 {
                     // buat record baru
                     var item = new ItemFabricationModel
@@ -578,23 +604,16 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 else
                 {
                     var savingCostActual = cekItemFab.TotalSaving;
+                    var fabricationTimeActual = cekItemFab.FabricationTime;
 
                     // Update jika sudah ada
                     cekItemFab.TotalSaving = savingCostActual + totalSaving;
+                    cekItemFab.FabricationTime = fabricationTimeActual + fabricationTime;
                     cekItemFab.Quantity += Quantity ?? 0;
                     cekItemFab.UpdatedAt = DateTime.Now;
                     _context.ItemFabrications.Update(cekItemFab);
                 }
 
-                if (RepeatOrderId.HasValue)
-                {
-                    requestDataRo.QuantityReq -= Quantity ?? 0;
-                }
-                else
-                {
-                    requestData.Status = "InFabrication";
-
-                }
                 var statusLog = new RequestStatusModel
                 {
                     ItemRequestId = ItemRequestId,
@@ -606,9 +625,38 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
 
                 _context.RequestStatus.Add(statusLog);
 
-                requestData.UpdatedAt = DateTime.Now;
+                if (RepeatOrderId == null)
+                {
+                    requestData.Status = "InFabrication";
+                    requestData.UpdatedAt = DateTime.Now;
+                }
+                else
+                {
+                    // ------ jika jumlah fabrikasi nya sudah sesuai ubah status ---------
+                    // ambil jumlah request Ro
+                    int qtyReq = requestDataRo.QuantityReq;
 
-                _context.ItemRequests.Update(requestData);
+                    // ambil jumlah quantity yg sudah siap
+                    int qtyDone = requestDataRo.QuantityDone ?? 0;
+
+                    // ambil jumlah quantity yg mau difabrikasi
+                    int qty = Quantity ?? 0;
+
+                    // ambil data quantity onprogress jika ada
+                    int qtyOnprogress = cekQtyItemFab;
+
+                    // hitung total
+                    int calculateQty = qtyDone + qtyOnprogress + qty;
+
+                    // Jika sudah selesai semau ubah status repeat order
+                    if (requestDataRo.QuantityReq == calculateQty)
+                    {
+                        requestDataRo.Status = "ComplateFabrication";
+                    }
+                    _context.RepeatOrders.Update(requestDataRo);
+                }
+
+                    _context.ItemRequests.Update(requestData);
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
@@ -626,7 +674,5 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
 
         }
 
-
-        
     }
 }

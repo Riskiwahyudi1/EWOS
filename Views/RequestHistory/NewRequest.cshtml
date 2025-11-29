@@ -1,66 +1,52 @@
-﻿@model List<EWOS_MVC.Models.RepeatOrderModel>
+﻿@model List<EWOS_MVC.Models.ItemRequestModel>
 @{
-    ViewData["Title"] = "Approval";
+    ViewData["Title"] = "History request";
 }
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-<h5 class="my-3">Waiting Approval</h5>
-
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger py-2">@TempData["Error"]</div>
-}
-
-<div class="row mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+    <h5 class="mb-0">History New Request</h5>
+</div>
+<div class="d-flex align-items-center mb-3 gap-2">
     <div class="col-2 col-sm-2">
         @await Component.InvokeAsync("MachineCategories")
     </div>
-    <div class="col-4 col-sm-4">
-        <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search">
-    </div>
+    <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search" style="max-width: 300px;">
 </div>
 
 @{
-    var isEvaluationActive = Context.Request.Path.Value?.Contains("/Supervisor/Approval/Evaluation") == true;
-    var isRepeatOrderActive = Context.Request.Path.Value?.Contains("/Supervisor/Approval/RepeatOrder") == true;
-    var evalCount = ViewBag.ApprovalEvalCount ?? 0;
-    var roCount = ViewBag.ApprovalROCount ?? 0;
+    var isNewReqActive = Context.Request.Path.Value?.Contains("/RequestHistory/NewRequest") == true;
+    var isRepeatOrderActive = Context.Request.Path.Value?.Contains("/RequestHistory/RepeatOrder") == true;
+  
 }
 
 <ul class="nav nav-tabs" id="requestTabs" role="tablist">
     <li class="nav-item" role="presentation">
-        <a href="/Supervisor/Approval/Evaluation"
-           class="nav-link @(isEvaluationActive ? "active" : "")"
+        <a href="/RequestHistory/NewRequest"
+           class="nav-link @(isNewReqActive ? "active" : "")"
            id="overview-tab" role="tab">
             New Order
-            @if (evalCount > 0)
-            {
-                <span class="badge bg-danger rounded-pill">@evalCount</span>
-            }
+            
         </a>
     </li>
     <li class="nav-item" role="presentation">
-        <a href="/Supervisor/Approval/RepeatOrder"
+        <a href="/RequestHistory/RepeatOrder"
            class="nav-link @(isRepeatOrderActive ? "active" : "")"
            id="details-tab" role="tab">
             Repeat Order
-            @if (roCount > 0)
-            {
-                <span class="badge bg-danger rounded-pill">@roCount</span>
-            }
+            
         </a>
     </li>
 </ul>
 
-<table class="table table-sm table-striped table-bordered my-3">
+<table class="table table-sm table-striped table-bordered mt-3">
     <thead>
         <tr>
             <th class="text-center">No</th>
             <th>ID Request</th>
-            <th>Item Name</th>
             <th>Requestor</th>
+            <th>Item Name</th>
             <th>Machine Category</th>
             <th>Request Date</th>
             <th class="text-center">Action</th>
@@ -79,23 +65,32 @@
         }
         else
         {
-            foreach (var ir in Model)
+            foreach (var rm in Model)
             {
                 <tr>
                     <td class="text-center">@index</td>
-                    <td>@ir.Id</td>
-                    <td>@ir.ItemRequests.PartName</td>
-                    <td>@ir.Users?.Name</td>
-                    <td>@ir.ItemRequests.MachineCategories?.CategoryName</td>
-                    <td>@ir.CreatedAt</td>
+                    <td>@rm.Id</td>
+                    <td>@rm.Users.Name</td>
+                    <td>@rm.PartName</td>
+                    <td>@rm.MachineCategories?.CategoryName</td>
+                    <td>@rm.CreatedAt</td>
+                       
                     <td class="text-center">
-                        <button class="btn btn-success btn-sm open-modal" data-url="/Supervisor/Approval/LoadDataRo?id=@ir.Id&amp;type=Approve">
-                            Approve
-                        </button>
-                        <button class="btn btn-warning btn-sm open-modal" data-url="/Supervisor/Approval/LoadDataRo?id=@ir.Id&amp;type=Detail">
+
+                        <!-- Detail -->
+                        <button class="btn btn-warning btn-sm open-modal"
+                                data-url="/RequestHistory/LoadData?Id=@rm.Id&amp;type=Detail">
                             Detail
                         </button>
+
+                        <!-- Status -->
+                        <button class="btn btn-info btn-sm open-modal"
+                                data-url="/RequestHistory/LoadDataFab?Id=@rm.Id&amp;type=Status">
+                            Progress
+                        </button>
+
                     </td>
+
                 </tr>
                 index++;
             }
@@ -103,7 +98,6 @@
 
     </tbody>
 </table>
-
 <nav aria-label="Page navigation example">
     <ul class="pagination justify-content-end">
         <li class="page-item disabled">
@@ -154,7 +148,7 @@
                 }, 350);
 
                 // Buat URL dan query
-                const url = new URL("/Supervisor/Approval/SearchRo", window.location.origin);
+                const url = new URL("/RequestHistory/SearchNew", window.location.origin);
                 if (keyword) url.searchParams.append("keyword", keyword);
                 if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
 
@@ -162,6 +156,7 @@
                 if (!res.ok) throw new Error('Network response was not ok');
 
                 const data = await res.json();
+                console.log(data)
                 clearTimeout(loadingTimer);
                 if (loadingText) loadingText.style.display = 'none';
 
@@ -175,15 +170,15 @@
                 data.forEach((rq, idx) => {
                     let buttons = "";
                         buttons += `
-                             <button class="btn btn-success btn-sm open-modal"
-                                    data-url="/Supervisor/Approval/LoadDataRo?id=${rq.id}&type=Approve">
-                                Approve
+                             <button class="btn btn-warning btn-sm open-modal"
+                                    data-url="/RequestHistory/LoadData?id=${rq.id}&type=Detail">
+                                Detail
                             </button>
 
 
-                            <button class="btn btn-warning btn-sm open-modal"
-                                    data-url="/Supervisor/Approval/LoadDataRo?id=${rq.id}&type=Detail">
-                                Detail
+                            <button class="btn btn-info btn-sm open-modal"
+                                    data-url="/RequestHistory/LoadDataFab?id=${rq.id}&type=Status">
+                                Progress
                             </button>
                         `;
 

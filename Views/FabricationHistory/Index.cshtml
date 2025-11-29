@@ -94,32 +94,33 @@
                                     @{
                                         var roles = (ViewBag.Roles as List<string>) ?? new List<string>();
                                         bool isAdminFabrication = roles.Contains("AdminFabrication");
+                                        bool isEvaluate = ifab.RepeatOrderId == null;
                                         var status = ifab.Status?.Trim().ToLower();
                                     }
 
                                     <script>
-                                        if (!window.roleMap) window.roleMap = {};
-                                        window.roleMap[@ifab.Id] = {
-                                            isAdminFabrication: @(isAdminFabrication ? "true" : "false")
-                                        };
+                                        window.isAdminFabrication = @isAdminFabrication.ToString().ToLower();
                                     </script>
 
                                     @if (status == "onprogress" && isAdminFabrication)
                                     {
-                                        
+
                                         <button class="btn btn-primary btn-sm open-modal"
                                                 data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Finish">
                                             Done
                                         </button>
-                                        
+
                                         <button class="btn btn-danger btn-sm open-modal"
                                                 data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Cancel">
                                             Cancel
                                         </button>
-                                        <button class="btn btn-warning btn-sm open-modal"
-                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Edit">
+                                        <button class="btn btn-warning btn-sm open-modal @(isEvaluate ? "disable" : "")"
+                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Edit"
+                                                @(isEvaluate ? "disabled" : "")>
                                             Edit
                                         </button>
+
+
 
 
                                     }
@@ -171,7 +172,7 @@
                 var chart = new ApexCharts(document.querySelector("#MachineUtilization"), MachineUtilization);
                 chart.render();
     </script>
-    }
+}
 
 <script>
        document.addEventListener('DOMContentLoaded', () => {
@@ -251,10 +252,9 @@
                    let html = '';
                      data.data.forEach((rq, idx) => {
 
-    let buttons = "";
-                    const status = rq.status?.trim().toLowerCase();
-                   const isAdmin = rq.isAdminFabrication === true || window.roleMap?.[rq.id]?.isAdminFabrication === true;
-
+                   let buttons = "";
+                   const status = rq.status?.trim().toLowerCase();
+                   let isAdmin = window.isAdminFabrication === true;
 
                     if (status === "onprogress" && isAdmin) {
 

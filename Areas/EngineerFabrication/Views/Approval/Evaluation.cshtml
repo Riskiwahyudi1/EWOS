@@ -1,0 +1,232 @@
+﻿@model List<EWOS_MVC.Models.ItemRequestModel>
+@{
+    ViewData["Title"] = "Approval";
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h5 class="my-3">Waiting Approval</h5>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger py-2">@TempData["Error"]</div>
+}
+
+<div class="row mb-3">
+    <div class="col-2 col-sm-2">
+        @await Component.InvokeAsync("MachineCategories")
+    </div>
+    <div class="col-4 col-sm-4">
+        <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search">
+    </div>
+</div>
+
+@{
+    var isEvaluationActive = Context.Request.Path.Value?.Contains("/EngineerFabrication/Approval/Evaluation") == true;
+    var isRepeatOrderActive = Context.Request.Path.Value?.Contains("/EngineerFabrication/Approval/RepeatOrder") == true;
+    var evalCount = ViewBag.ApprovalEvalCount ?? 0;
+    var roCount = ViewBag.ApprovalROCount ?? 0;
+}
+
+<ul class="nav nav-tabs" id="requestTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <a href="/EngineerFabrication/Approval/Evaluation"
+           class="nav-link @(isEvaluationActive ? "active" : "")"
+           id="overview-tab" role="tab">
+            New Order
+            @if (evalCount > 0)
+            {
+                <span class="badge bg-danger rounded-pill">@evalCount</span>
+            }
+        </a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a href="/EngineerFabrication/Approval/RepeatOrder"
+           class="nav-link @(isRepeatOrderActive ? "active" : "")"
+           id="details-tab" role="tab">
+            Repeat Order
+            @if (roCount > 0)
+            {
+                <span class="badge bg-danger rounded-pill">@roCount</span>
+            }
+        </a>
+    </li>
+</ul>
+<table class="table table-sm table-striped table-bordered my-3">
+    <thead>
+        <tr>
+            <th class="text-center">No</th>
+            <th>ID Request</th>
+            <th>Item Name</th>
+            <th>Requestor</th>
+            <th>Machine Category</th>
+            <th>Request Date</th>
+            <th class="text-center">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int index = 1;
+        }
+
+        @if (Model == null || !Model.Any())
+        {
+            <tr>
+                <td colspan="12" class="text-center text-muted">Tidak ada data.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var ir in Model)
+            {
+                <tr>
+                    <td class="text-center">@index</td>
+                    <td>@ir.Id</td>
+                    <td>@ir.PartName</td>
+                    <td>@ir.Users.Name</td>
+                    <td>@ir.MachineCategories?.CategoryName</td>
+                    <td>@ir.CreatedAt</td>
+                    <td class="text-center">
+
+                        <button class="btn btn-success btn-sm open-modal" data-url="/EngineerFabrication/Approval/LoadData?id=@ir.Id&amp;type=Approve">
+                            Approve
+                        </button>
+                        <button class="btn btn-danger btn-sm open-modal" data-url="/EngineerFabrication/Approval/LoadData?id=@ir.Id&amp;type=Reject">
+                            Reject
+                        </button>
+                        <button class="btn btn-warning btn-sm open-modal" data-url="/EngineerFabrication/Approval/LoadData?id=@ir.Id&amp;type=Detail">
+                            Detail
+                        </button>
+                    </td>
+                </tr>
+                index++;
+            }
+        }
+
+    </tbody>
+</table>
+
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-end">
+        <li class="page-item disabled">
+            <a class="page-link">Previous</a>
+        </li>
+        <li class="page-item"><a class="page-link" href="#">1</a></li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item">
+            <a class="page-link" href="#">Next</a>
+        </li>
+    </ul>
+</nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tableBody = document.querySelector('table.table tbody');
+        const searchBox = document.getElementById('searchBox');
+        const categoryFilter = document.querySelector('select[name="MachineCategoryId"]');
+        let currentStatus = '@ViewBag.CurrentStatus';
+        const loadingText = document.getElementById('loadingText');
+
+        if (!tableBody || !searchBox || !categoryFilter) return;
+
+        const initialHTML = tableBody.innerHTML;
+            let debounceTimer = null;
+    let loadingTimer = null;
+
+    async function performSearch() {
+        const keyword = searchBox.value.trim();
+        const categoryId = categoryFilter.value;
+
+        if (keyword.length === 0 && !categoryId && !currentStatus) {
+            tableBody.innerHTML = initialHTML;
+            return;
+        }
+
+        // Hapus timer sebelumnya
+        clearTimeout(debounceTimer);
+
+        // Set delay
+        debounceTimer = setTimeout(async () => {
+            try {
+                // tampilkan indikator loading
+                clearTimeout(loadingTimer);
+                loadingTimer = setTimeout(() => {
+                    if (loadingText) loadingText.style.display = 'block';
+                }, 350);
+
+                // Buat URL dan query
+                const url = new URL("/EngineerFabrikasi/Approval/SearchNew", window.location.origin);
+                if (keyword) url.searchParams.append("keyword", keyword);
+                if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
+
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Network response was not ok');
+
+                const data = await res.json();
+                clearTimeout(loadingTimer);
+                if (loadingText) loadingText.style.display = 'none';
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Tidak ada data Request.</td></tr>`;
+                    return;
+                }
+
+                // Generate HTML
+                let html = '';
+                data.forEach((rq, idx) => {
+                    let buttons = "";
+                        buttons += `
+                             <button class="btn btn-success btn-sm open-modal"
+                                    data-url="/EngineerFabrication/Approval/LoadData?id=${rq.id}&type=Approve">
+                                Approve
+                            </button>
+
+                            <button class="btn btn-danger btn-sm open-modal"
+                                    data-url="/EngineerFabrication/Approval/LoadData?id=${rq.id}&type=Reject">
+                                Reject
+                            </button>
+
+                            <button class="btn btn-warning btn-sm open-modal"
+                                    data-url="/EngineerFabrication/Approval/LoadData?id=${rq.id}&type=Detail">
+                                Detail
+                            </button>
+                        `;
+
+                    html += `
+                        <tr>
+                            <td class="text-center">${idx + 1}</td>
+                            <td>${rq.id ?? ''}</td>
+                            <td>${rq.partName ?? rq.PartName ?? ''}</td>
+                            <td>${rq.users ?? ''}</td>
+                            <td>${rq.categoryName ?? '-'}</td>
+                            <td>${rq.createdAt ? new Date(rq.createdAt).toLocaleDateString('id-ID') : ''}</td>
+                            <td class="text-center">${buttons}</td>
+                        </tr>
+                    `;
+                });
+
+                tableBody.innerHTML = html;
+
+            } catch (err) {
+                console.error('Search error:', err);
+                if (loadingText) loadingText.style.display = 'none';
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Terjadi kesalahan saat mencari.</td></tr>`;
+            }
+        }, 200);
+    }
+
+
+        // Event search dengan debounce
+        searchBox.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(performSearch, 350);
+        });
+
+        // Event filter kategori
+        categoryFilter.addEventListener('change', performSearch);
+
+
+    });
+</script>

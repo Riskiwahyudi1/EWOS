@@ -1,7 +1,7 @@
 ﻿@model EWOS_MVC.Models.RepeatOrderModel
 
 <div class="modal-header bg-gradient ">
-    <h5 class="modal-title" >Detail Data</h5>
+    <h5 class="modal-title">Detail Data</h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
 </div>
 
@@ -13,7 +13,7 @@
                 <tr>
                     <th class="col-sm-4">Part Id</th>
                     <td class="col-sm-8" style="word-break: break-word;">
-                        @Model.Id 
+                        @Model.Id
                     </td>
                 </tr>
                 <tr>
@@ -23,20 +23,12 @@
                     </td>
                 </tr>
                 <tr>
-                    <th class="col-sm-4">Waiting Fabrication Qty</th>
+                    <th class="col-sm-4">Request Qty</th>
                     <td class="col-sm-8" style="word-break: break-word;">
                         @Model.QuantityReq
                     </td>
-                </tr> 
-                <tr>
-                    @{
-                        var selisih = Math.Abs(Model.QuantityReq - Model.QuantityDone ?? 0);
-                    }
-                    <th class="col-sm-4">On Fabrication Qty</th>
-                    <td class="col-sm-8" style="word-break: break-word;">
-                        @selisih
-                    </td>
                 </tr>
+              
                 <tr>
                     <th class="col-sm-4">Fabrication Done  Qty</th>
                     <td class="col-sm-8" style="word-break: break-word;">
@@ -64,8 +56,8 @@
                     <th class="col-sm-4">Raw Material</th>
                     <td class="col-sm-8" style="word-break: break-word;">
                         @(Model.ItemRequests.RawMaterials != null
-                            ? Model.ItemRequests.RawMaterials.Name
-                            : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                                                ? Model.ItemRequests.RawMaterials.Name
+                                                : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
 
                     </td>
                 </tr>
@@ -130,8 +122,8 @@
                     <th class="col-sm-4">OCD</th>
                     <td class="col-sm-8" style="word-break: break-word;">
                         @(Model.OCD.HasValue
-                            ? Model.OCD.Value.ToString("dd-MM-yyyy")
-                            : Html.Raw("<span class='badge bg-danger'>-</span>"))
+                                                ? Model.OCD.Value.ToString("dd-MM-yyyy")
+                                                : Html.Raw("<span class='badge bg-danger'>-</span>"))
 
                     </td>
                 </tr>

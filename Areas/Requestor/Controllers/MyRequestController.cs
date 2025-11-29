@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EWOS_MVC.Areas.Requestor.Controllers
 {
-    [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,Supervisor")]
+    [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,EngineerFabrication")]
     [Area("Requestor")]
     public class MyRequestController : BaseController
     {
@@ -30,9 +30,10 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 .Where(s => s.Status == "WaitingApproval" || s.Status == "FabricationApproval")
                 .ToListAsync();
 
-             // --- Summary semua status ---
+           
+            // --- Summary semua status ---
             var statusSummaryRepeat = await _context.RepeatOrders
-                .Where(u => u.UserId == userId)
+                .Where(u => u.UsersId == userId)
                 .GroupBy(r => r.Status ?? "Unknown")
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
 
@@ -45,7 +46,6 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             ViewBag.StatusSummaryRepeat = statusSummaryRepeat;
             ViewBag.StatusSummaryEval = statusSummaryEval;
             ViewBag.CurrentStatus = "WaitingApproval";
-         
 
             return View(tableData);
         }
@@ -60,25 +60,14 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             var tableData = await _context.RepeatOrders
                 .Include(ir => ir.ItemRequests)
                     .ThenInclude(mc => mc.MachineCategories)
-                .Where(u => u.UserId == userId)
+                .Where(u => u.UsersId == userId)
                 .Where(s => s.Status == "WaitingApproval" || s.Status == "FabricationApproval")
                 .ToListAsync();
 
-            // --- Data modal untuk semua status ---
-            var modalData = await _context.RepeatOrders
-                .Include(ir => ir.ItemRequests)
-                    .ThenInclude(mc => mc.MachineCategories)
-                .Include(ir => ir.ItemRequests)
-                    .ThenInclude(rm => rm.RawMaterials)
-                .Include(u => u.Users)
-                .Include(rs => rs.RequestStatus)
-                    .ThenInclude(u => u.Users)
-                .Where(u => u.UserId == userId)
-                .ToListAsync();
-
+           
             // --- Summary semua status ---
             var statusSummaryRepeat = await _context.RepeatOrders
-                .Where(u => u.UserId == userId)
+                .Where(u => u.UsersId == userId)
                 .GroupBy(r => r.Status ?? "Unknown")
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
 
@@ -91,11 +80,10 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             ViewBag.StatusSummaryRepeat = statusSummaryRepeat;
             ViewBag.StatusSummaryEval = statusSummaryEval;
             ViewBag.CurrentStatus = "WaitingApproval";
-            ViewBag.ModalData = modalData;
+
 
             return View(tableData);
         }
-
 
         //load modal new request
         [HttpGet]
@@ -112,14 +100,14 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             return type switch
             {
                 "Pass" => PartialView("~/Views/modals/Requestor/Evaluation/BuyOffPassModal.cshtml", data),
-                "Status" => PartialView("~/Views/modals/General/StatusRequestModal.cshtml", data),
+                "Status" => PartialView("~/Views/modals/General/DetailStatus/StatusRequestModal.cshtml", data),
                 "Fail" => PartialView("~/Views/modals/Requestor/Evaluation/BuyOffFailModal.cshtml", data),
-                "Detail" => PartialView("~/Views/modals/General/RequestDetailSummaryModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/General/DetailRequest/RequestDetailSummaryModal.cshtml", data),
                 _ => BadRequest("Unknown modal type")
             };
 
             ;
-        } 
+        }
         //load modal Ro
         [HttpGet]
         public IActionResult LoadDataRo(long id, string type)
@@ -139,8 +127,8 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             return type switch
             {
                 "Recived" => PartialView("~/Views/modals/Requestor/RepeatOrder/ReciveModal.cshtml", data),
-                "Status" => PartialView("~/Views/modals/General/StatusRequestRoModal.cshtml", data),
-                "Detail" => PartialView("~/Views/modals/General/RequestRoDetailSummaryModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/General/DetailRequest/ItemRequestRoDetailModal.cshtml", data),
+                "Status" => PartialView("~/Views/modals/General/DetailStatus/StatusRequestRoModal.cshtml", data),
                 _ => BadRequest("Unknown modal type")
             };
 
@@ -194,7 +182,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
 
             return Json(result);
         }
-         // Search RO
+        // Search RO
         [HttpGet]
         public async Task<IActionResult> SearchRo(string keyword, int? categoryId, List<string> status)
         {
@@ -247,19 +235,19 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         //Result Pass
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Pass(long? ItemRequestId, string Reason)
+        public async Task<IActionResult> Pass(long ItemRequestId, string Reason)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
 
             if (ItemRequestId == null)
             {
                 TempData["Error"] = "ItemRequestId tidak boleh kosong.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Evaluation");
             }
             if (Reason == null)
             {
                 TempData["Error"] = "Reason tidak boleh kosong.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Evaluation");
             }
 
             if (!ModelState.IsValid)
@@ -267,7 +255,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
 
                 TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
-                return View("Index");
+                return View("Evaluation");
             }
 
             var findRequest = await _context.ItemRequests.FindAsync(ItemRequestId);
@@ -292,9 +280,9 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Berhasil Update Data.";
-            return Redirect("index");
+            return Redirect("Evaluation");
         }
-        
+
         //Result Close
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -305,17 +293,17 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             if (RepeatOrderId <= 0)
             {
                 TempData["Error"] = "RepearOrderId tidak boleh kosong.";
-                return RedirectToAction("Index");
+                return RedirectToAction("RepeatOrder");
             }
             if (ItemRequestId <= 0)
             {
                 TempData["Error"] = "RepeatOrderId tidak boleh kosong.";
-                return RedirectToAction("Index");
+                return RedirectToAction("RepeatOrder");
             }
             if (Reason == null)
             {
                 TempData["Error"] = "Reason tidak boleh kosong.";
-                return RedirectToAction("Index");
+                return RedirectToAction("RepeatOrder");
             }
 
             if (!ModelState.IsValid)
@@ -323,7 +311,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
 
                 TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
-                return View("Index");
+                return View("RepeatOrder");
             }
 
             var findRequest = await _context.RepeatOrders.FindAsync(RepeatOrderId);
@@ -349,31 +337,31 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Berhasil Update Data.";
-            return Redirect("index");
+            return Redirect("RepeatOrder");
         }
 
         // result fail
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Fail(long? ItemRequestId, string Reason)
+        public async Task<IActionResult> Fail(long ItemRequestId, string Reason)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
             if (ItemRequestId == null)
             {
                 TempData["Error"] = "ItemRequestId tidak boleh kosong.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Evaluation");
             }
             if (Reason == null)
             {
                 TempData["Error"] = "Reason tidak boleh kosong.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Evaluation");
             }
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
 
                 TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
-                return View("Index");
+                return View("Evaluation");
             }
 
             var findRequest = await _context.ItemRequests.FindAsync(ItemRequestId);
@@ -399,7 +387,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Berhasil Update Data.";
-            return Redirect("index");
+            return Redirect("Evaluation");
         }
 
         //Revisi 
@@ -412,13 +400,13 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             if (ItemRequestId == null)
             {
                 TempData["Error"] = "ItemRequestId tidak boleh kosong.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Evaluation");
             }
 
             if (string.IsNullOrWhiteSpace(Reason))
             {
                 TempData["Error"] = "Reason wajib diisi.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Evaluation");
             }
 
             if (!ModelState.IsValid)
@@ -426,7 +414,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
 
                 TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
-                return View("Index");
+                return View("Evaluation");
             }
 
             var findRequest = await _context.ItemRequests.FindAsync(ItemRequestId);
@@ -453,7 +441,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Berhasil Mengajukan revisi.";
-            return Redirect("index");
+            return Redirect("Evaluation");
         }
     }
 }

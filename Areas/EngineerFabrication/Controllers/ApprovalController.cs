@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace EWOS_MVC.Areas.Supervisor.Controllers
 {
-    [Authorize(Roles = "AdminSystem,Supervisor")]
-    [Area("Supervisor")]
+    [Authorize(Roles = "AdminSystem,EngineerFabrication")]
+    [Area("EngineerFabrication")]
     public class ApprovalController : BaseController
     {
         private readonly AppDbContext _context;
@@ -66,6 +66,7 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
             return View(waitingApprovalRepeat);
         }
 
+
         //load data modal evaluasi
         [HttpGet]
         public async Task<IActionResult> LoadData(long id, string type)
@@ -79,14 +80,15 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
 
             return type switch
             {
-                "Approve" => PartialView("~/Views/modals/Supervisor/Evaluation/ApproveModal.cshtml", data),
-                "Reject" => PartialView("~/Views/modals/Supervisor/Evaluation/RejectModal.cshtml", data),
-                "Detail" => PartialView("~/Views/modals/Supervisor/Evaluation/DetailModal.cshtml", data),
+                "Approve" => PartialView("~/Views/modals/EngineerFabrication/Evaluation/ApproveModal.cshtml", data),
+                "Reject" => PartialView("~/Views/modals/EngineerFabrication/Evaluation/RejectModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/EngineerFabrication/Evaluation/DetailModal.cshtml", data),
                 _ => BadRequest("Unknown modal type")
             };
 
             ;
         }
+
         //load data modal RO
         [HttpGet]
         public async Task<IActionResult> LoadDataRo(long id, string type)
@@ -101,8 +103,8 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
 
             return type switch
             {
-                "Approve" => PartialView("~/Views/modals/Supervisor/RepeatOrder/ApproveModal.cshtml", data),
-                "Detail" => PartialView("~/Views/modals/Supervisor/RepeatOrder/DetailModal.cshtml", data),
+                "Approve" => PartialView("~/Views/modals/EngineerFabrication/RepeatOrder/ApproveModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/EngineerFabrication/RepeatOrder/DetailModal.cshtml", data),
                 _ => BadRequest("Unknown modal type")
             };
 
@@ -144,7 +146,7 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
 
             return Json(result);
         }
-        //search baru
+        //search Ro
         [HttpGet]
         public IActionResult SearchRo(string keyword, int? categoryId)
         {
@@ -181,29 +183,28 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
             return Json(result);
         }
 
-
-        //approve
+        // approve request
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Approve(long itemRequestId, long? repeatOrderId)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+            string redirectUrl = "/EngineerFabrication/Approval/Evaluation";
 
             //validasi
             if (itemRequestId <= 0)
             {
                 TempData["Error"] = "ItemRequestId tidak boleh kosong.";
-                return RedirectToAction("Index");
+                return RedirectToAction(redirectUrl);
             }
 
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
-                return View("Index");
+                return View(redirectUrl);
             }
 
-            string redirectUrl = "/Supervisor/Approval/Evaluation";
 
             //menerima data dari file Supervisor/Approval/RepeatOrder.cshtml
             if (repeatOrderId.HasValue)
@@ -215,7 +216,7 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
                 repeatOrder.Status = "FabricationApproval";
                 repeatOrder.UpdatedAt = DateTime.Now;
 
-                redirectUrl = "/Supervisor/Approval/RepeatOrder";
+                redirectUrl = "/EngineerFabrication/Approval/RepeatOrder";
             }
 
             //menerima data dari file Supervisor/Approval/Evaluation.cshtml
@@ -233,7 +234,7 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
             {
                 ItemRequestId = itemRequestId,
                 RepeatOrderId = repeatOrderId,
-                Status = "SupervisorApproved",
+                Status = "EngineerApproved",
                 UserId = userId,
                 CreatedAt = DateTime.Now
             };
@@ -252,12 +253,13 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
         public async Task<IActionResult> Reject(long itemRequestId, long? repeatOrderId, string reason)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+            string redirectUrl = "/EngineerFabrication/Approval/Evaluation";
 
             // Validasi input
             if (itemRequestId <= 0 )
             {
                 TempData["Error"] = "ItemRequestId atau RepeatOrderId harus diisi.";
-                return RedirectToAction("Index");
+                return RedirectToAction(redirectUrl);
             }
 
             if (!ModelState.IsValid)
@@ -265,10 +267,9 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
                 var errors = ModelState.Values.SelectMany(v => v.Errors)
                                               .Select(e => e.ErrorMessage);
                 TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
-                return View("Index");
+                return View(redirectUrl);
             }
 
-            string redirectUrl = "/Supervisor/Approval/Evaluation";
 
             //menerima data dari file Supervisor/Approval/RepeatOrder.cshtml
             if (repeatOrderId.HasValue)
@@ -279,7 +280,7 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
                 repeatOrder.Status = "Reject";
                 repeatOrder.UpdatedAt = DateTime.Now;
 
-                redirectUrl = "/Supervisor/Approval/RepeatOrder";
+                redirectUrl = "/EngineerFabrication/Approval/RepeatOrder";
             }
             //menerima data dari file Supervisor/Approval/Evaluation.cshtml
             else
@@ -296,7 +297,7 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
             {
                 ItemRequestId = itemRequestId,
                 RepeatOrderId = repeatOrderId,
-                Status = "SupervisorReject",
+                Status = "EngineerReject",
                 Reason = reason,
                 UserId = userId,
                 CreatedAt = DateTime.Now

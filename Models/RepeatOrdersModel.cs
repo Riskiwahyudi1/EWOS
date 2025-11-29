@@ -10,9 +10,9 @@ namespace EWOS_MVC.Models
         [Key]
         public long Id { get; set; }
 
-        public int UserId { get; set; }
+        public int UsersId { get; set; }
 
-        [ForeignKey("UserId")]
+        [ForeignKey("UsersId")]
         [ValidateNever]
         public UserModel? Users { get; set; }
 

@@ -39,7 +39,7 @@
                     data-status="WaitingApproval"
                     type="button"
                     role="tab">
-                Supervisor Approval
+                Approval Request
                 @if (GetCount("WaitingApproval") > 0)
                 {
                     <span class="badge bg-danger rounded-pill">@GetCount("WaitingApproval")</span>
@@ -180,7 +180,7 @@
                             }
                             else if (rq.MachineCategoryId == 2)
                             {
-                                <button class="btn btn-primary btn-sm open-modal @(externalCost || FabTime || rawMaterial || weight? "disabled" : "")"
+                                <button class="btn btn-primary btn-sm open-modal @(externalCost || FabTime || rawMaterial || weight ? "disabled" : "")"
                                         data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Fabrikasi">
                                     Fabrikasi
                                 </button>
@@ -205,6 +205,8 @@
         }
     </tbody>
 </table>
+
+
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {

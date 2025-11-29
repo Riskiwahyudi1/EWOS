@@ -14,44 +14,6 @@
     </div>
     <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search" style="max-width: 300px;">
 </div>
-<style>
-    .tab-wrapper {
-        max-width: auto;
-        position: relative;
-        border-bottom: 2px solid #dee2e6;
-        margin-bottom: 1rem;
-    }
-
-    .nav-tabs {
-        border: none;
-        margin-bottom: 0;
-    }
-
-        .nav-tabs .nav-link {
-            border: none;
-            color: #6c757d;
-            background-color: transparent;
-            font-weight: 500;
-            position: relative;
-        }
-
-            .nav-tabs .nav-link.active {
-                color: #0d6efd;
-                border-bottom: 3px solid #0d6efd;
-                background-color: transparent;
-            }
-
-            .nav-tabs .nav-link:hover {
-                color: #0d6efd;
-            }
-
-    .nav-link .badge {
-        font-size: 0.75rem;
-        margin-left: 6px;
-        vertical-align: middle;
-    }
-</style>
-
 
 @{
     var summary = ViewBag.StatusSummaryEval as Dictionary<string, int>;
@@ -70,7 +32,7 @@
                 data-status="WaitingApproval,FabricationApproval"
                 type="button"
                 role="tab">
-            Waiting Approve
+            Waiting Approval
             @if (waitingAppCount > 0)
             {
                 <span class="badge bg-danger rounded-pill">@waitingAppCount</span>
@@ -229,20 +191,6 @@
 </table>
 
 
-<nav aria-label="Page navigation example">
-    <ul class="pagination justify-content-end">
-        <li class="page-item disabled">
-            <a class="page-link">Previous</a>
-        </li>
-        <li class="page-item"><a class="page-link" href="#">1</a></li>
-        <li class="page-item"><a class="page-link" href="#">2</a></li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item">
-            <a class="page-link" href="#">Next</a>
-        </li>
-    </ul>
-</nav>
-
 <script>
     document.addEventListener('DOMContentLoaded', () => {
       const tableBody = document.querySelector('table.table tbody');
@@ -323,6 +271,7 @@
                         <i class="bi bi-ticket-detailed"></i> Status
                     </button>
                 `;
+
 
             html += `
               <tr>

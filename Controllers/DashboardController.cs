@@ -5,10 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 
-namespace EWOS_MVC.Areas.Requestor.Controllers
+namespace EWOS_MVC.Controllers
 {
     [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,Supervisor")]
-    [Area("Requestor")]
 
     public class DashboardController : BaseController
     {
@@ -56,11 +55,13 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 series[row.Month - 1] += row.TotalQty;
             }
 
+            var totalReq = _context.ItemRequests.Count();
             // 6. Final chart data
             var chartData = new
             {
                 categories = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Agus", "Sep", "Okt", "Nov", "Des" },
-                series = series
+                series = series,
+                tes = totalReq
             };
             return View(chartData);
         }

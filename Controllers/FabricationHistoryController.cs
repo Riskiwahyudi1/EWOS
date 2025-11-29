@@ -1,20 +1,17 @@
 ﻿using EWOS_MVC.Models;
-using EWOS_MVC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace EWOS_MVC.Areas.Requestor.Controllers
 {
-    [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,Supervisor")]
+    [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,EngineerFabrication")]
     public class FabricationHistoryController : BaseController
     {
         private readonly AppDbContext _context;
-        private readonly WeekHelper _weekHelper;
-        public FabricationHistoryController(AppDbContext context, WeekHelper weekHelper)
+        public FabricationHistoryController(AppDbContext context)
         {
             _context = context;
-            _weekHelper = weekHelper;
         }
 
         public async Task<IActionResult> Index()
@@ -76,7 +73,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             return View(fabricationList);
         }
 
-
+        // load data modal
         public IActionResult LoadData(int id, string type)
         {
             var data = _context.ItemFabrications
@@ -310,13 +307,15 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     return Redirect("index");
                 }
 
-                // Jika ini request dari RepeatOrder
-                if (RepeatOrderId.HasValue)
+                // Cek request Ro || new request
+                if (RepeatOrderId.HasValue) //jika Ro
                 {
-                    requestDataRo.QuantityDone = (requestDataRo.QuantityDone ?? 0) + fabricationData.Quantity;
+                    //hitung apakah sudah di fabrikasi semua?
+                    var calculateFabrication = (requestDataRo.QuantityDone ?? 0) + fabricationData.Quantity;
+                    requestDataRo.QuantityDone = calculateFabrication;
 
-                    // finish jika sudah habis
-                    if(requestDataRo.QuantityReq == 0)
+                    // Jika sudah selesai semau ubah status repeat order
+                    if (requestDataRo.QuantityReq == calculateFabrication)
                     {
                         requestDataRo.Status = "Done";
                     }
@@ -324,7 +323,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 }
                 else
                 {
-                    // Jika request biasa
+                    // Jika request baru 
                     requestData.Status = "WaitingBuyoff";
                     requestData.UpdatedAt = DateTime.Now;
 
@@ -332,7 +331,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 }
 
                 // Update data fabrikasi
-                  fabricationData.Status = "FabricationDone";
+                fabricationData.Status = "FabricationDone";
                 _context.ItemFabrications.Update(fabricationData);
 
                 // Simpan seluruh perubahan
@@ -349,7 +348,6 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 return Redirect("index");
             }
         }
-
 
         //Proses cancel
         [HttpPost]
@@ -403,9 +401,9 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     }
                     else
                     {
-
-                        repeatOrderData.QuantityReq += fabricationData.Quantity;
+                  
                         repeatOrderData.UpdatedAt = DateTime.Now;
+                        repeatOrderData.Status = "WaitingFabrication";
 
                         _context.RepeatOrders.Update(repeatOrderData);
                         await _context.SaveChangesAsync();
@@ -453,12 +451,6 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             {
                 return NotFound();
             }
-
-            //var weekToday = await _weekHelper.GetMingguAktifTodayAsync();
-
-            ////data week
-
-            //var weekId = WeekSettingId ?? weekToday.Id;
 
             //Data saving edit
             var bagiSaving = (existingData.TotalSaving / existingData.Quantity);

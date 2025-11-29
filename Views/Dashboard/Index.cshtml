@@ -27,7 +27,7 @@
 
     </div>
 
-  <!-- Tampilan chart -->
+    <!-- Tampilan chart -->
     <!-- Baris 1 -->
     <div style="display: flex; flex-wrap: wrap; gap: 30px; justify-content: space-around; margin-bottom: 30px;">
 
@@ -51,19 +51,19 @@
         <div style="flex: 1; min-width: 300px; " class="bg-white shadow-sm">
             <div class="d-flex flex-row justify-content-between py-3 px-3">
                 <h6>Saving Cost Monitoring</h6>
-                <h6 >Potential Saving 2025 : $100.000</h6>
+                <h6>Potential Saving 2025 : $100.000</h6>
             </div>
-            
-            <div id="savingChart" ></div>
+
+            <div id="savingChart"></div>
         </div>
-       
+
     </div>
 
     <!-- Baris 3 -->
     <div style="display: flex; flex-wrap: wrap; gap: 30px; justify-content: space-around; margin-bottom: 30px; ">
         <div style="flex: 1; min-width: 300px; " class="bg-white shadow-sm p-3">
             <h6>Machine Utilization</h6>
-            <div id="machineUtilization" ></div>
+            <div id="machineUtilization"></div>
         </div>
     </div>
 
@@ -131,12 +131,12 @@
             type: 'line',
           },
           stroke: {
-            width: [0, 3],  
+            width: [0, 3],
             curve: ['straight', 'smooth']
           },
           dataLabels: {
             enabled: true,
-            enabledOnSeries: [0, 1],  
+            enabledOnSeries: [0, 1],
             formatter: function (val) {
               return val;
             }
@@ -165,7 +165,7 @@
         };
             // fabrikasi count
             var fabricationCount = {
-                  series: [100, 60, 40],
+                  series: [@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.tes)), 60, 40],
                   chart: {
                   height: 300,
                   type: 'radialBar',
@@ -330,7 +330,7 @@
             const categoryId = categorySelect.value || 0;
 
             try {
-                const response = await fetch(`/Requestor/Dashboard/Filter?year=${year}&categoryId=${categoryId}`);
+                const response = await fetch(`/Dashboard/Filter?year=${year}&categoryId=${categoryId}`);
                 const data = await response.json();
 
                 if (window.barChart) {
@@ -351,7 +351,7 @@
                     });
                 }
 
-               
+
             } catch (error) {
                 console.error("Error loading chart data:", error);
             }

@@ -1,4 +1,4 @@
-﻿@model List<EWOS_MVC.Models.ItemRequestModel>
+﻿@model List<EWOS_MVC.Models.RepeatOrderModel>
 @{
     ViewData["Title"] = "Approval";
 }
@@ -23,15 +23,15 @@
 </div>
 
 @{
-    var isEvaluationActive = Context.Request.Path.Value?.Contains("/Supervisor/Approval/Evaluation") == true;
-    var isRepeatOrderActive = Context.Request.Path.Value?.Contains("/Supervisor/Approval/RepeatOrder") == true;
+    var isEvaluationActive = Context.Request.Path.Value?.Contains("/EngineerFabrication/Approval/Evaluation") == true;
+    var isRepeatOrderActive = Context.Request.Path.Value?.Contains("/EngineerFabrication/Approval/RepeatOrder") == true;
     var evalCount = ViewBag.ApprovalEvalCount ?? 0;
     var roCount = ViewBag.ApprovalROCount ?? 0;
 }
 
 <ul class="nav nav-tabs" id="requestTabs" role="tablist">
     <li class="nav-item" role="presentation">
-        <a href="/Supervisor/Approval/Evaluation"
+        <a href="/EngineerFabrication/Approval/Evaluation"
            class="nav-link @(isEvaluationActive ? "active" : "")"
            id="overview-tab" role="tab">
             New Order
@@ -42,7 +42,7 @@
         </a>
     </li>
     <li class="nav-item" role="presentation">
-        <a href="/Supervisor/Approval/RepeatOrder"
+        <a href="/EngineerFabrication/Approval/RepeatOrder"
            class="nav-link @(isRepeatOrderActive ? "active" : "")"
            id="details-tab" role="tab">
             Repeat Order
@@ -53,6 +53,7 @@
         </a>
     </li>
 </ul>
+
 <table class="table table-sm table-striped table-bordered my-3">
     <thead>
         <tr>
@@ -83,19 +84,15 @@
                 <tr>
                     <td class="text-center">@index</td>
                     <td>@ir.Id</td>
-                    <td>@ir.PartName</td>
-                    <td>@ir.Users.Name</td>
-                    <td>@ir.MachineCategories?.CategoryName</td>
+                    <td>@ir.ItemRequests.PartName</td>
+                    <td>@ir.Users?.Name</td>
+                    <td>@ir.ItemRequests.MachineCategories?.CategoryName</td>
                     <td>@ir.CreatedAt</td>
                     <td class="text-center">
-                        
-                        <button class="btn btn-success btn-sm open-modal" data-url="/Supervisor/Approval/LoadData?id=@ir.Id&amp;type=Approve">
+                        <button class="btn btn-success btn-sm open-modal" data-url="/EngineerFabrication/Approval/LoadDataRo?id=@ir.Id&amp;type=Approve">
                             Approve
                         </button>
-                        <button class="btn btn-danger btn-sm open-modal" data-url="/Supervisor/Approval/LoadData?id=@ir.Id&amp;type=Reject">
-                            Reject
-                        </button>
-                        <button class="btn btn-warning btn-sm open-modal" data-url="/Supervisor/Approval/LoadData?id=@ir.Id&amp;type=Detail">
+                        <button class="btn btn-warning btn-sm open-modal" data-url="/EngineerFabrication/Approval/LoadDataRo?id=@ir.Id&amp;type=Detail">
                             Detail
                         </button>
                     </td>
@@ -103,7 +100,7 @@
                 index++;
             }
         }
-       
+
     </tbody>
 </table>
 
@@ -157,7 +154,7 @@
                 }, 350);
 
                 // Buat URL dan query
-                const url = new URL("/Supervisor/Approval/SearchNew", window.location.origin);
+                const url = new URL("/EngineerFabrikasi/Approval/SearchRo", window.location.origin);
                 if (keyword) url.searchParams.append("keyword", keyword);
                 if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
 
@@ -179,17 +176,13 @@
                     let buttons = "";
                         buttons += `
                              <button class="btn btn-success btn-sm open-modal"
-                                    data-url="/Supervisor/Approval/LoadData?id=${rq.id}&type=Approve">
+                                    data-url="/EngineerFabrication/Approval/LoadDataRo?id=${rq.id}&type=Approve">
                                 Approve
                             </button>
 
-                            <button class="btn btn-danger btn-sm open-modal"
-                                    data-url="/Supervisor/Approval/LoadData?id=${rq.id}&type=Reject">
-                                Reject
-                            </button>
 
                             <button class="btn btn-warning btn-sm open-modal"
-                                    data-url="/Supervisor/Approval/LoadData?id=${rq.id}&type=Detail">
+                                    data-url="/EngineerFabrication/Approval/LoadDataRo?id=${rq.id}&type=Detail">
                                 Detail
                             </button>
                         `;
@@ -227,6 +220,6 @@
         // Event filter kategori
         categoryFilter.addEventListener('change', performSearch);
 
-        
+
     });
 </script>
