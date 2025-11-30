@@ -77,10 +77,10 @@
                     chart: { type: 'bar', height: 250 },
                     series: [{
                         name: 'Quantity',
-                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.series))
+                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.qtyReqByMonth))
                     }],
                     xaxis: {
-                        categories: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.categories))
+                        categories: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.monthReq))
                     }
                 };
                 // Simpan chart global
@@ -88,9 +88,75 @@
                 window.barChart.render();
 
 
-            // Progress Fabrikasi pie
+           
+
+
+        const totalRequest = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TotalRequest));
+        const totalRequestDone = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TotalRequestDone));
+        const totalWaiting = totalRequest - totalRequestDone;
+
+
+        const percentWaiting = (totalWaiting / totalRequest) * 100;
+        const percentDone = (totalRequestDone / totalRequest) * 100;
+
+
+
+            // fabrikasi count 
+            var fabricationCount = {
+            series: [
+                100,
+                percentWaiting,
+                percentDone
+            ],
+            chart: {
+                height: 300,
+                type: 'radialBar',
+            },
+            plotOptions: {
+                radialBar: {
+                    offsetY: 0,
+                    startAngle: 0,
+                    endAngle: 270,
+                    hollow: {
+                        margin: 5,
+                        size: '30%',
+                        background: 'transparent',
+                    },
+                    dataLabels: {
+                        name: {
+                            show: false
+                        },
+                        value: {
+                            show: false
+                        }
+                    },
+                    barLabels: {
+                        enabled: true,
+                        useSeriesColors: true,
+                        offsetX: -8,
+                        fontSize: '13px',
+
+                        formatter: function(seriesName, opts) {
+                            const index = opts.seriesIndex;
+
+                            const realValues = [
+                                totalRequest,
+                                totalWaiting,
+                                totalRequestDone
+                            ];
+
+                            return seriesName + ": " + realValues[index];
+                        }
+                    },
+                }
+            },
+            colors: ['#1ab7ea', '#0084ff', '#39539E'],
+            labels: ['Total Request', 'On Progress', 'Done'],
+        };
+
+            // persentase progress
             var ProgressFabPie = {
-                      series: [10, 20],
+                      series: [totalWaiting, totalRequestDone],
                        chart: {
                           type: 'donut',
                           height: 250
@@ -98,7 +164,7 @@
                         legend: {
                             position: 'bottom'
                           },
-                      labels: ['Done', 'On Progress'],
+                      labels: ['On Progress', 'Done'],
 
                       responsive: [{
                         breakpoint: 480,
@@ -112,105 +178,69 @@
                         }
                       }]
                     };
+
             // Saving bar
+            const monthSaving = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.monthLabels));
+            const savingByMonth = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.savingByMonth));
+            const savingByCategory = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.savingByCategory));
+            const savingCumulative = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.cumulative));
+
             var savingData = {
-          series: [
-            {
-              name: 'Aktual (Bar)',
-              type: 'column',
-              data: [1200, 2500, 4500, 8500, 3200, 5200, 4100, 2300, 2100, 3200, 10500, 8000]
-            },
-            {
-              name: 'Kumulatif (Line)',
-              type: 'line',
-              data: [1200, 3700, 8200, 16700, 19900, 25100, 29200, 31500, 33600, 36800, 47300, 55300]
-            }
-          ],
-          chart: {
-            height: 350,
-            type: 'line',
-          },
-          stroke: {
-            width: [0, 3],
-            curve: ['straight', 'smooth']
-          },
-          dataLabels: {
-            enabled: true,
-            enabledOnSeries: [0, 1],
-            formatter: function (val) {
-              return val;
-            }
-          },
-          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
-          yaxis: [
-            {
-              title: {
-                text: 'Aktual ($USD)',
-              },
-            },
-            {
-              opposite: true,
-              title: {
-                text: 'Kumulatif ($USD)'
-              }
-            }
-          ],
-          tooltip: {
-            shared: true,
-            intersect: false,
-          },
-          legend: {
-            position: 'bottom',
-          }
-        };
-            // fabrikasi count
-            var fabricationCount = {
-                  series: [@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.tes)), 60, 40],
+                  series: [
+                    {
+                      name: 'CNC Milling',
+                      type: 'column',
+                      data: savingByCategory["1"]
+                    },{
+                      name: '3D Printing',
+                      type: 'column',
+                      data: savingByCategory["2"]
+                    },
+                    {
+                      name: 'Kumulatif (Line)',
+                      type: 'line',
+                      data: savingCumulative
+                    }
+                  ],
                   chart: {
-                  height: 300,
-                  type: 'radialBar',
-                },
-                plotOptions: {
-                  radialBar: {
-                    offsetY: 0,
-                    startAngle: 0,
-                    endAngle: 270,
-                    hollow: {
-                      margin: 5,
-                      size: '30%',
-                      background: 'transparent',
-                      image: undefined,
-                    },
-                    dataLabels: {
-                      name: {
-                        show: false,
+                    height: 350,
+                    type: 'line',
+                  },
+                  stroke: {
+                    width: [0, 3],
+                    curve: ['straight', 'smooth']
+                  },
+                  dataLabels: {
+                    enabled: true,
+                    enabledOnSeries: [0, 1],
+                    formatter: function (val) {
+                      return val;
+                    }
+                  },
+                  labels: monthSaving,
+                  yaxis: [
+                    {
+                      title: {
+                        text: 'Aktual ($USD)',
                       },
-                      value: {
-                        show: false,
+                    },
+                    {
+                      opposite: true,
+                      title: {
+                        text: 'Kumulatif ($USD)'
                       }
-                    },
-                    barLabels: {
-                      enabled: true,
-                      useSeriesColors: true,
-                      offsetX: -8,
-                      fontSize: '12px',
-                      formatter: function(seriesName, opts) {
-                        return seriesName + ":  " + opts.w.globals.series[opts.seriesIndex]
-                      },
-                    },
+                    }
+                  ],
+                  tooltip: {
+                    shared: true,
+                    intersect: false,
+                  },
+                  legend: {
+                    position: 'bottom',
                   }
-                },
-        colors: ['#1ab7ea', '#0084ff', '#39539E'],
-        labels: ['Total Request', 'On Progress', 'Done'],
-        responsive: [{
-          breakpoint: 480,
-          options: {
-            legend: {
-                show: false
-            }
-          }
-        }]
-        };
+                };
+
+       
              // Machine Utilization
             var machineUtilization = {
           series: [{

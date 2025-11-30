@@ -21,47 +21,173 @@ namespace EWOS_MVC.Controllers
         public async Task<IActionResult> Index()
         {
             // 1. Hitung jumlah ItemRequest per bulan
-            var itemReqPerMonth = await _context.ItemRequests
-                .GroupBy(r => r.CreatedAt.Month)
+            var allDataItemnewReq = await _context.ItemRequests.ToListAsync();
+            var allDataItemRO = await _context.RepeatOrders.ToListAsync();
+            var allItemFabrication = await _context.ItemFabrications.ToListAsync();
+
+            var currentYear = DateTime.Now.Year;
+            // 1. Group Item Request per bulan
+            var itemReqPerMonth = allDataItemnewReq
+                .Where(r => r.CreatedAt.Year == currentYear)
+                .GroupBy(r => new { r.CreatedAt.Year, r.CreatedAt.Month })
                 .Select(g => new
                 {
-                    Month = g.Key,
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
                     Count = g.Count()
                 })
-                .ToListAsync();
+                .ToList();
 
-            // 2. Hitung total QuantityReq dari RepeatOrder per bulan
-            var repeatOrderPerMonth = await _context.RepeatOrders
-                .GroupBy(r => r.CreatedAt.Month)
+            // 2. Group Repeat Order per bulan
+            var repeatOrderPerMonth = allDataItemRO
+                .Where(r => r.CreatedAt.Year == currentYear)
+                .GroupBy(r => new { r.CreatedAt.Year, r.CreatedAt.Month })
                 .Select(g => new
                 {
-                    Month = g.Key,
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
                     TotalQty = g.Sum(x => x.QuantityReq)
                 })
-                .ToListAsync();
+                .ToList();
 
-            // 3. Siapkan array 12 bulan
-            int[] series = new int[12];
+            // 3. Ambil semua bulan unik dari dua sumber data
+            var allMonths = itemReqPerMonth
+                .Select(x => new { x.Year, x.Month })
+                .Union(
+                    repeatOrderPerMonth.Select(x => new { x.Year, x.Month })
+                )
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ToList();
 
-            // 4. Masukkan ItemRequest ke array
-            foreach (var row in itemReqPerMonth)
+            // 4. Buat categories dan series
+            var monthReq = new List<string>();
+            var qtyReqByMonth = new List<int>();
+
+            foreach (var m in allMonths)
             {
-                series[row.Month - 1] += row.Count;
+                // Nama bulan (Jan, Feb, dst)
+                monthReq.Add(
+                    new DateTime(m.Year, m.Month, 1).ToString("MMMM")
+                );
+
+                // Ambil jumlah Item Request di bulan ini
+                int itemCount = itemReqPerMonth
+                    .Where(x => x.Year == m.Year && x.Month == m.Month)
+                    .Sum(x => x.Count);
+
+                // Ambil jumlah Repeat Order di bulan ini
+                int repeatQty = repeatOrderPerMonth
+                    .Where(x => x.Year == m.Year && x.Month == m.Month)
+                    .Sum(x => x.TotalQty);
+
+                // Gabungkan keduanya
+                qtyReqByMonth.Add(itemCount + repeatQty);
             }
 
-            // 5. Masukkan RepeatOrder ke array
-            foreach (var row in repeatOrderPerMonth)
+
+
+            //totalRo request 
+            var totalNewReq = allDataItemnewReq.Count();
+            var totalRo = allDataItemRO.Sum(q =>q.QuantityReq);
+            var calculatenewNRo = totalNewReq + totalRo;
+
+            //Request selesai
+            var totalDoneNewReq = allDataItemnewReq.Where(s =>s.Status == "Maspro").Count();
+            var totalDoneRo = allDataItemRO.Where(s => s.Status == "Close").Sum(q => q.QuantityReq);
+            var calculatFabDone = totalDoneNewReq + totalDoneRo;
+
+
+            // Ambil raw saving data: per bulan, per kategori
+            var savingRaw = allItemFabrication
+                .Where(r => r.CreatedAt.Year == currentYear)
+                .GroupBy(r => new
+                {
+                    r.CreatedAt.Year,
+                    r.CreatedAt.Month,
+                    Category = r.ItemRequest.MachineCategoryId
+                })
+                .Select(g => new
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Category = g.Key.Category,
+                    TotalSaving = g.Sum(x => x.TotalSaving)
+                })
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ToList();
+
+            // Ambil daftar kategori unik
+            var categories = savingRaw
+                .Select(x => x.Category)
+                .Distinct()
+                .ToList();
+
+            // Ambil daftar bulan unik
+            var months = savingRaw
+                .Select(x => new { x.Year, x.Month })
+                .Distinct()
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ToList();
+
+            // --- OUTPUT ---
+            var monthLabels = new List<string>();
+            var savingByMonth = new List<decimal>();
+            var cumulative = new List<decimal>();
+            var savingByCategory = new Dictionary<string, List<decimal>>();
+
+            // Inisialisasi dictionary kategori
+            foreach (var cat in categories)
             {
-                series[row.Month - 1] += row.TotalQty;
+                savingByCategory[cat.ToString()] = new List<decimal>();
             }
 
-            var totalReq = _context.ItemRequests.Count();
+            decimal runTotal = 0;
+
+            // Loop per bulan
+            foreach (var m in months)
+            {
+                // Nama bulan
+                monthLabels.Add(new DateTime(m.Year, m.Month, 1).ToString("MMMM"));
+
+                // Total saving bulan ini (semua kategori)
+                decimal totalMonth = savingRaw
+                    .Where(x => x.Year == m.Year && x.Month == m.Month)
+                    .Sum(x => x.TotalSaving ?? 0);
+
+                savingByMonth.Add(totalMonth);
+
+                runTotal += totalMonth;
+                cumulative.Add(runTotal);
+
+                // Isi saving per kategori per bulan
+                foreach (var cat in categories)
+                {
+                    var found = savingRaw.FirstOrDefault(
+                        x => x.Year == m.Year && x.Month == m.Month && x.Category == cat
+                    );
+
+                    savingByCategory[cat.ToString()].Add(found?.TotalSaving ?? 0);
+                }
+            }
+
+
             // 6. Final chart data
             var chartData = new
             {
-                categories = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Agus", "Sep", "Okt", "Nov", "Des" },
-                series = series,
-                tes = totalReq
+
+                monthReq,
+                qtyReqByMonth,
+                monthLabels,
+                savingByMonth,
+                savingByCategory,
+                cumulative,
+                TotalRequest = calculatenewNRo,
+                TotalRequestDone = calculatFabDone,
+              
+
             };
             return View(chartData);
         }
