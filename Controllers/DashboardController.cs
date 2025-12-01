@@ -24,8 +24,31 @@ namespace EWOS_MVC.Controllers
             var allDataItemnewReq = await _context.ItemRequests.ToListAsync();
             var allDataItemRO = await _context.RepeatOrders.ToListAsync();
             var allItemFabrication = await _context.ItemFabrications.ToListAsync();
+            var allWeeks = await _context.WeeksSetting.ToListAsync();
+            var totalMachine = await _context.Machines.Where(mc => mc.MachineCategoryId != 3).CountAsync();
+
 
             var currentYear = DateTime.Now.Year;
+
+            //potential saving 
+            // New Req
+            var totalPotentialSavingCost = allDataItemnewReq
+                .Where(r => r.CreatedAt.Year == currentYear)
+                .Sum(r => r.ExternalFabCost ?? 0);
+            //Ro
+            var totalPotentialSavingCostRo = allDataItemRO
+               .Where(r => r.CreatedAt.Year == currentYear && r.ItemRequests.IsCalculateSaving == true)
+               .Sum(r => r.QuantityReq * r.ItemRequests.ExternalFabCost);
+             //sudah di fabrikasi
+
+            var totalFabrikasiDone = allItemFabrication
+                .Where(r => r.CreatedAt.Year == currentYear)
+                .Sum(r => r.TotalSaving ?? 0);
+
+            //jumlahkan
+            var potentialSaving = totalPotentialSavingCost + totalPotentialSavingCostRo + totalFabrikasiDone;
+
+
             // 1. Group Item Request per bulan
             var itemReqPerMonth = allDataItemnewReq
                 .Where(r => r.CreatedAt.Year == currentYear)
@@ -85,8 +108,6 @@ namespace EWOS_MVC.Controllers
                 qtyReqByMonth.Add(itemCount + repeatQty);
             }
 
-
-
             //totalRo request 
             var totalNewReq = allDataItemnewReq.Count();
             var totalRo = allDataItemRO.Sum(q =>q.QuantityReq);
@@ -132,7 +153,6 @@ namespace EWOS_MVC.Controllers
                 .ThenBy(x => x.Month)
                 .ToList();
 
-            // --- OUTPUT ---
             var monthLabels = new List<string>();
             var savingByMonth = new List<decimal>();
             var cumulative = new List<decimal>();
@@ -173,11 +193,36 @@ namespace EWOS_MVC.Controllers
                 }
             }
 
+            var machineUtilization = allItemFabrication
+                .Where(x => x.CreatedAt.Year == currentYear)
+                .GroupBy(x => x.WeeksSettingId)
+                .Select(g => new
+                {
+                    Week = g.First().WeeksSetting.Week,
+
+                    // PLAN (jam rencana fabrikasi)
+                    PlanJam = (decimal)(g.First().WeeksSetting.WorkingDays * 24 * totalMachine),
+
+                    // ACTUAL (jam fabrikasi)
+                    ActualJam = g.Sum(x => x.FabricationTime),
+
+                    // UTILIZATION %
+                    Percent = (g.First().WeeksSetting.WorkingDays * 24 * totalMachine) == 0
+                        ? 0
+                        : Math.Round(
+                            (g.Sum(x => x.FabricationTime) /
+                            (decimal)(g.First().WeeksSetting.WorkingDays * 24 * totalMachine)) * 100, 2)
+                })
+                .OrderBy(x => x.Week)
+                .ToList();
+
+
 
             // 6. Final chart data
             var chartData = new
             {
-
+                potentialSaving,
+                machineUtilization,
                 monthReq,
                 qtyReqByMonth,
                 monthLabels,
@@ -195,38 +240,205 @@ namespace EWOS_MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Filter(int year, int categoryId)
         {
-            var Getyears = await _yearsHelper.GetYearByIdAsync(year);
 
-            var yearName = Getyears.Year;
 
-            // 1. Query ItemRequest per bulan
-            var itemReqPerMonth = await _context.ItemRequests
-                .Where(x => x.CreatedAt.Year == yearName && x.MachineCategoryId == categoryId)
-                .GroupBy(x => x.CreatedAt.Month)
-                .Select(g => new { Month = g.Key, Count = g.Count() })
+            var currentYear = await _yearsHelper.GetYearByIdAsync(year);
+            var yearName = currentYear?.Year;
+
+            // 1. Filter data sesuai year + category
+            var allDataItemnewReq = await _context.ItemRequests
+                .Where(r => r.CreatedAt.Year == yearName &&
+                            (categoryId == 0 || r.MachineCategoryId == categoryId))
                 .ToListAsync();
 
-            // 2. Query RepeatOrder per bulan
-            var repeatOrderPerMonth = await _context.RepeatOrders
-                .Where(x => x.CreatedAt.Year == yearName && x.ItemRequests.MachineCategoryId == categoryId)
-                .GroupBy(x => x.CreatedAt.Month)
-                .Select(g => new { Month = g.Key, Qty = g.Sum(x => x.QuantityReq) })
+            var allDataItemRO = await _context.RepeatOrders
+                .Where(r => r.CreatedAt.Year == yearName &&
+                            (categoryId == 0 || r.ItemRequests.MachineCategoryId == categoryId))
                 .ToListAsync();
 
+            var allItemFabrication = await _context.ItemFabrications
+                .Where(r => r.CreatedAt.Year == yearName &&
+                            (categoryId == 0 || r.ItemRequest.MachineCategoryId == categoryId))
+                .ToListAsync();
 
-            // 3. Gabungkan
-            int[] series = new int[12];
+            var totalMachine = await _context.Machines
+                .Where(mc => mc.MachineCategoryId != 3 && mc.MachineCategoryId == categoryId)
+                .CountAsync();
 
-            foreach (var r in itemReqPerMonth)
-                series[r.Month - 1] += r.Count;
+            // -------------------------------------------------------
+            // POTENTIAL SAVING
+            // -------------------------------------------------------
+            var totalPotentialSavingCost = allDataItemnewReq.Sum(r => r.ExternalFabCost ?? 0);
 
-            foreach (var r in repeatOrderPerMonth)
-                series[r.Month - 1] += r.Qty;
+            var totalPotentialSavingCostRo = allDataItemRO
+                .Where(r => r.ItemRequests.IsCalculateSaving == true)
+                .Sum(r => r.QuantityReq * r.ItemRequests.ExternalFabCost);
 
-            var categories = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Agus", "Sep", "Okt", "Nov", "Des" };
+            var totalFabrikasiDone = allItemFabrication.Sum(r => r.TotalSaving ?? 0);
 
-            return Json(new { categories, series });
+            var potentialSaving = totalPotentialSavingCost +
+                                  totalPotentialSavingCostRo +
+                                  totalFabrikasiDone;
+
+
+            // -------------------------------------------------------
+            // REQUEST PER BULAN
+            // -------------------------------------------------------
+            var itemReqPerMonth = allDataItemnewReq
+                .GroupBy(r => new { r.CreatedAt.Year, r.CreatedAt.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+                .ToList();
+
+            var repeatOrderPerMonth = allDataItemRO
+                .GroupBy(r => new { r.CreatedAt.Year, r.CreatedAt.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, TotalQty = g.Sum(x => x.QuantityReq) })
+                .ToList();
+
+            var allMonths = itemReqPerMonth
+                .Select(x => new { x.Year, x.Month })
+                .Union(repeatOrderPerMonth.Select(x => new { x.Year, x.Month }))
+                .OrderBy(x => x.Year).ThenBy(x => x.Month)
+                .ToList();
+
+            var monthReq = new List<string>();
+            var qtyReqByMonth = new List<int>();
+
+            foreach (var m in allMonths)
+            {
+                monthReq.Add(new DateTime(m.Year, m.Month, 1).ToString("MMMM"));
+
+                int itemCount = itemReqPerMonth
+                    .Where(x => x.Year == m.Year && x.Month == m.Month)
+                    .Sum(x => x.Count);
+
+                int repeatQty = repeatOrderPerMonth
+                    .Where(x => x.Year == m.Year && x.Month == m.Month)
+                    .Sum(x => x.TotalQty);
+
+                qtyReqByMonth.Add(itemCount + repeatQty);
+            }
+
+            // -------------------------------------------------------
+            // TOTAL REQUEST DONE
+            // -------------------------------------------------------
+            var totalNewReq = allDataItemnewReq.Count();
+            var totalRo = allDataItemRO.Sum(q => q.QuantityReq);
+            var calculatenewNRo = totalNewReq + totalRo;
+
+            var totalDoneNewReq = allDataItemnewReq.Where(s => s.Status == "Maspro").Count();
+            var totalDoneRo = allDataItemRO.Where(s => s.Status == "Close").Sum(q => q.QuantityReq);
+            var calculatFabDone = totalDoneNewReq + totalDoneRo;
+
+
+            // -------------------------------------------------------
+            // SAVING RAW
+            // -------------------------------------------------------
+            var savingRaw = allItemFabrication
+                .GroupBy(r => new { r.CreatedAt.Year, r.CreatedAt.Month, Category = r.ItemRequest.MachineCategoryId })
+                .Select(g => new
+                {
+                    g.Key.Year,
+                    g.Key.Month,
+                    Category = g.Key.Category,
+                    TotalSaving = g.Sum(x => x.TotalSaving)
+                })
+                .OrderBy(x => x.Year).ThenBy(x => x.Month)
+                .ToList();
+
+            var categories = savingRaw.Select(x => x.Category).Distinct().ToList();
+
+            var months = savingRaw
+                .Select(x => new { x.Year, x.Month })
+                .Distinct()
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ToList();
+
+            var monthLabels = new List<string>();
+            var savingByMonth = new List<decimal>();
+            var cumulative = new List<decimal>();
+            var savingByCategory = new Dictionary<string, List<decimal>>();
+
+            foreach (var cat in categories)
+                savingByCategory[cat.ToString()] = new List<decimal>();
+
+            decimal runTotal = 0;
+
+            foreach (var m in months)
+            {
+                monthLabels.Add(new DateTime(m.Year, m.Month, 1).ToString("MMMM"));
+
+                decimal totalMonth = savingRaw
+                    .Where(x => x.Year == m.Year && x.Month == m.Month)
+                    .Sum(x => x.TotalSaving ?? 0);
+
+                savingByMonth.Add(totalMonth);
+
+                runTotal += totalMonth;
+                cumulative.Add(runTotal);
+
+                foreach (var cat in categories)
+                {
+                    var found = savingRaw.FirstOrDefault(
+                        x => x.Year == m.Year && x.Month == m.Month && x.Category == cat);
+
+                    savingByCategory[cat.ToString()].Add(found?.TotalSaving ?? 0);
+                }
+            }
+
+            // -------------------------------------------------------
+            // MACHINE UTILIZATION
+            // -------------------------------------------------------
+            //var machineUtilization = allItemFabrication
+            //    .GroupBy(x => x.WeeksSettingId )
+            //    .Select(g => new
+            //    {
+            //        Week = g.First().WeeksSetting.Week,
+
+            //        // PLAN (jam rencana fabrikasi)
+            //        PlanJam = (decimal)(g.First().WeeksSetting.WorkingDays * 24 * totalMachine),
+
+            //        // ACTUAL (jam fabrikasi)
+            //        ActualJam = g.Sum(x => x.FabricationTime),
+
+            //        // UTILIZATION %
+            //        Percent = (g.First().WeeksSetting.WorkingDays * 24 * totalMachine) == 0
+            //            ? 0
+            //            : Math.Round(
+            //                (g.Sum(x => x.FabricationTime) /
+            //                (decimal)(g.First().WeeksSetting.WorkingDays * 24 * totalMachine)) * 100, 2)
+            //    })
+            //    .OrderBy(x => x.Week)
+            //    .ToList();
+
+            var machineUtilization = new[]
+         {
+    new { Week = 1, PlanJam = 192, ActualJam = 150, Percent = 78.13 },
+    new { Week = 2, PlanJam = 192, ActualJam = 180, Percent = 93.75 },
+    new { Week = 3, PlanJam = 192, ActualJam = 170, Percent = 88.54 },
+    new { Week = 4, PlanJam = 192, ActualJam = 160, Percent = 83.33 },
+    new { Week = 5, PlanJam = 192, ActualJam = 175, Percent = 91.15 }
+};
+
+
+            // -------------------------------------------------------
+            // RETURN JSON
+            // -------------------------------------------------------
+            return Json(new
+            {
+                potentialSaving,
+                machineUtilization,
+                monthReq,
+                qtyReqByMonth,
+                monthLabels,
+                savingByMonth,
+                savingByCategory,
+                cumulative,
+                TotalRequest = calculatenewNRo,
+                TotalRequestDone = calculatFabDone,
+            });
         }
+
 
         //testing role user
         [Authorize]
