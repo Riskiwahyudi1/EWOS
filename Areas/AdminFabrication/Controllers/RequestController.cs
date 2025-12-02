@@ -15,12 +15,14 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
         private readonly AppDbContext _context;
         private readonly WeekHelper _weekHelper;
         private readonly YearsHelper _yearHelper;
+        private readonly CalculateSavingHelper _savingHelper;
 
-        public RequestController(AppDbContext context, WeekHelper weekHelper, YearsHelper yearHelper)
+        public RequestController(AppDbContext context, WeekHelper weekHelper, YearsHelper yearHelper, CalculateSavingHelper savingHelper)
         {
             _context = context;
             _weekHelper = weekHelper;
             _yearHelper = yearHelper;
+            _savingHelper = savingHelper;
         }
 
         //request baru(Evaluasi)
@@ -441,10 +443,10 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             return RedirectToAction("Index");
         }
 
-        //tambah fabrikasi
+        //tambah fabrikasi baru
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddFabrikasi(int MachineId, long ItemRequestId, long? RepeatOrderId, int? Quantity)
+        public async Task<IActionResult> AddFabrikasiNew(int MachineId, long ItemRequestId)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
             if (!ModelState.IsValid)
@@ -453,7 +455,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                     string.Join(", ", ModelState.Values
                         .SelectMany(v => v.Errors)
                         .Select(e => e.ErrorMessage));
-                return Redirect("index");
+                return Redirect("/AdminFabrication/Request/Evaluation");
             }
 
             //  Ambil tahun aktif
@@ -464,7 +466,110 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             if (getTahun == null)
             {
                 TempData["Error"] = "Tahun Fabrikasi sekarang belum tersedia, minta admin sistem menambahkan!! ";
-                return Redirect("index");
+                return Redirect("/AdminFabrication/Request/Evaluation");
+
+            }
+            //  get mg aktif dari helper
+            var mingguSekarang = await _weekHelper.GetMingguAktifAsync(getTahun.Id);
+
+            if (mingguSekarang == null)
+            {
+                TempData["Error"] = "Minggu aktif tidak ditemukan.";
+                return Redirect("/AdminFabrication/Request/Evaluation");
+            }
+
+            // Ambil data request baru
+            var requestData = await _context.ItemRequests
+                 .Include(r => r.RawMaterials)
+                 .FirstOrDefaultAsync(r => r.Id == ItemRequestId);
+
+            if (requestData == null)
+                return NotFound();
+
+            //ambil data mesin
+            var machine = await _context.Machines.FindAsync(MachineId);
+            if (machine == null)
+                return NotFound();
+
+            var (saving, fabTime) = _savingHelper.Calculate(requestData,machine,getTahun,1);
+
+            //  Jalankan semua perubahan dalam 1 transaksi
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                    // buat record baru
+                    var item = new ItemFabricationModel
+                    {
+                        ItemRequestId = ItemRequestId,
+                   
+                        MachineId = MachineId,
+                        TotalSaving = saving,
+                        WeeksSettingId = mingguSekarang.Id,
+                        Status = "Onprogress",
+                        Quantity = 1,
+                        FabricationTime = fabTime,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
+                    };
+
+                    _context.ItemFabrications.Add(item);
+
+                
+
+                var statusLog = new RequestStatusModel
+                {
+                    ItemRequestId = ItemRequestId,
+                    Status = "FabricationStarted",
+                    UserId = userId,
+                    CreatedAt = DateTime.Now,
+                };
+                _context.RequestStatus.Add(statusLog);
+
+                requestData.Status = "InFabrication";
+                requestData.UpdatedAt = DateTime.Now;
+                _context.ItemRequests.Update(requestData);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                TempData["Success"] = "Plan has been created.";
+                return Redirect("/AdminFabrication/Request/Evaluation");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                TempData["Error"] = "Terjadi kesalahan: " + ex.Message;
+                return Redirect("/AdminFabrication/Request/Evaluation");
+            }
+
+
+        }
+
+        //tambah fabrikasi Ro
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddFabrikasiRo(int MachineId, long ItemRequestId, long? RepeatOrderId, int Quantity)
+        {
+            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Data tidak valid: " +
+                    string.Join(", ", ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage));
+                return Redirect("/AdminFabrication/Request/RepeatOrder");
+            }
+
+            //  Ambil tahun aktif
+            int tahunSekarang = DateTime.Now.Year;
+            var getTahun = await _yearHelper.GetCurrentYearAsync();
+
+            // buat default jika belum ada
+            if (getTahun == null)
+            {
+                TempData["Error"] = "Tahun Fabrikasi sekarang belum tersedia, minta admin sistem menambahkan!! ";
+                return Redirect("/AdminFabrication/Request/RepeatOrder");
 
             }
 
@@ -474,7 +579,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             if (mingguSekarang == null)
             {
                 TempData["Error"] = "Minggu aktif tidak ditemukan.";
-                return Redirect("index");
+                return Redirect("/AdminFabrication/Request/RepeatOrder");
             }
 
             // Ambil data request baru
@@ -491,81 +596,16 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                     .ThenInclude(r => r.RawMaterials)
                  .FirstOrDefaultAsync(r => r.Id == RepeatOrderId);
 
+            if (requestDataRo == null)
+                return NotFound();
+
             //ambil data mesin
             var machine = await _context.Machines.FindAsync(MachineId);
             if (machine == null)
                 return NotFound();
 
-
-
-
-            //pisah req baru dan RO
-            decimal totalSaving = 0m;
-            decimal fabricationTime = requestData.FabricationTime ?? 0m;
-            var RedirectUrl = "/AdminFabrication/Request/Evaluation";
-
-            //hitung saving RO
-            if (RepeatOrderId.HasValue)
-            {
-                 fabricationTime = (requestDataRo.ItemRequests.FabricationTime ?? 0m) * (Quantity ?? 0);
-                if (requestDataRo.ItemRequests.IsCalculateSaving)
-                {
-                    decimal rawMaterialCost = 0m;
-                    decimal inhouseCost = 0m;
-                    decimal externalCost = (requestDataRo.ItemRequests.ExternalFabCost ?? 0m) * (Quantity ?? 0);
-
-                    if (requestDataRo.ItemRequests.MachineCategoryId == 1)
-                    {
-                        // Perhitungan untuk kategori mesin CNC
-                        rawMaterialCost = (requestDataRo.ItemRequests.RawMaterials?.Price ?? 0m) * (Quantity ?? 0m);
-                        inhouseCost = fabricationTime * (getTahun.ElectricalCost ?? 0m) * (machine.MachinePower);
-                        totalSaving = externalCost - (inhouseCost + rawMaterialCost);
-
-                    }
-                    if (requestDataRo.ItemRequests.MachineCategoryId == 2)
-                    {
-                        // Perhitungan untuk kategori mesin 3d Printing
-                        rawMaterialCost = ((requestDataRo.ItemRequests.Weight ?? 0m) / 1000) * (requestDataRo.ItemRequests.RawMaterials?.Price ?? 0m);
-                        inhouseCost = ((requestDataRo.ItemRequests.FabricationTime ?? 0m)) * ((getTahun.ElectricalCost ?? 0m) * (machine.MachinePower));
-                        totalSaving = (requestDataRo.ItemRequests.ExternalFabCost ?? 0m) - (inhouseCost + rawMaterialCost);
-
-                    }
-                }
-
-                RedirectUrl = "/AdminFabrication/Request/RepeatOrder";
-            }
-            else
-            {
-                //hitung saving New Request
-
-                if (requestData.IsCalculateSaving)
-                {
-                    decimal rawMaterialCost = 0m;
-                    decimal inhouseCost = 0m;
-
-                    if (requestData.MachineCategoryId == 1)
-                    {
-                        // Perhitungan untuk kategori mesin CNC
-                        rawMaterialCost = (requestData.RawMaterials?.Price ?? 0m);
-                        inhouseCost =
-                            (requestData.FabricationTime ?? 0m)
-                            * (getTahun.ElectricalCost ?? 0m)
-                            * (machine.MachinePower);
-
-                        totalSaving = (requestData.ExternalFabCost ?? 0m) - (inhouseCost + rawMaterialCost);
-                    }
-                    if (requestData.MachineCategoryId == 2)
-                    {
-                        // Perhitungan untuk kategori mesin 3d Printing
-                        rawMaterialCost = ((requestData.Weight ?? 0m) / 1000) * (requestData.RawMaterials?.Price ?? 0m);
-                        inhouseCost = ((requestData.FabricationTime ?? 0m)) * ((getTahun.ElectricalCost ?? 0m) * (machine.MachinePower));
-                        totalSaving = (requestData.ExternalFabCost ?? 0m) - (inhouseCost + rawMaterialCost);
-
-
-                    }
-                }
-            }
-
+            var (saving, fabTime) = _savingHelper.Calculate( requestDataRo.ItemRequests, machine,getTahun, Quantity);
+           
             //  Jalankan semua perubahan dalam 1 transaksi
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -576,11 +616,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                     .Where(s => s.Status == "Onprogress")
                     .FirstOrDefaultAsync(r => r.RepeatOrderId == RepeatOrderId && r.MachineId == MachineId);
 
-                var cekQtyItemFab = await _context.ItemFabrications
-                    .Where(r => r.RepeatOrderId == RepeatOrderId)
-                    .Where(s => s.Status == "Onprogress")
-                    .SumAsync(q => q.Quantity);
-
+          
                 if (cekItemFab == null)
                 {
                     // buat record baru
@@ -589,29 +625,35 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                         ItemRequestId = ItemRequestId,
                         RepeatOrderId = RepeatOrderId,
                         MachineId = MachineId,
-                        TotalSaving = totalSaving,
+                        TotalSaving = saving,
                         WeeksSettingId = mingguSekarang.Id,
                         Status = "Onprogress",
-                        Quantity = Quantity ?? 1,
-                        FabricationTime = fabricationTime,
+                        Quantity = Quantity,
+                        FabricationTime = fabTime,
                         CreatedAt = DateTime.Now,
                         UpdatedAt = DateTime.Now
                     };
-
+                    if(requestDataRo.QuantityReq == Quantity)
+                    {
+                        requestDataRo.Status = "ComplateFabrication";
+                    }
+                    requestDataRo.QtyOnFab = Quantity;
                     _context.ItemFabrications.Add(item);
 
                 }
                 else
                 {
-                    var savingCostActual = cekItemFab.TotalSaving;
-                    var fabricationTimeActual = cekItemFab.FabricationTime;
-
+      
                     // Update jika sudah ada
-                    cekItemFab.TotalSaving = savingCostActual + totalSaving;
-                    cekItemFab.FabricationTime = fabricationTimeActual + fabricationTime;
-                    cekItemFab.Quantity += Quantity ?? 0;
+                    cekItemFab.TotalSaving += saving;
+                    cekItemFab.FabricationTime += fabTime;
+                    cekItemFab.Quantity += Quantity;
                     cekItemFab.UpdatedAt = DateTime.Now;
+                    requestDataRo.QtyOnFab += Quantity;
+
                     _context.ItemFabrications.Update(cekItemFab);
+
+
                 }
 
                 var statusLog = new RequestStatusModel
@@ -624,51 +666,32 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 };
 
                 _context.RequestStatus.Add(statusLog);
+                int qtyDone = requestDataRo.QuantityDone ?? 0;
 
-                if (RepeatOrderId == null)
+                int qtyOnprogress = requestDataRo.QtyOnFab ?? 0;
+
+                // hitung total
+                int calculateQty = qtyDone + qtyOnprogress;
+
+                // Jika sudah selesai semau ubah status repeat order
+                if (requestDataRo.QuantityReq == calculateQty)
                 {
-                    requestData.Status = "InFabrication";
-                    requestData.UpdatedAt = DateTime.Now;
+                    requestDataRo.Status = "ComplateFabrication";
                 }
-                else
-                {
-                    // ------ jika jumlah fabrikasi nya sudah sesuai ubah status ---------
-                    // ambil jumlah request Ro
-                    int qtyReq = requestDataRo.QuantityReq;
-
-                    // ambil jumlah quantity yg sudah siap
-                    int qtyDone = requestDataRo.QuantityDone ?? 0;
-
-                    // ambil jumlah quantity yg mau difabrikasi
-                    int qty = Quantity ?? 0;
-
-                    // ambil data quantity onprogress jika ada
-                    int qtyOnprogress = cekQtyItemFab;
-
-                    // hitung total
-                    int calculateQty = qtyDone + qtyOnprogress + qty;
-
-                    // Jika sudah selesai semau ubah status repeat order
-                    if (requestDataRo.QuantityReq == calculateQty)
-                    {
-                        requestDataRo.Status = "ComplateFabrication";
-                    }
-                    _context.RepeatOrders.Update(requestDataRo);
-                }
-
-                    _context.ItemRequests.Update(requestData);
+                _context.RepeatOrders.Update(requestDataRo);
+                _context.ItemRequests.Update(requestData);
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 TempData["Success"] = "Plan has been created.";
-                return Redirect(RedirectUrl);
+                return Redirect("/AdminFabrication/Request/RepeatOrder");
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 TempData["Error"] = "Terjadi kesalahan: " + ex.Message;
-                return Redirect(RedirectUrl);
+                return Redirect("/AdminFabrication/Request/RepeatOrder");
             }
 
 

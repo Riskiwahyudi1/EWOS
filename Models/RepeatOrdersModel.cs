@@ -32,8 +32,8 @@ namespace EWOS_MVC.Models
 
         [Required(ErrorMessage = "Quantity Request wajib diisi")]
         public int QuantityReq { get; set; }
-
-        public int? QuantityDone { get; set; }
+        public int? QtyOnFab { get; set; }
+        public int? QuantityDone { get; set; } 
 
         [Required(ErrorMessage = "Deskripsi wajib diisi")]
         public string Description { get; set; }

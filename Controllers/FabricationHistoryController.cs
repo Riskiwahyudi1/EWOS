@@ -401,9 +401,9 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     }
                     else
                     {
-                  
                         repeatOrderData.UpdatedAt = DateTime.Now;
                         repeatOrderData.Status = "WaitingFabrication";
+                        repeatOrderData.QtyOnFab -= fabricationData.Quantity;
 
                         _context.RepeatOrders.Update(repeatOrderData);
                         await _context.SaveChangesAsync();

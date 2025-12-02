@@ -23,6 +23,7 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<AdUserService>();
 builder.Services.AddScoped<WeekHelper>();
 builder.Services.AddScoped<YearsHelper>();
+builder.Services.AddScoped<CalculateSavingHelper>();
 // Tambahkan memory cache 
 builder.Services.AddMemoryCache();
 

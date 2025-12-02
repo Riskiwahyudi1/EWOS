@@ -30,7 +30,9 @@ namespace EWOS_MVC.Controllers
 
             var currentYear = DateTime.Now.Year;
 
-            //potential saving 
+            // -------------------------------------------------------
+            // POTENTIAL SAVING
+            // -------------------------------------------------------
             // New Req
             var totalPotentialSavingCost = allDataItemnewReq
                 .Where(r => r.CreatedAt.Year == currentYear)
@@ -39,8 +41,7 @@ namespace EWOS_MVC.Controllers
             var totalPotentialSavingCostRo = allDataItemRO
                .Where(r => r.CreatedAt.Year == currentYear && r.ItemRequests.IsCalculateSaving == true)
                .Sum(r => r.QuantityReq * r.ItemRequests.ExternalFabCost);
-             //sudah di fabrikasi
-
+            //sudah di fabrikasi
             var totalFabrikasiDone = allItemFabrication
                 .Where(r => r.CreatedAt.Year == currentYear)
                 .Sum(r => r.TotalSaving ?? 0);
@@ -49,6 +50,10 @@ namespace EWOS_MVC.Controllers
             var potentialSaving = totalPotentialSavingCost + totalPotentialSavingCostRo + totalFabrikasiDone;
 
 
+
+            // -------------------------------------------------------
+            // REQUEST PER BULAN
+            // -------------------------------------------------------
             // 1. Group Item Request per bulan
             var itemReqPerMonth = allDataItemnewReq
                 .Where(r => r.CreatedAt.Year == currentYear)
@@ -108,13 +113,17 @@ namespace EWOS_MVC.Controllers
                 qtyReqByMonth.Add(itemCount + repeatQty);
             }
 
+
+            // -------------------------------------------------------
+            // TOTAL REQUEST DONE
+            // -------------------------------------------------------
             //totalRo request 
             var totalNewReq = allDataItemnewReq.Count();
-            var totalRo = allDataItemRO.Sum(q =>q.QuantityReq);
+            var totalRo = allDataItemRO.Sum(q => q.QuantityReq);
             var calculatenewNRo = totalNewReq + totalRo;
 
             //Request selesai
-            var totalDoneNewReq = allDataItemnewReq.Where(s =>s.Status == "Maspro").Count();
+            var totalDoneNewReq = allDataItemnewReq.Where(s => s.Status == "Maspro").Count();
             var totalDoneRo = allDataItemRO.Where(s => s.Status == "Close").Sum(q => q.QuantityReq);
             var calculatFabDone = totalDoneNewReq + totalDoneRo;
 
@@ -192,7 +201,9 @@ namespace EWOS_MVC.Controllers
                     savingByCategory[cat.ToString()].Add(found?.TotalSaving ?? 0);
                 }
             }
-
+            // -------------------------------------------------------
+            // MACHINE UTILIZATION
+            // -------------------------------------------------------
             var machineUtilization = allItemFabrication
                 .Where(x => x.CreatedAt.Year == currentYear)
                 .GroupBy(x => x.WeeksSettingId)
@@ -217,8 +228,6 @@ namespace EWOS_MVC.Controllers
                 .ToList();
 
 
-
-            // 6. Final chart data
             var chartData = new
             {
                 potentialSaving,
@@ -231,7 +240,7 @@ namespace EWOS_MVC.Controllers
                 cumulative,
                 TotalRequest = calculatenewNRo,
                 TotalRequestDone = calculatFabDone,
-              
+
 
             };
             return View(chartData);
@@ -240,8 +249,6 @@ namespace EWOS_MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Filter(int year, int categoryId)
         {
-
-
             var currentYear = await _yearsHelper.GetYearByIdAsync(year);
             var yearName = currentYear?.Year;
 
@@ -259,6 +266,7 @@ namespace EWOS_MVC.Controllers
             var allItemFabrication = await _context.ItemFabrications
                 .Where(r => r.CreatedAt.Year == yearName &&
                             (categoryId == 0 || r.ItemRequest.MachineCategoryId == categoryId))
+                .Include(r => r.WeeksSetting)
                 .ToListAsync();
 
             var totalMachine = await _context.Machines
@@ -331,7 +339,7 @@ namespace EWOS_MVC.Controllers
 
 
             // -------------------------------------------------------
-            // SAVING RAW
+            // SAVING COST/MONTH
             // -------------------------------------------------------
             var savingRaw = allItemFabrication
                 .GroupBy(r => new { r.CreatedAt.Year, r.CreatedAt.Month, Category = r.ItemRequest.MachineCategoryId })
@@ -389,36 +397,28 @@ namespace EWOS_MVC.Controllers
             // -------------------------------------------------------
             // MACHINE UTILIZATION
             // -------------------------------------------------------
-            //var machineUtilization = allItemFabrication
-            //    .GroupBy(x => x.WeeksSettingId )
-            //    .Select(g => new
-            //    {
-            //        Week = g.First().WeeksSetting.Week,
+            var machineUtilization = allItemFabrication
+                .GroupBy(x => x.WeeksSettingId)
+                .Select(g => new
+                {
+                    Week = g.First().WeeksSetting.Week,
 
-            //        // PLAN (jam rencana fabrikasi)
-            //        PlanJam = (decimal)(g.First().WeeksSetting.WorkingDays * 24 * totalMachine),
+                    // PLAN (jam rencana fabrikasi)
+                    PlanJam = (decimal)(g.First().WeeksSetting.WorkingDays * 24 * totalMachine),
 
-            //        // ACTUAL (jam fabrikasi)
-            //        ActualJam = g.Sum(x => x.FabricationTime),
+                    // ACTUAL (jam fabrikasi)
+                    ActualJam = g.Sum(x => x.FabricationTime),
 
-            //        // UTILIZATION %
-            //        Percent = (g.First().WeeksSetting.WorkingDays * 24 * totalMachine) == 0
-            //            ? 0
-            //            : Math.Round(
-            //                (g.Sum(x => x.FabricationTime) /
-            //                (decimal)(g.First().WeeksSetting.WorkingDays * 24 * totalMachine)) * 100, 2)
-            //    })
-            //    .OrderBy(x => x.Week)
-            //    .ToList();
+                    // UTILIZATION %
+                    Percent = (g.First().WeeksSetting.WorkingDays * 24 * totalMachine) == 0
+                        ? 0
+                        : Math.Round(
+                            (g.Sum(x => x.FabricationTime) /
+                            (decimal)(g.First().WeeksSetting.WorkingDays * 24 * totalMachine)) * 100, 2)
+                })
+                .OrderBy(x => x.Week)
+                .ToList();
 
-            var machineUtilization = new[]
-         {
-    new { Week = 1, PlanJam = 192, ActualJam = 150, Percent = 78.13 },
-    new { Week = 2, PlanJam = 192, ActualJam = 180, Percent = 93.75 },
-    new { Week = 3, PlanJam = 192, ActualJam = 170, Percent = 88.54 },
-    new { Week = 4, PlanJam = 192, ActualJam = 160, Percent = 83.33 },
-    new { Week = 5, PlanJam = 192, ActualJam = 175, Percent = 91.15 }
-};
 
 
             // -------------------------------------------------------
@@ -428,6 +428,7 @@ namespace EWOS_MVC.Controllers
             {
                 potentialSaving,
                 machineUtilization,
+
                 monthReq,
                 qtyReqByMonth,
                 monthLabels,
@@ -441,17 +442,17 @@ namespace EWOS_MVC.Controllers
 
 
         //testing role user
-        [Authorize]
-        public IActionResult WhoAmI()
-        {
-            return Json(new
-            {
-                User = User.Identity.Name,
-                Roles = User.Claims
-                    .Where(c => c.Type == ClaimTypes.Role)
-                    .Select(c => c.Value)
-                    .ToList()
-            });
-        }
+        //[Authorize]
+        //public IActionResult WhoAmI()
+        //{
+        //    return Json(new
+        //    {
+        //        User = User.Identity.Name,
+        //        Roles = User.Claims
+        //            .Where(c => c.Type == ClaimTypes.Role)
+        //            .Select(c => c.Value)
+        //            .ToList()
+        //    });
+        //}
     }
 }

@@ -27,6 +27,7 @@
 
     </div>
 
+
     <!-- Tampilan chart -->
     <!-- Baris 1 -->
     <div style="display: flex; flex-wrap: wrap; gap: 30px; justify-content: space-around; margin-bottom: 30px;">
@@ -54,7 +55,7 @@
         <div style="flex: 1; min-width: 300px; " class="bg-white shadow-sm">
             <div class="d-flex flex-row justify-content-between py-3 px-3">
                 <h6>Saving Cost Monitoring</h6>
-                <h6>Potential Saving @currenYear : <b>USD @Model.potentialSaving.ToString("N2")</b> </h6>
+                <h6 id="potentialSavingText">Potential Saving @currenYear : <b>USD @Model.potentialSaving.ToString("N2")</b> </h6>
             </div>
 
             <div id="savingChart"></div>
@@ -73,123 +74,128 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-                var requestCountOptions = {
-                    chart: { type: 'bar', height: 250 },
-                    series: [{
-                        name: 'Quantity',
-                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.qtyReqByMonth))
-                    }],
-                    xaxis: {
-                        categories: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.monthReq))
-                    }
-                };
-                // Simpan chart global
-                window.barChart = new ApexCharts(document.querySelector("#barChart"), requestCountOptions);
-                window.barChart.render();
+            document.addEventListener('DOMContentLoaded', function () {
 
-
-           
-
-
-        const totalRequest = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TotalRequest));
-        const totalRequestDone = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TotalRequestDone));
-        const totalWaiting = totalRequest - totalRequestDone;
-
-
-        const percentWaiting = (totalWaiting / totalRequest) * 100;
-        const percentDone = (totalRequestDone / totalRequest) * 100;
-
-
-
-            // fabrikasi count 
-            var fabricationCount = {
-            series: [
-                100,
-                percentWaiting,
-                percentDone
-            ],
-            chart: {
-                height: 300,
-                type: 'radialBar',
-            },
-            plotOptions: {
-                radialBar: {
-                    offsetY: 0,
-                    startAngle: 0,
-                    endAngle: 270,
-                    hollow: {
-                        margin: 5,
-                        size: '30%',
-                        background: 'transparent',
-                    },
-                    dataLabels: {
-                        name: {
-                            show: false
-                        },
-                        value: {
-                            show: false
-                        }
-                    },
-                    barLabels: {
-                        enabled: true,
-                        useSeriesColors: true,
-                        offsetX: -8,
-                        fontSize: '13px',
-
-                        formatter: function(seriesName, opts) {
-                            const index = opts.seriesIndex;
-
-                            const realValues = [
-                                totalRequest,
-                                totalWaiting,
-                                totalRequestDone
-                            ];
-
-                            return seriesName + ": " + realValues[index];
-                        }
-                    },
+             // =============================
+            // 1. TREN REQUEST FABRIKASI/MONTH
+            // ===============================
+            var requestCountOptions = {
+                chart: { type: 'bar', height: 250 },
+                series: [{
+                    name: 'Quantity',
+                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.qtyReqByMonth))
+                }],
+                xaxis: {
+                    categories: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.monthReq))
                 }
-            },
-            colors: ['#1ab7ea', '#0084ff', '#39539E'],
-            labels: ['Total Request', 'On Progress', 'Done'],
-        };
-                window.fabricationChart = new ApexCharts(
-            document.querySelector("#fabricationCount"),
-            fabricationCount
-        );
-        window.fabricationChart.render();
+            };
+            // Simpan chart global
+            window.barChart = new ApexCharts(document.querySelector("#barChart"), requestCountOptions);
+            window.barChart.render();
 
-            // persentase progress
-            var ProgressFabPie = {
-                      series: [totalWaiting, totalRequestDone],
-                       chart: {
-                          type: 'donut',
-                          height: 250
+             // =======================================
+            // 2.RADIAL CHART (fabrikasi count)
+            // =========================================
+            const totalRequest = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TotalRequest));
+            const totalRequestDone = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TotalRequestDone));
+            const totalWaiting = totalRequest - totalRequestDone;
+            const percentWaiting = (totalWaiting / totalRequest) * 100;
+            const percentDone = (totalRequestDone / totalRequest) * 100;
+
+                // fabrikasi count
+                var fabricationCount = {
+                series: [
+                    100,
+                    percentWaiting,
+                    percentDone
+                ],
+                chart: {
+                    height: 300,
+                    type: 'radialBar',
+                },
+                plotOptions: {
+                    radialBar: {
+                        offsetY: 0,
+                        startAngle: 0,
+                        endAngle: 270,
+                        hollow: {
+                            margin: 5,
+                            size: '30%',
+                            background: 'transparent',
                         },
-                        legend: {
-                            position: 'bottom'
-                          },
-                      labels: ['On Progress', 'Done'],
+                        dataLabels: {
+                            name: {
+                                show: false
+                            },
+                            value: {
+                                show: false
+                            }
+                        },
+                        barLabels: {
+                            enabled: true,
+                            useSeriesColors: true,
+                            offsetX: -8,
+                            fontSize: '13px',
 
-                      responsive: [{
-                        breakpoint: 480,
-                        options: {
-                          chart: {
-                            width: 50
-                          },
-                          legend: {
-                            position: 'bottom'
-                          }
-                        }
-                      }]
-                    };
+                            formatter: function(seriesName, opts) {
+                                const index = opts.seriesIndex;
+
+                                const realValues = [
+                                    totalRequest,
+                                    totalWaiting,
+                                    totalRequestDone
+                                ];
+
+                                return seriesName + ": " + realValues[index];
+                            }
+                        },
+                    }
+                },
+                colors: ['#1ab7ea', '#0084ff', '#39539E'],
+                labels: ['Total Request', 'On Progress', 'Done'],
+            };
+                    window.fabricationChart = new ApexCharts(
+                document.querySelector("#fabricationCount"),
+                fabricationCount
+            );
+            window.fabricationChart.render();
+
+
+            // =============================
+            // 3. PERSENTASE PROGRESS FABRIKASI CHART
+            // =============================
+            var ProgressFabPie = {
+                series: [totalWaiting, totalRequestDone],
+                chart: {
+                    type: 'donut',
+                    height: 250
+                },
+                legend: {
+                    position: 'bottom'
+                    },
+                labels: ['On Progress', 'Done'],
+
+                responsive: [{
+                breakpoint: 480,
+                options: {
+                    chart: {
+                    width: 50
+                    },
+                    legend: {
+                    position: 'bottom'
+                    }
+                }
+                }]
+            };
 
             window.progressFabChart = new ApexCharts( document.querySelector("#ProgressFabPie"), ProgressFabPie);
             window.progressFabChart.render();
-            // Saving bar
+
+             // =============================
+            // 4. CALCULATION SAVING/MONTH
+            // =============================
             const monthSaving = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.monthLabels));
             const savingByMonth = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.savingByMonth));
             const savingByCategory = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.savingByCategory));
@@ -197,147 +203,149 @@
             const potentialSaving = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.potentialSaving));
 
             var savingData = {
-                  series: [
+                    series: [
                     {
-                      name: 'CNC Milling',
-                      type: 'column',
-                      data: savingByCategory["1"]
+                        name: 'CNC Milling',
+                        type: 'column',
+                        data: savingByCategory["1"]
                     },{
-                      name: '3D Printing',
-                      type: 'column',
-                      data: savingByCategory["2"]
+                        name: '3D Printing',
+                        type: 'column',
+                        data: savingByCategory["2"]
                     },
                     {
-                      name: 'Kumulatif (Line)',
-                      type: 'line',
-                      data: savingCumulative
+                        name: 'Kumulatif (Line)',
+                        type: 'line',
+                        data: savingCumulative
                     }
-                  ],
-                  chart: {
+                    ],
+                    chart: {
                     height: 350,
                     type: 'line',
-                  },
-                  stroke: {
+                    },
+                    stroke: {
                     width: [0, 3],
                     curve: ['straight', 'smooth']
-                  },
-                  dataLabels: {
+                    },
+                    dataLabels: {
                     enabled: true,
                     enabledOnSeries: [0, 1],
                     formatter: function (val) {
-                      return val;
+                        return val;
                     }
-                  },
-                  labels: monthSaving,
-                  yaxis: [
+                    },
+                    labels: monthSaving,
+                    yaxis: [
                     {
-                      title: {
+                        title: {
                         text: 'Aktual ($USD)',
-                      },
+                        },
                     },
                     {
-                      opposite: true,
-                      title: {
+                        opposite: true,
+                        title: {
                         text: 'Kumulatif ($USD)'
-                      }
-                    }
-                  ],
-                  tooltip: {
-                    shared: true,
-                    intersect: false,
-                  },
-                  legend: {
-                    position: 'bottom',
-                  }
-                };
-                        window.savingChart = new ApexCharts(document.querySelector("#savingChart"), savingData);
-                        window.savingChart.render();
-
-                   // Data dari backend
-        const machineUtilizationByWeek = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.machineUtilization));
-
-        // Ambil kategori week
-        const chartWeeks = machineUtilizationByWeek.map(x => `Week ${x.Week}`);
-
-        // Ambil persentase
-        const chartPercents = machineUtilizationByWeek.map(x => x.Percent);
-
-        // Chart Apex
-        var machineUtilization = {
-            series: [{
-                name: 'Machine',
-                data: chartPercents
-            }],
-            chart: {
-                height: 350,
-                type: 'bar',
-            },
-            plotOptions: {
-                bar: {
-                    borderRadius: 10,
-                    dataLabels: {
-                        position: 'Top',
-                    },
-                }
-            },
-            dataLabels: {
-                enabled: true,
-                formatter: function (val) {
-                    return val + "%";
-                },
-                offsetY: -20,
-                style: {
-                    fontSize: '12px',
-                    colors: ["#304758"]
-                }
-            },
-            xaxis: {
-                categories: chartWeeks,
-                position: 'Bottom',
-                axisBorder: { show: false },
-                axisTicks: { show: false },
-                crosshairs: {
-                    fill: {
-                        type: 'gradient',
-                        gradient: {
-                            colorFrom: '#D8E3F0',
-                            colorTo: '#BED1E6',
-                            stops: [0, 100],
-                            opacityFrom: 0.4,
-                            opacityTo: 0.5,
                         }
                     }
+                    ],
+                    tooltip: {
+                    shared: true,
+                    intersect: false,
+                    },
+                    legend: {
+                    position: 'bottom',
+                    }
+                };
+                window.savingChart = new ApexCharts(document.querySelector("#savingChart"), savingData);
+                window.savingChart.render();
+
+             // =============================
+            // 5. MACHINE UTILIZATION/WEEK
+           // =============================
+            const machineUtilizationByWeek = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.machineUtilization));
+
+            // Ambil kategori week
+            const chartWeeks = machineUtilizationByWeek.map(x => `Week ${x.Week}`);
+
+            // Ambil persentase
+            const chartPercents = machineUtilizationByWeek.map(x => x.Percent);
+
+            // Chart Apex
+            var machineUtilization = {
+                series: [{
+                    name: 'Machine',
+                    data: chartPercents
+                }],
+                chart: {
+                    height: 350,
+                    type: 'bar',
                 },
-                tooltip: { enabled: true }
-            },
-            yaxis: {
-                axisBorder: { show: false },
-                axisTicks: { show: false },
-                labels: {
-                    show: false,
-                    formatter: val => val + "%"
+                plotOptions: {
+                    bar: {
+                        borderRadius: 10,
+                        dataLabels: {
+                            position: 'Top',
+                        },
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return val + "%";
+                    },
+                    offsetY: -20,
+                    style: {
+                        fontSize: '12px',
+                        colors: ["#304758"]
+                    }
+                },
+                xaxis: {
+                    categories: chartWeeks,
+                    position: 'Bottom',
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
+                    crosshairs: {
+                        fill: {
+                            type: 'gradient',
+                            gradient: {
+                                colorFrom: '#D8E3F0',
+                                colorTo: '#BED1E6',
+                                stops: [0, 100],
+                                opacityFrom: 0.4,
+                                opacityTo: 0.5,
+                            }
+                        }
+                    },
+                    tooltip: { enabled: true }
+                },
+                yaxis: {
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
+                    labels: {
+                        show: false,
+                        formatter: val => val + "%"
+                    }
+                },
+                title: {
+                    floating: true,
+                    offsetY: 330,
+                    align: 'center',
+                    style: {
+                        color: '#444'
+                    }
                 }
-            },
-            title: {
-                floating: true,
-                offsetY: 330,
-                align: 'center',
-                style: {
-                    color: '#444'
-                }
-            }
-        };
+            };
 
-                   window.machineUtilChart = new ApexCharts( document.querySelector("#machineUtilization"), machineUtilOptions );
+            window.machineUtilChart = new ApexCharts( document.querySelector("#machineUtilization"), machineUtilization );
+            window.machineUtilChart.render();
 
-        window.machineUtilChart.render();
-
-            });
+        });
 
     </script>
 }
 
 <script>
+    // UNTUK UPDATE DATA SETELAH FILTER BY TAHUN DAN KATEGORI MESIN
     document.addEventListener("DOMContentLoaded", () => {
 
         async function loadChartData() {
@@ -352,22 +360,17 @@
             try {
                 const response = await fetch(`/Dashboard/Filter?year=${year}&categoryId=${categoryId}`);
                 const data = await response.json();
-     
 
-                console.log(data);
 
-            // =============================
-            // 1. Pastikan nilai aman
-            // =============================
             const totalRequest      = data.totalRequest ?? 0;
-            const totalWaiting      = data.totalWaiting ?? 0;
             const totalRequestDone  = data.totalRequestDone ?? 0;
+            const totalWaiting      = totalRequest - totalRequestDone;
 
             // Hindari division by zero
             const safeDiv = totalRequest === 0 ? 1 : totalRequest;
 
             // =============================
-            // 2. Hitung persentase
+            // 1. Hitung persentase
             // =============================
             const percentWaiting = ((totalWaiting / safeDiv) * 100).toFixed(2);
             const percentDone    = ((totalRequestDone / safeDiv) * 100).toFixed(2);
@@ -389,17 +392,17 @@
                         xaxis: { categories: data.monthReq }
                     });
                 }
-                // =============================
-                // 4. UPDATE RADIAL CHART (fabrikasi count)
-                // =============================
-                if (window.fabricationChart) {
-                    window.fabricationChart.updateSeries([
-                        100,
-                        Number(percentWaiting),
-                        Number(percentDone)
-                    ]);
+            // =============================
+            // 2. UPDATE RADIAL CHART (fabrikasi count)
+            // =============================
+            if (window.fabricationChart) {
+                window.fabricationChart.updateSeries([
+                    100,
+                    Number(percentWaiting),
+                    Number(percentDone)
+                ]);
 
-                    // update label numbers (Total Request, Waiting, Done)
+                // update label numbers (Total Request, Waiting, Done)
                     window.fabricationChart.updateOptions({
                         plotOptions: {
                             radialBar: {
@@ -419,13 +422,13 @@
                         }
                     });
                 }
-                    // =============================
-                // 5. UPDATE DONUT CHART (ProgressFabPie)
+                // =============================
+                // 3. UPDATE DONUT CHART (ProgressFabPie)
                 // =============================
                 if (window.progressFabChart) {
 
                     window.progressFabChart.updateSeries([
-                        totalRequest,
+                        totalWaiting,
                         totalRequestDone
                     ]);
 
@@ -436,48 +439,48 @@
                         }
                     });
                 }
-                    // =============================
-                    // 6. UPDATE SAVING BAR (savingData)
-                    // =============================
-                    if (window.savingChart) {
-
-                        const sbc = data.savingByCategory || {};
-                        const cumulative = data.savingCumulative || [];
-                        const months = data.monthSaving || [];
-                        const potential = data.potentialSaving ?? 0;
-
-                        // kategori yang dipilih user
-                        const selectedCat = categoryId.toString();
-                        const selectedData = sbc[selectedCat] || [];
-
-                        window.savingChart.updateSeries([
-                            {
-                                name: selectedCat === "1" ? 'CNC Milling' : '3D Printing',
-                                type: 'column',
-                                data: selectedData
-                            },
-                            {
-                                name: 'Kumulatif (Line)',
-                                type: 'line',
-                                data: cumulative
-                            }
-                        ]);
-
-                        window.savingChart.updateOptions({
-                            labels: months
-                        });
-
-                        // Update potential saving text
-                        const formatted = potential.toLocaleString("en-US", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        });
-                        document.getElementById("potentialSavingText").innerText = `USD $${formatted}`;
-                        }
-
-                            // =============================
-                // 7. UPDATE MACHINE UTILIZATION
                 // =============================
+                // 4. UPDATE SAVING BAR (savingData)
+                // =============================
+                if (window.savingChart) {
+
+                    const sbc = data.savingByCategory || {};
+                    const cumulative = data.savingCumulative || [];
+                    const months = data.monthSaving || [];
+                    const potential = data.potentialSaving ?? 0;
+
+                    // kategori yang dipilih user
+                    const selectedCat = categoryId.toString();
+                    const selectedData = sbc[selectedCat] || [];
+
+                    window.savingChart.updateSeries([
+                        {
+                            name: selectedCat === "1" ? 'CNC Milling' : '3D Printing',
+                            type: 'column',
+                            data: selectedData
+                        },
+                        {
+                            name: 'Kumulatif (Line)',
+                            type: 'line',
+                            data: cumulative
+                        }
+                    ]);
+
+                    window.savingChart.updateOptions({
+                        labels: months
+                    });
+
+                    // Update potential saving text
+                    const formatted = potential.toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                    document.getElementById("potentialSavingText").innerText = `USD $${formatted}`;
+                    }
+
+                 // =============================
+                // 5. UPDATE MACHINE UTILIZATION
+               // =============================
                 if (window.machineUtilChart) {
 
                     const util = data.machineUtilization || [];
@@ -486,8 +489,8 @@
                     const selectedMachine = categoryId.toString();
                     const filtered = util.filter(x => x.Machine == selectedMachine);
 
-                    const weeks = filtered.map(x => `Week ${x.Week}`);
-                    const percents = filtered.map(x => x.Percent ?? 0);
+                    const weeks = util.map(x => `Week ${x.week}`);
+                    const percents = util.map(x => x.percent ?? 0);
 
                     // Update Series
                     window.machineUtilChart.updateSeries([
@@ -516,9 +519,6 @@
 
         if (yearSelect) yearSelect.addEventListener("change", loadChartData);
         if (categorySelect) categorySelect.addEventListener("change", loadChartData);
-
-        // Jika ingin load awal dari fetch:
-        // loadChartData();
 
     });
 </script>
