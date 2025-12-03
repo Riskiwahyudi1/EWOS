@@ -1,7 +1,9 @@
 ﻿using EWOS_MVC.Models;
+using EWOS_MVC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EWOS_MVC.Areas.Requestor.Controllers
 {
@@ -15,15 +17,21 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         {
             _context = context;
         }
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var listProduct = await _context.ItemRequests
-                                .Include(mc => mc.MachineCategories)
-                                .Include(u => u.Users)
-                                .Include(rs => rs.RequestStatus)
-                                    .ThenInclude(u => u.Users)
-                                .Where(s => s.Status == "Maspro")
-                                .ToListAsync();
+            int pageSize = 1;
+
+            var query = _context.ItemRequests
+                .Include(mc => mc.MachineCategories)
+                .Include(u => u.Users)
+                .Include(rs => rs.RequestStatus)
+                    .ThenInclude(u => u.Users)
+                .Where(s => s.Status == "Maspro")
+                .OrderBy(x => x.Id); // wajib untuk pagination
+
+            // PAGINATION
+            var paginatedData = await PaginatedList<ItemRequestModel>
+                .CreateAsync(query, page, pageSize);
 
             // --- Data modal untuk semua status ---
             var modalData = await _context.ItemRequests
@@ -37,7 +45,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             ViewBag.ModalData = modalData;
             ViewBag.CurrentStatus = "Maspro";
 
-            return View(listProduct);
+            return View(paginatedData);
         }
 
         // load data modal
