@@ -8,7 +8,6 @@ using System.Security.Claims;
 namespace EWOS_MVC.Controllers
 {
     [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,Supervisor")]
-
     public class DashboardController : BaseController
     {
         private readonly AppDbContext _context;
