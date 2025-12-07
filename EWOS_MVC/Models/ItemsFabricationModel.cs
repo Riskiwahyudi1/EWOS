@@ -9,7 +9,7 @@ namespace EWOS_MVC.Models
     {
         public int Id { get; set; }
 
-        public long? ItemRequestId { get; set; }
+        public long ItemRequestId { get; set; }
 
         [ForeignKey("ItemRequestId")]
         [ValidateNever]
@@ -35,12 +35,19 @@ namespace EWOS_MVC.Models
         [ValidateNever]
         public WeeksSettingModel WeeksSetting { get; set; }
 
+        public int UserId { get; set; }
+        [ForeignKey("UserId")]
+        [ValidateNever]
+        public UserModel Users { get; set; }
+
         [Required(ErrorMessage = "Quantity wajib diisi")]
         public int Quantity { get; set; }
+        public string? FabCode { get; set; }
 
         [Required(ErrorMessage = "Status wajib diisi")]
         public string Status { get; set; }
-        public decimal? TotalSaving { get; set; } 
+        public decimal? TotalSaving { get; set; }
+        public decimal FabricationTime { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 

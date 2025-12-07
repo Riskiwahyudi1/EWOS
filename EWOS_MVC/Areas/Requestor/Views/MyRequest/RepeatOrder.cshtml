@@ -1,0 +1,274 @@
+﻿@model List<EWOS_MVC.Models.RepeatOrderModel>
+@{
+    ViewData["Title"] = "Dashboard";
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h5 class="my-3">Riwayat Request</h5>
+
+<div class="d-flex align-items-center mb-3 gap-2">
+    <div class="col-2 col-sm-2">
+        @await Component.InvokeAsync("MachineCategories")
+    </div>
+    <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search" style="max-width: 300px;">
+</div>
+
+
+
+@{
+    var summary = ViewBag.StatusSummaryRepeat as Dictionary<string, int>;
+    int GetCount(string status) => summary != null && summary.ContainsKey(status) ? summary[status] : 0;
+}
+
+<ul class="nav nav-tabs justify-content-center" id="statusTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        @{
+            int waitingAppCount = GetCount("WaitingApproval") + GetCount("FabricationApproval");
+        }
+        <button class="nav-link active"
+                id="waitingapproval-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#waitingapproval"
+                data-status="WaitingApproval,FabricationApproval"
+                type="button"
+                role="tab">
+            Waiting Approval
+            @if (waitingAppCount > 0)
+            {
+                <span class="badge bg-danger rounded-pill">@waitingAppCount</span>
+            }
+        </button>
+    </li>
+
+    <li class="nav-item" role="presentation">
+        <button class="nav-link"
+                id="waitingfabrication-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#waitingfabrication"
+                data-status="WaitingFabrication"
+                type="button"
+                role="tab">
+            Waiting Fabrication
+            @if (GetCount("WaitingFabrication") > 0)
+            {
+                <span class="badge bg-danger rounded-pill">@GetCount("WaitingFabrication")</span>
+            }
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link"
+                id="done-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#done"
+                data-status="done"
+                type="button"
+                role="tab">
+            Fabrication Done
+            @if (GetCount("Done") > 0)
+            {
+                <span class="badge bg-danger rounded-pill">@GetCount("Done")</span>
+            }
+        </button>
+    </li>
+
+    <li class="nav-item" role="presentation">
+        <button class="nav-link"
+                id="close-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#close"
+                data-status="Close"
+                type="button"
+                role="tab">
+            History
+            @{
+                int historyCount = GetCount("Close");
+            }
+            @if (historyCount > 0)
+            {
+                <span class="badge bg-danger rounded-pill">@historyCount</span>
+            }
+        </button>
+    </li>
+
+
+    
+</ul>
+
+<table class="table table-sm mt-3 table-striped table-bordered">
+    <thead>
+        <tr>
+            <th class="text-center">No</th>
+            <th>ID Request</th>
+            <th>Item Name</th>
+            <th>Machine Category</th>
+            <th>Request Qty</th>
+            <th>Fabrication Done</th>
+            <th>Request Date</th>
+
+            <th class="text-center">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int index = 1;
+        }
+
+        @if (Model == null || !Model.Any())
+        {
+            <tr>
+                <td colspan="12" class="text-center text-muted">Tidak ada data.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var ir in Model)
+            {
+                <tr>
+                    <td class="text-center">@index</td>
+                    <td>@ir.Id</td>
+                    <td>@ir.ItemRequests.PartName</td>
+                    <td>@ir.ItemRequests.MachineCategories?.CategoryName</td>
+                    <td>@ir.QuantityReq</td>
+                    <td>@ir.QuantityDone</td>
+                    <td>@ir.CreatedAt</td>
+                    <td class="text-center">
+                        <button class="btn btn-warning btn-sm open-modal"
+                                data-url="/Requestor/MyRequest/LoadDataRo?id=@ir.Id&amp;type=Detail">
+                            <i class="bi bi-info-circle"></i> Detail
+                        </button>
+                        <button class="btn btn-info btn-sm open-modal"
+                                data-url="/Requestor/MyRequest/LoadDataRo?id=@ir.Id&amp;type=Status">
+                            <i class="bi bi-ticket-detailed"></i> Status
+                        </button>
+                    </td>
+                </tr>
+                index++;
+            }
+        }
+
+    </tbody>
+</table>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const tableBody = document.querySelector('table.table tbody');
+      const searchBox = document.getElementById('searchBox');
+      const loadingText = document.getElementById('loadingText');
+      const categoryFilter = document.querySelector('select[name="MachineCategoryId"]');
+      const tabs = document.querySelectorAll('#statusTabs .nav-link');
+
+      let currentStatusList = ['@ViewBag.CurrentStatus']; // ubah jadi array
+      let debounceTimer = null;
+      let loadingTimer = null;
+
+      if (!tableBody || !searchBox) return;
+      const initialHTML = tableBody.innerHTML;
+
+      async function performSearch() {
+        const keyword = searchBox.value.trim();
+        const categoryId = categoryFilter ? categoryFilter.value : "";
+
+        // Jika tidak ada filter apapun, kembalikan tampilan awal
+        if (keyword.length === 0 && !categoryId && (!currentStatusList || currentStatusList.length === 0)) {
+          tableBody.innerHTML = initialHTML;
+          return;
+        }
+
+        clearTimeout(loadingTimer);
+        loadingTimer = setTimeout(() => {
+          if (loadingText) loadingText.style.display = 'block';
+        }, 400);
+
+        try {
+          const url = new URL("/Requestor/MyRequest/SearchRo", window.location.origin);
+          if (keyword) url.searchParams.append("keyword", keyword);
+          if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
+
+          // kirim semua status (bisa 1 atau banyak)
+          currentStatusList.forEach(s => url.searchParams.append("status", s.trim()));
+
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('Network response was not ok');
+          const data = await res.json();
+          console.log(data)
+          clearTimeout(loadingTimer);
+          if (loadingText) loadingText.style.display = 'none';
+
+          if (!Array.isArray(data) || data.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Tidak ada data Request.</td></tr>`;
+            return;
+          }
+
+          let html = '';
+          data.forEach((rq, idx) => {
+            const id = rq.id ?? '';
+            let buttons = '';
+
+            if(rq.status == "Done"){
+                buttons += `
+
+                <button class="btn btn-success btn-sm open-modal"
+                        data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Recived">
+                    <i class="bi bi-circular-check"></i> Recive
+                </button>
+                `;
+            }
+              buttons += `
+                <button class="btn btn-warning btn-sm open-modal"
+                        data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Detail">
+                    <i class="bi bi-info-circle"></i> Detail
+                </button>
+
+                <button class="btn btn-info btn-sm open-modal"
+                        data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Status">
+                    <i class="bi bi-ticket-detailed"></i> Status
+                </button>
+                <button class="btn btn-secondary btn-sm open-modal"
+                        data-url="/RequestHistory/LoadDataRoFab?id=${id}&type=Status">
+                    <i class="bi bi-ui-checks-grid"></i> Progress
+                </button>
+                `;
+
+            html += `
+              <tr>
+                <td class="text-center">${idx + 1}</td>
+                <td>${rq.id ?? '-'}</td>
+                <td>${rq.partName ?? '-'}</td>
+                <td>${rq.categoryName ?? '-'}</td>
+                <td>${rq.quantityReq ?? '0'}</td>
+                <td>${rq.quantityDone ?? '0'}</td>
+                <td>${rq.createdAt ? new Date(rq.createdAt).toLocaleDateString('en-GB').replace(/\//g, '-') : '-'}</td>
+                <td class="text-center">${buttons}</td>
+              </tr>`;
+          });
+
+          tableBody.innerHTML = html;
+        } catch (err) {
+          clearTimeout(loadingTimer);
+          if (loadingText) loadingText.style.display = 'none';
+          console.error('Search error:', err);
+          tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Terjadi kesalahan saat mencari.</td></tr>`;
+        }
+      }
+
+      // Debounce input
+      searchBox.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(performSearch, 350);
+      });
+
+      // Filter kategori
+      if (categoryFilter) categoryFilter.addEventListener('change', performSearch);
+
+      // Tab change (Bootstrap event)
+      tabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', event => {
+          const statusAttr = event.target.getAttribute('data-status');
+          currentStatusList = statusAttr ? statusAttr.split(',').map(s => s.trim()) : [];
+          performSearch();
+        });
+      });
+    });
+</script>

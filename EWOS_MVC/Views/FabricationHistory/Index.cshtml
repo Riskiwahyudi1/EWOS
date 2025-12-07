@@ -1,0 +1,385 @@
+﻿@model List<EWOS_MVC.Models.ItemFabricationModel>
+@{
+    ViewData["Title"] = "Fabrication History";
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+    <h5 class="mb-0">Fabrication Monitoring</h5>
+</div>
+
+<!-- Filter bar -->
+<!-- Bar 1: Tahun, Bulan, Minggu -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6 col-12">
+            <!-- Baris 1 -->
+            <div class="row gy-2 align-items-end">
+                <div class="col-md-4 col-12">
+                    @await Component.InvokeAsync("MachineCategories")
+                </div>
+                <div class="col-md-4 col-12">
+                    @await Component.InvokeAsync("MachineList")
+                </div>
+                <div class="col-md-4 col-12">
+                    <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search">
+                </div>
+            </div>
+
+            <!-- Baris 2 -->
+            <div class="row gy-2 align-items-end mt-2">
+                <div class="col-md-4 col-12">
+                    @await Component.InvokeAsync("YearsSetting")
+                </div>
+                <div class="col-md-4 col-12">
+                    @await Component.InvokeAsync("MonthSetting")
+                </div>
+                <div class="col-md-4 col-12">
+                    @await Component.InvokeAsync("WeeksSetting")
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="my-4">
+<div style="display: flex; gap: 30px; margin: 30px 0;">
+    <!-- Machine Utilization -->
+    <div style="flex: 0 0 300px;" class="bg-light shadow-sm py-4">
+        <h6 class="text-center">Machine Utilization</h6>
+        <div id="MachineUtilization" class=""></div>
+    </div>
+
+    <!-- List Item Table -->
+    <div style="flex: 1 1 auto; py-4">
+        <h6 class="text-center">List Item Fabrication</h6>
+        <div style="overflow-x:auto;">
+            <table class="table table-sm table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th class="text-center">No</th>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Saving Cost(USD)</th>
+                        <th>Fabrication Time</th>
+                        <th>Status</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int index = 1;
+                    }
+
+                    @if (Model == null || !Model.Any())
+                    {
+                        <tr>
+                            <td colspan="12" class="text-center text-muted">Tidak ada data.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var ifab in Model)
+                        {
+                            <tr>
+                                <td class="text-center">@index</td>
+                                <td>@ifab.ItemRequest.PartName</td>
+                                <td>@ifab.Quantity @ifab.ItemRequest.Unit</td>
+                                <td>@ifab.TotalSaving</td>
+                                <td>@(ifab.FabricationTime.ToString() ?? "-") Hours</td>
+                                <td>@ifab.Status</td>
+                                <td class="text-center">
+                                    @{
+                                        var roles = (ViewBag.Roles as List<string>) ?? new List<string>();
+                                        bool isAdminFabrication = roles.Contains("AdminFabrication");
+                                        bool isEvaluate = ifab.RepeatOrderId == null;
+                                        var status = ifab.Status?.Trim().ToLower();
+                                    }
+
+                                    <script>
+                                        window.isAdminFabrication = @isAdminFabrication.ToString().ToLower();
+                                    </script>
+
+                                    @if (status == "onprogress" && isAdminFabrication)
+                                    {
+
+                                        <button class="btn btn-primary btn-sm open-modal"
+                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Finish">
+                                            Done
+                                        </button>
+
+                                        <button class="btn btn-danger btn-sm open-modal"
+                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Cancel">
+                                            Cancel
+                                        </button>
+                                        <button class="btn btn-warning btn-sm open-modal @(isEvaluate ? "disable" : "")"
+                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Edit"
+                                                @(isEvaluate ? "disabled" : "")>
+                                            Edit
+                                        </button>
+                                    }
+                                    else if ((status == "fabricationdone") && isAdminFabrication && ifab.ItemRequest.MachineCategoryId == 1)
+                                    {
+                                        <button class="btn btn-primary btn-sm open-modal"
+                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=updateCOC">
+                                            Edit COC
+                                        </button>
+                                    }
+
+                                    <button class="btn btn-info btn-sm open-modal"
+                                            data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Detail">
+                                        Detail
+                                    </button>
+
+                                </td>
+                            </tr>
+                            index++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+
+        const percentase = @((decimal)ViewBag.MachineUtilization);
+
+         var MachineUtilization = {
+                  series: [percentase],
+                  chart: {
+                  height: 200,
+                  type: 'radialBar',
+                },
+                plotOptions: {
+                  radialBar: {
+                      track: {
+                            background: '#d1d5db',
+                            strokeWidth: '90%',
+                            margin: 5
+                        },
+
+                    hollow: {
+                      size: '60%',
+                    }
+                  },
+                },
+                labels: ['All Machines'],
+                };
+
+                var chart = new ApexCharts(document.querySelector("#MachineUtilization"), MachineUtilization);
+                chart.render();
+    </script>
+}
+
+<script>
+       document.addEventListener('DOMContentLoaded', () => {
+           const tableBody = document.querySelector('table.table tbody');
+           const searchBox = document.getElementById('searchBox');
+           const categoryFilter = document.querySelector('select[name="MachineCategoryId"]');
+           const mcFilter = document.querySelector('select[name="MachineId"]');
+           const weekFab = document.querySelector('select[name="WeekSettingId"]')
+           const yearFab = document.querySelector('select[name="YearSettingId"]')
+           const currentStatus = '@ViewBag.CurrentStatus';
+           let loadingTimer = null;
+
+    if (!tableBody || !searchBox || !categoryFilter || !weekFab || !mcFilter || !yearFab) return;
+           const initialHTML = tableBody.innerHTML;
+           let debounceTimer = null;
+
+      window.performSearch = async function() {
+               const keyword = searchBox.value.trim();
+               const categoryId = categoryFilter.value;
+               const weekSettingId = weekFab.value;
+               const yearSettingId = yearFab.value;
+               const MachineId = mcFilter.value;
+
+               // Kalau kosong semua, kembalikan tabel awal
+              if (keyword.length === 0 && !categoryId && !weekSettingId && !MachineId && !yearSettingId) {
+                   tableBody.innerHTML = initialHTML;
+                   return;
+               }
+
+               try {
+
+               clearTimeout(loadingTimer);
+
+                // Tampilkan "memuat data..." setelah 500ms
+                loadingTimer = setTimeout(() => {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center text-primary">Memuat data...</td>
+                        </tr>`;
+                }, 350);
+
+                   const url = new URL("/FabricationHistory/Search", window.location.origin);
+                   if (keyword) url.searchParams.append("keyword", keyword);
+                   if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
+                   if (MachineId && MachineId !== "0") url.searchParams.append("MachineId", MachineId);
+                   if (weekSettingId && weekSettingId !== "0") url.searchParams.append("weekSettingId", weekSettingId);
+                   if (yearSettingId && yearSettingId !== "0") url.searchParams.append("yearSettingId", yearSettingId);
+                   if (currentStatus) url.searchParams.append("status", currentStatus);
+
+                   const res = await fetch(url);
+                   if (!res.ok) throw new Error('Network response was not ok');
+
+                   const data = await res.json();
+                   clearTimeout(loadingTimer);
+
+                   if (data.utilization !== undefined && !isNaN(data.utilization)) {
+                       chart.updateSeries([data.utilization]);
+
+                       let label = 'All Machines';
+                       if (data.machineName) {
+                           label = `${data.machineName}`;
+                       } else if (data.categoryName) {
+                           label = `${data.categoryName}`;
+                       }
+
+                       chart.updateOptions({
+                           labels: [label]
+                       });
+                   }
+
+                   if (!Array.isArray(data.data) || data.data.length === 0) {
+
+                       tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Tidak ada data Request.</td></tr>`;
+                       return;
+                   }
+
+                   let html = '';
+                     data.data.forEach((rq, idx) => {
+
+                   let buttons = "";
+                   const status = rq.status?.trim().toLowerCase();
+                   let isAdmin = window.isAdminFabrication === true;
+                   console.log(status)
+                    if (status === "onprogress" && isAdmin) {
+
+                        buttons += `
+                            <button class="btn btn-primary btn-sm open-modal"
+                                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Finish">
+                                Done
+                            </button>
+
+                            <button class="btn btn-danger btn-sm open-modal"
+                                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Cancel">
+                                Cancel
+                            </button>
+
+                            <button class="btn btn-warning btn-sm open-modal"
+                                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Edit">
+                                Edit
+                            </button>
+                        `;
+                    } else if(status === "fabricationdone" && isAdmin && rq.machineCategory === 1){
+
+                        buttons +=`<button class="btn btn-primary btn-sm open-modal"
+                                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=updateCOC">
+                                Edit COC
+                         </button>
+                         `
+                    }
+
+                    buttons += `
+                        <button class="btn btn-info btn-sm open-modal"
+                                data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Detail">
+                            Detail
+                        </button>
+                    `;
+
+                       html += `
+                           <tr>
+                               <td class="text-center">${idx + 1}</td>
+                               <td>${rq.partName ?? rq.PartName ?? ''}</td>
+                               <td>${rq.quantity ?? rq.Quantity ?? 0}</td>
+                               <td>${rq.totalSaving ?? rq.TotalSaving ?? ''}</td>
+                               <td>${rq.fabricationTime ?? rq.FabricationTime ?? ''}</td>
+                               <td>${rq.status ?? rq.Status ?? ''}</td>
+                               <td class="text-center">${buttons}</td>
+                           </tr>
+                       `;
+                   });
+
+                   tableBody.innerHTML = html;
+
+               } catch (err) {
+                   console.error('Search error:', err);
+                   tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Terjadi kesalahan saat mencari.</td></tr>`;
+               }
+           }
+
+           // Event search dengan debounce
+           searchBox.addEventListener('input', () => {
+               clearTimeout(debounceTimer);
+               debounceTimer = setTimeout(performSearch, 350);
+           });
+
+           // Event filter
+           categoryFilter.addEventListener('change', performSearch);
+           mcFilter.addEventListener('change', performSearch);
+           weekFab.addEventListener('change', performSearch);
+           yearFab.addEventListener('change', performSearch);
+
+       });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const yearSelect = document.querySelector('select[name="YearSettingId"]');
+        const monthSelect = document.querySelector('select[name="MonthSelect"]');
+        const weeksContainer = document.querySelector('select[name="WeekSettingId"]');
+
+        async function loadWeeks() {
+            const YearSettingId = yearSelect?.value;
+            const MonthSelect = monthSelect?.value;
+
+            if (!YearSettingId || !MonthSelect) return;
+
+            try {
+                const response = await fetch(`/WeeksSetting?YearSettingId=${YearSettingId}&MonthSelect=${MonthSelect}`);
+                if (!response.ok) throw new Error("Gagal fetch view component");
+                const html = await response.text();
+
+                weeksContainer.innerHTML = html;
+            } catch (error) {
+                console.error("Gagal memuat minggu:", error);
+            }
+        }
+
+        yearSelect?.addEventListener("change", loadWeeks);
+        monthSelect?.addEventListener("change", loadWeeks);
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const mcCategorySelect = document.querySelector('select[name="MachineCategoryId"]');
+        const MachineContainer = document.querySelector('select[name="MachineId"]');
+
+        async function loadMachine() {
+            const MachineCategoryId = mcCategorySelect?.value;
+
+            if (!MachineCategoryId) return;
+
+            try {
+                 MachineContainer.innerHTML = '<option value="">-- Pilih Mesin --</option>';
+                const response = await fetch(`/MachineList?MachineCategoryId=${MachineCategoryId}`);
+
+                if (!response.ok) throw new Error("Gagal fetch view component");
+                const html = await response.text();
+                MachineContainer.innerHTML = html;
+                await performSearch();
+            } catch (error) {
+                console.error("Gagal memuat minggu:", error);
+            }
+        }
+
+        mcCategorySelect?.addEventListener("change", loadMachine);
+
+    });
+</script>

@@ -1,0 +1,52 @@
+﻿@model EWOS_MVC.Models.ItemRequestModel
+
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title" >Repeat Order</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+</div>
+
+<form method="post" action="/Requestor/ListProduct/Request">
+    @Html.AntiForgeryToken()
+
+    <div class="modal-body">
+
+        <!-- Hidden ID -->
+        <input type="hidden" name="ItemRequestId" value="@Model.Id" />
+
+        <!-- Part Id (readonly) -->
+        <div class="mb-3">
+            <label class="form-label">Part Id</label>
+            <input type="text" class="form-control" value="@Model.Id" readonly />
+        </div>
+        <!-- Part Name (readonly) -->
+        <div class="mb-3">
+            <label class="form-label">Part Name</label>
+            <input type="text" class="form-control" value="@Model.PartName" readonly />
+        </div>
+
+
+        <!-- CRD -->
+        <div class="mb-3">
+            <label for="Crd-@Model.Id" class="form-label">CRD (Customer Request Date)</label>
+            <input type="date" class="form-control" id="Crd-@Model.Id" name="CRD" required />
+        </div>
+
+        <!-- Quantity -->
+        <div class="mb-3">
+            <label for="Quantity-@Model.Id" class="form-label">Quantity</label>
+            <input type="number" class="form-control" id="QuantityReq-@Model.Id" name="QuantityReq" placeholder="Input quantity" min="1" required />
+        </div>
+
+        <!-- Description -->
+        <div class="mb-3">
+            <label for="Description-@Model.Id" class="form-label">Description</label>
+            <textarea class="form-control" id="Description-@Model.Id" name="Description" rows="3" placeholder="Add description" required></textarea>
+        </div>
+
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Submit Request</button>
+    </div>
+</form>

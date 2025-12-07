@@ -1,0 +1,423 @@
+﻿@model List<EWOS_MVC.Models.ItemRequestModel>
+@{
+    ViewData["Title"] = "Request List";
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h5 class="my-3">Request List</h5>
+@if (TempData["Error"] != null || TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @(TempData["Error"] ?? TempData["ErrorMessage"])
+    </div>
+}
+<div class="row mb-3">
+    <div class="col-2 col-sm-2">
+        @await Component.InvokeAsync("MachineCategories")
+    </div>
+    <div class="col-4 col-sm-4">
+        <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search">
+    </div>
+</div>
+
+
+<div class="tab-wrapper">
+    
+    @{
+        var summary = ViewBag.StatusSummary as Dictionary<string, int>;
+        int GetCount(string status) => summary != null && summary.ContainsKey(status) ? summary[status] : 0;
+    }
+    <!-- Tab Bar-->
+    <ul class="nav nav-tabs justify-content-center" id="statusTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active"
+                    id="waitingapproval-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#waitingapproval"
+                    data-status="WaitingApproval"
+                    type="button"
+                    role="tab">
+                Approval Request
+                @if (GetCount("WaitingApproval") > 0)
+                {
+                    <span class="badge bg-danger rounded-pill">@GetCount("WaitingApproval")</span>
+                }
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="fabricationapproval-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#FabricationApproval"
+                    data-status="FabricationApproval"
+                    type="button"
+                    role="tab">
+                Fabrication Approval
+                @if (GetCount("FabricationApproval") > 0)
+                {
+                    <span class="badge bg-danger rounded-pill">@GetCount("FabricationApproval")</span>
+                }
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="waitingfabrication-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#WaitingFabrication"
+                    data-status="WaitingFabrication"
+                    type="button"
+                    role="tab">
+                Waiting Fabrication
+                @if (GetCount("WaitingFabrication") > 0)
+                {
+                    <span class="badge bg-danger rounded-pill">@GetCount("WaitingFabrication")</span>
+                }
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="infabrication-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#InFabrication"
+                    data-status="InFabrication"
+                    type="button"
+                    role="tab">
+                In Fabrication
+                @if (GetCount("InFabrication") > 0)
+                {
+                    <span class="badge bg-danger rounded-pill">@GetCount("InFabrication")</span>
+                }
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="waitingbuyoff-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#WaitingBuyOff"
+                    data-status="WaitingBuyOff"
+                    type="button"
+                    role="tab">
+                Waiting Buyoff
+                @if (GetCount("WaitingBuyoff") > 0)
+                {
+                    <span class="badge bg-danger rounded-pill">@GetCount("WaitingBuyoff")</span>
+                }
+            </button>
+        </li>
+    </ul>
+</div>
+
+<!-- Table data-->
+<table class="table table-sm table-striped table-bordered mt-3">
+    <thead>
+        <tr>
+            <th class="text-center">No</th>
+            <th>Requestor</th>
+            <th>Part Name</th>
+            <th>Request Category</th>
+            <th>CRD</th>
+            <th>Request Date</th>
+            <th class="text-center">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int index = 1;
+        }
+        <tr id="loadingText" style="display:none; text-align:center; margin-bottom:10px; font-weight:bold; color:#555;">
+            <td>Loading...</td>
+        </tr>
+        @if (Model == null || !Model.Any())
+        {
+            <tr>
+                <td colspan="7" class="text-center text-muted">Tidak ada data Requeast.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var rq in Model)
+            {
+                <tr>
+                    <td class="text-center">@index</td>
+                    <td>@rq.Users.Name</td>
+                    <td>@rq.PartName</td>
+                    <td>@rq.MachineCategories?.CategoryName</td>
+                    <td>@rq.CRD.ToString("dd/MM/yyyy")</td>
+                    <td>@rq.CreatedAt</td>
+                    <td class="text-center">
+                        @if (rq.Status == "ApprovalFabrication")
+                        {
+
+                            <button class="btn btn-success btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Approve">
+                                Approve
+                            </button>
+                            <button class="btn btn-danger btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Reject">
+                                Reject
+                            </button>
+                        }
+
+                        else if (rq.Status == "WaitingFabrication")
+                        {
+                            var externalCost = rq.ExternalFabCost == null;
+                            var FabTime = rq.FabricationTime == null;
+                            var rawMaterial = rq.RawMaterialId == null;
+                            var weight = rq.Weight == null;
+
+                            if (rq.MachineCategoryId == 1)
+                            {
+
+                                <button class="btn btn-primary btn-sm open-modal @(externalCost || FabTime || rawMaterial ? "disabled" : "")"
+                                        data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Fabrikasi">
+                                    Fabrikasi
+                                </button>
+
+                            }
+                            else if (rq.MachineCategoryId == 2)
+                            {
+                                <button class="btn btn-primary btn-sm open-modal @(externalCost || FabTime || rawMaterial || weight ? "disabled" : "")"
+                                        data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Fabrikasi">
+                                    Fabrikasi
+                                </button>
+
+                            }
+                            <button class="btn btn-warning btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Edit">
+                                Edit
+                            </button>
+                        }
+
+                        <button class="btn btn-info btn-sm open-modal"
+                                data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Detail">
+                            Detail
+                        </button>
+
+                    </td>
+
+                </tr>
+                index++;
+            }
+        }
+    </tbody>
+</table>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tableBody = document.querySelector('table.table tbody');
+        const searchBox = document.getElementById('searchBox');
+        const categoryFilter = document.querySelector('select[name="MachineCategoryId"]');
+        const tabs = document.querySelectorAll(".nav-link");
+        let currentStatus = '@ViewBag.CurrentStatus';
+        const loadingText = document.getElementById('loadingText');
+
+        if (!tableBody || !searchBox || !categoryFilter) return;
+
+        const initialHTML = tableBody.innerHTML;
+            let debounceTimer = null;
+    let loadingTimer = null;
+
+    async function performSearch() {
+        const keyword = searchBox.value.trim();
+        const categoryId = categoryFilter.value;
+
+        if (keyword.length === 0 && !categoryId && !currentStatus) {
+            tableBody.innerHTML = initialHTML;
+            return;
+        }
+
+        // Hapus timer sebelumnya
+        clearTimeout(debounceTimer);
+
+        // Set delay 
+        debounceTimer = setTimeout(async () => {
+            try {
+                // tampilkan indikator loading
+                clearTimeout(loadingTimer);
+                loadingTimer = setTimeout(() => {
+                    if (loadingText) loadingText.style.display = 'block';
+                }, 350);
+
+                // Buat URL dan query
+                const url = new URL("/AdminFabrication/Request/SearchNew", window.location.origin);
+                if (keyword) url.searchParams.append("keyword", keyword);
+                if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
+                if (currentStatus) url.searchParams.append("status", currentStatus.replace('#', ''));
+
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Network response was not ok');
+
+                const data = await res.json();
+
+                clearTimeout(loadingTimer);
+                if (loadingText) loadingText.style.display = 'none';
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Tidak ada data Request.</td></tr>`;
+                    return;
+                }
+
+                // Generate HTML
+                let html = '';
+                data.forEach((rq, idx) => {
+                    let buttons = "";
+
+                    if (rq.status === "FabricationApproval") {
+                        buttons += `
+                            <button type="button" class="btn btn-success btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Approve">
+                                Approve
+                            </button>
+
+                            <button type="button" class="btn btn-danger btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Reject">
+                                Reject
+                            </button>
+                        `;
+                    } else if (rq.status === "WaitingFabrication") {
+
+                        const externalCostIsNull = rq.externalFabCost === null ;
+                        const fabTimeIsNull = rq.fabricationTime === null ;
+                        const rawMaterialIsNull = rq.rawMaterialId === null ;
+                        const weightIsNull = rq.weight === null;
+
+                        if (rq.machineCategoryId === 1) {
+                        const isDisabled = externalCostIsNull || fabTimeIsNull || rawMaterialIsNull;
+                        buttons += `
+                            <button type="button"
+                                    class="btn btn-primary btn-sm open-modal ${isDisabled ? "disabled" : ""}"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Fabrikasi">
+                                Fabrikasi
+                            </button>
+
+                            <button type="button" class="btn btn-warning btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Edit">
+                                Edit
+                            </button>
+                        `;
+                        } else if (rq.machineCategoryId === 2) {
+                        const isDisabled = externalCostIsNull || fabTimeIsNull || rawMaterialIsNull || weightIsNull;
+                        buttons += `
+                            <button type="button"
+                                    class="btn btn-primary btn-sm open-modal ${isDisabled ? "disabled" : ""}"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Fabrikasi">
+                                Fabrikasi
+                            </button>
+
+                            <button type="button" class="btn btn-warning btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Edit">
+                                Edit
+                            </button>
+                        `;
+                        }else if (rq.machineCategoryId === 3) {
+                        buttons += `
+                            <button type="button"
+                                    class="btn btn-primary btn-sm open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Fabrikasi">
+                                Drawing
+                            </button>
+                        `;
+                        }
+                    }
+                            buttons += `
+                                <button type="button" class="btn btn-info btn-sm open-modal"
+                                        data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Detail">
+                                    Detail
+                                </button>
+                            `;
+
+                    html += `
+                        <tr>
+                            <td class="text-center">${idx + 1}</td>
+                            <td>${rq.users ?? ''}</td>
+                            <td>${rq.partName ?? rq.PartName ?? ''}</td>
+                            <td>${rq.categoryName ?? ''}</td>
+                            <td>${rq.crd ? new Date(rq.crd).toLocaleDateString('id-ID') : ''}</td>
+                            <td>${rq.createdAt ? new Date(rq.createdAt).toLocaleDateString('id-ID') : ''}</td>
+                            <td class="text-center">${buttons}</td>
+                        </tr>
+                    `;
+                });
+
+                tableBody.innerHTML = html;
+
+            } catch (err) {
+                console.error('Search error:', err);
+                if (loadingText) loadingText.style.display = 'none';
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Terjadi kesalahan saat mencari.</td></tr>`;
+            }
+        }, 200); 
+    }
+
+
+        // Event search dengan debounce
+        searchBox.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(performSearch, 350);
+        });
+
+        // Event filter kategori
+        categoryFilter.addEventListener('change', performSearch);
+
+        // event tab
+        tabs.forEach(tab => {
+            tab.addEventListener("click", function () {
+                currentStatus = this.getAttribute("data-bs-target"); 
+                performSearch();
+            });
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const maxSize = 1 * 1024 * 1024; // 1MB
+
+        const fileInputs = [
+            { id: 'fileDrawing', type: 'pdf' },
+            { id: 'fileQuotation', type: 'pdf' },
+            { id: 'fileDesign', type: 'zip' }
+        ];
+
+        fileInputs.forEach(item => {
+            const input = document.getElementById(item.id);
+            if (!input) return; // pastikan elemen ada di halaman
+
+            input.addEventListener('change', function () {
+                const file = this.files[0];
+                if (!file) return;
+
+                const fileName = file.name.toLowerCase();
+                const fileSize = file.size;
+                const isPDF = file.type === "application/pdf" || fileName.endsWith(".pdf");
+                const isZIP = file.type === "application/zip" || fileName.endsWith(".zip");
+
+                // Validasi format sesuai ID
+                if (item.type === 'pdf' && !isPDF) {
+                    alert("Hanya file berformat PDF yang diizinkan.");
+                    this.value = "";
+                    return;
+                }
+
+                if (item.type === 'zip' && !isZIP) {
+                    alert("Hanya file berformat ZIP yang diizinkan.");
+                    this.value = "";
+                    return;
+                }
+
+                // Validasi ukuran
+                if (fileSize > maxSize) {
+                    alert("Ukuran file maksimal 1MB. Silakan pilih file yang lebih kecil.");
+                    this.value = "";
+                    return;
+                }
+            });
+        });
+    });
+</script>

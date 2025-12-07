@@ -1,0 +1,183 @@
+﻿@model EWOS_MVC.Models.ItemRequestModel
+
+<div class="modal-header bg-gradient ">
+    <h5 class="modal-title" >Detail Data</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+</div>
+
+<!-- Modal Body -->
+<div class="modal-body">
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle w-100">
+            <tbody>
+                <tr>
+                    <th class="col-sm-4">Part Id</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.Id 
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Part Name</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.PartName
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Part Code</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @( Model.PartCode != null
+                            ? Model.PartCode
+                            : Html.Raw("<span class='badge bg-danger'>Belum di set</span>")
+                            )
+
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class="col-sm-4">Machine Category</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.MachineCategories.CategoryName
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Raw Material</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @(Model.RawMaterials != null
+                            ? Model.RawMaterials.Name
+                            : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class="col-sm-4">External Cost ($)</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @(Model.ExternalFabCost != null ? Model.ExternalFabCost.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class="col-sm-4">Fabrication Time</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @(Model.FabricationTime != null ? Model.FabricationTime.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                    </td>
+                </tr>
+
+                @if (Model.MachineCategoryId == 2)
+                {
+                    <tr>
+                        <th class="col-sm-4">Weight</th>
+                        <td class="col-sm-8" style="word-break: break-word;">
+                            @(Model.Weight != null ? Model.Weight.ToString() : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                        </td>
+                    </tr>
+                }
+                <tr>
+                    <th class="col-sm-4">Fabrication Unit</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.Unit
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Saving Cost Calculation</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @if (Model.IsCalculateSaving)
+                        {
+                            <span class="badge bg-success">Yes</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">No</span>
+                        }
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class="col-sm-4">Request Date</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.CreatedAt
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">CRD</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.CRD
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class="col-sm-4">OCD</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @(Model.OCD.HasValue
+                            ? Model.OCD.Value.ToString("dd-MM-yyyy")
+                            : Html.Raw("<span class='badge bg-danger'>-</span>"))
+
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Design</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @if (!string.IsNullOrEmpty(Model.DesignPath))
+                        {
+                            <a href="@Url.Content(Model.DesignPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Download</a>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">COC File</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @if (!string.IsNullOrEmpty(Model.COCPath))
+                        {
+                            <a href="@Url.Content(Model.COCPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye-fill"></i> View</a>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Ref Drawing</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @if (!string.IsNullOrEmpty(Model.DrawingPath))
+                        {
+                            <a href="@Url.Content(Model.DrawingPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye-fill"></i> View</a>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Ref Quotation</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @if (!string.IsNullOrEmpty(Model.QuantationPath))
+                        {
+                            <a href="@Url.Content(Model.QuantationPath)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye-fill"></i> View</a>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Description</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.Description
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Footer -->
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+</div>

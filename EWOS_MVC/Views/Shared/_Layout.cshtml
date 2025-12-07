@@ -4,7 +4,7 @@
     // Buat flag boolean supaya mudah di layout
     bool isAdminSystem = roles.Contains("AdminSystem");
     bool isAdminFabrication = roles.Contains("AdminFabrication");
-    bool isSupervisor = roles.Contains("Supervisor");
+    bool isEngineerFabrication = roles.Contains("EngineerFabrication");
     bool isRequestor = roles.Contains("Requestor");
 }
 
@@ -100,39 +100,20 @@
             font-size: 14px;
         }
     </style>
-    <style>
-         /* loading efek */
-        #globalLoadingOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.6);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000; /* lebih tinggi dari modal */
-        }
-
-            #globalLoadingOverlay .spinner-border {
-                width: 3rem;
-                height: 3rem;
-            }
-    </style>
 </head>
 <body>
     <!-- loading efek -->
     <div id="globalLoadingOverlay">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
+        <div id="loadingBox">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div id="loadingText">Loading...</div>
         </div>
     </div>
     <div class="wrapper">
         <!-- Sidebar -->
        
         <div class="sidebar"
-             style="background-color:
+             style="zoom:0.9; background-color:
          @(isAdminSystem ? "#212529" :
                         isAdminFabrication ? "#212529" :
                         isRequestor ? "#1e1e2f" : "#212529")">
@@ -144,30 +125,96 @@
             </nav>
 
             <!-- Requestor / Supervisor / AdminFabrication Menu -->
-            @if (isAdminFabrication || isRequestor || isSupervisor)
+            @if (isAdminFabrication || isRequestor || isEngineerFabrication)
             {
                 <div class="sidebar-section">
                     <h6 class="text-uppercase text-muted px-3 mt-3 mb-2">Main Menu</h6>
 
-                    <a href="/Requestor/Dashboard" class="nav-link px-3 @(Context.Request.Path == "/Requestor/Dashboard" ? "active" : "")">
+                    <a href="/Dashboard" class="nav-link px-3 @(Context.Request.Path == "/Dashboard" ? "active" : "")">
                         <i class="bi bi-house-door"></i> Dashboard
                     </a>
-                    @* Tampilkan Fabrication History hanya jika role-nya Requestor saja *@
-                    @if (isRequestor && !isAdminFabrication && isSupervisor)
+                    @if ((isRequestor || isEngineerFabrication) && !isAdminFabrication)
                     {
-                        <a href="/Requestor/FabricationHistory" class="nav-link px-3 @(Context.Request.Path == "/Requestor/FabricationHistory" ? "active" : "")">
+                        <a href="/FabricationHistory" class="nav-link px-3 @(Context.Request.Path == "/FabricationHistory" ? "active" : "")">
                             <i class="bi bi-clock-history"></i> Fabrication History
                         </a>
                     }
+                   
+                    @{
+                        var isRequestHistoryActive = Context.Request.Path.StartsWithSegments("/RequestHistory");
+                    }
+
+                    <li class="nav-item">
+                        <a class="nav-link px-3 d-flex justify-content-between align-items-center @(isRequestHistoryActive ? "active" : "")"
+                           data-bs-toggle="collapse"
+                           href="#collapseRequestHistory"
+                           role="button"
+                           aria-expanded="@(isRequestHistoryActive ? "true" : "false")"
+                           aria-controls="collapseMyRequest">
+
+                            <span><i class="bi bi-person-lines-fill"></i> Request History</span>
+                            <i class="bi bi-chevron-down small"></i>
+                        </a>
+
+                        <div class="collapse ms-4 @(isRequestHistoryActive ? "show" : "")" id="collapseRequestHistory">
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link @(Context.Request.Path == "/RequestHistory/NewRequest" ? "active" : "")"
+                                       href="/RequestHistory/NewRequest">
+                                        New Request
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link @(Context.Request.Path == "/RequestHistory/RepeatOrder" ? "active" : "")"
+                                       href="/RequestHistory/RepeatOrder">
+                                        Repeat Order
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
                     <a href="/Requestor/NewRequest" class="nav-link px-3 @(Context.Request.Path == "/Requestor/NewRequest" ? "active" : "")">
                         <i class="bi bi-file-earmark-plus"></i> Form Request
                     </a>
                     <a href="/Requestor/ListProduct" class="nav-link px-3 @(Context.Request.Path == "/Requestor/ListProduct" ? "active" : "")">
                         <i class="bi bi-list-check"></i> List Product
                     </a>
-                    <a href="/Requestor/MyRequest" class="nav-link px-3 @(Context.Request.Path == "/Requestor/MyRequest" ? "active" : "")">
-                        <i class="bi bi-person-lines-fill"></i> My Request
-                    </a>
+                    @{
+                        var isMyRequestActive = Context.Request.Path.StartsWithSegments("/Requestor/MyRequest");
+                    }
+
+                    <li class="nav-item">
+                        <a class="nav-link px-3 d-flex justify-content-between align-items-center @(isMyRequestActive ? "active" : "")"
+                           data-bs-toggle="collapse"
+                           href="#collapseMyRequest"
+                           role="button"
+                           aria-expanded="@(isMyRequestActive ? "true" : "false")"
+                           aria-controls="collapseMyRequest">
+
+                            <span><i class="bi bi-person-lines-fill"></i> My Request</span>
+                            <i class="bi bi-chevron-down small"></i>
+                        </a>
+
+                        <div class="collapse ms-4 @(isMyRequestActive ? "show" : "")" id="collapseMyRequest">
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link @(Context.Request.Path == "/Requestor/MyRequest/Evaluation" ? "active" : "")"
+                                       href="/Requestor/MyRequest/Evaluation">
+                                        Evaluation
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link @(Context.Request.Path == "/Requestor/MyRequest/RepeatOrder" ? "active" : "")"
+                                       href="/Requestor/MyRequest/RepeatOrder">
+                                        Repeat Order
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
                     
                 </div>
             }
@@ -178,24 +225,25 @@
                 <div class="sidebar-section mt-3">
                     <h6 class="text-uppercase text-muted px-3 mb-2">Fabrication Menu</h6>
 
-                    <a href="/AdminFabrication/NewRequest" class="@(Context.Request.Path == "/AdminFabrication/NewRequest" ? "active" : "")">
-                        <i class="bi bi-box-fill"></i> New Order
+                    <a href="/AdminFabrication/Request/Evaluation" class="@(Context.Request.Path == "/AdminFabrication/Request/Evaluation" ? "active" : "")">
+                        <i class="bi bi-box-fill"></i> Evaluation
                     </a>
-                    <a href="/AdminFabrication/RepeatOrder" class="@(Context.Request.Path == "/AdminFabrication/RepeatOrder" ? "active" : "")">
+                    <a href="/AdminFabrication/Request/RepeatOrder" class="@(Context.Request.Path == "/AdminFabrication/Request/RepeatOrder" ? "active" : "")">
                         <i class="bi bi-repeat"></i> Repeat Order
                     </a>
-                    <a href="/Requestor/FabricationHistory" class="nav-link px-3 @(Context.Request.Path == "/Requestor/FabricationHistory" ? "active" : "")">
+                    <a href="/FabricationHistory" class="nav-link px-3 @(Context.Request.Path == "/FabricationHistory" ? "active" : "")">
                         <i class="bi bi-clock-history"></i> Fabrication History
                     </a>
                 </div>
             }
 
             <!-- Supervisor Menu -->
-            @if (isSupervisor)
+            @if (isEngineerFabrication)
             {
                 <div class="sidebar-section mt-3">
-                    <h6 class="text-uppercase text-muted px-3 mb-2">Supervisor Menu</h6>
-                    <a href="/Supervisor/Approval" class="nav-link px-3 @(Context.Request.Path == "/Supervisor/Approval" ? "active" : "")">
+                    <h6 class="text-uppercase text-muted px-3 mb-2">Approval Menu</h6>
+                    <a href="/EngineerFabrication/Approval/Evaluation" class="nav-link px-3 @(Context.Request.Path.Value != null && Context.Request.Path.Value.Contains("/EngineerFabrication/Approval")
+                              ? "active" : "")">
                         <i class="bi bi-hourglass-split"></i> Waiting Approval
                     </a>
                 </div>
@@ -232,6 +280,14 @@
                 @RenderBody()
             </div>
 
+            <!-- Global Modal -->
+            <div class="modal fade" id="globalModal" tabindex="-1">
+                <div class="modal-dialog modal-md">
+                    <div class="modal-content" id="globalModalContent">
+                        <!-- Content  di-load lewat fetch js -->
+                    </div>
+                </div>
+            </div>
             <!-- Footer -->
             <footer class="bg-light text-center py-2">
                 <p class="mb-0 small">&copy; @DateTime.Now.Year PT Excelitas Technologies Batam</p>
@@ -246,9 +302,87 @@
     <!-- Sweetalert Toast -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/toast.js"></script>
+    @RenderBody()
+    <partial name="_NotificationPartial" />
 
     <!-- Apex chart -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <!-- Load Modal globall-->
+     <script>
+
+         // validasi file disabled modal
+           function initFinishModalValidation() {
+            const modal = document.getElementById("globalModalContent");
+            const fileInput = modal.querySelector("#fileCOC");
+            const form = modal.querySelector("form");
+
+            if (!fileInput || !form) return; 
+
+            fileInput.addEventListener("change", function (e) {
+
+            // Pastikan event berasal dari input file #fileCOC
+            if (e.target.id !== "fileCOC") return;
+
+            const fileInput = e.target;
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            // Validasi ekstensi
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (ext !== "pdf") {
+                alert("File harus .pdf");
+                fileInput.value = "";
+                return;
+            }
+
+            // Validasi ukuran (5MB)
+            if (file.size > 1 * 1024 * 1024) {
+                alert("Ukuran file maksimal 1MB.");
+                fileInput.value = ""; 
+                return;
+            }
+
+            // Jika valid
+            console.log("File valid:", file.name);
+
+            });
+
+            // Reset ketika modal ditampilkan
+           
+                modal.addEventListener("shown.bs.modal", () => {
+                    fileInput.value = "";
+                    fileInput.classList.remove("is-invalid", "is-valid");
+                });
+            }
+
+
+            // tampilkan modal
+            document.addEventListener("click", function (e) {
+            if (!e.target.classList.contains("open-modal")) return;
+
+            const url = e.target.dataset.url;
+            const modal = new bootstrap.Modal(document.getElementById("globalModal"));
+
+            document.getElementById("globalModalContent").innerHTML =
+                "<div class='p-5 text-center'>Loading...</div>";
+
+            modal.show();
+
+            fetch(url)
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById("globalModalContent").innerHTML = html;
+                    initFinishModalValidation();
+                })
+                .catch(() => {
+                    document.getElementById("globalModalContent").innerHTML =
+                        "<div class='p-5 text-danger'>Failed to load content</div>";
+                });
+        });
+
+    </script>
 
     <!-- loading efek -->
     <script>

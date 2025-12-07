@@ -12,11 +12,12 @@ namespace EWOS_MVC.Models
 
         [Required]
         public long? ItemRequestId { get; set; }
-        public ItemRequestModel ItemRequest { get; set; } 
+        public ItemRequestModel ItemRequest { get; set; }
 
-        //[Required]
-        //public long? RepeatOrderId { get; set; }
-        //public RepeatOrderModel RepeatOrders { get; set; } 
+        public long? RepeatOrderId { get; set; }
+
+        [ForeignKey("RepeatOrderId")]
+        public RepeatOrderModel RepeatOrders { get; set; }
 
         [Required]
         public int UserId { get; set; }

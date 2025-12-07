@@ -1,0 +1,11 @@
+﻿@if (TempData["Success"] != null)
+{
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+            Toast.fire({
+            icon: 'success',
+                    title: '@TempData["Success"]'
+                });
+        });
+        </script>
+}

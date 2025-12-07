@@ -32,16 +32,18 @@ namespace EWOS_MVC.Models
 
         [Required(ErrorMessage = "CRD wajib diisi")]
         public DateTime CRD { get; set; }
-
+       
         [Required(ErrorMessage = "Deskripsi wajib diisi")]
         [StringLength(255, ErrorMessage = "Deskripsi tidak boleh lebih dari 255 karakter")]
         public string Description { get; set; }
 
         public string? QuantationPath { get; set; }
         public string? DrawingPath { get; set; }
+        public string? COCPath { get; set; }
         public string? DesignPath { get; set; }
         public decimal? FabricationTime { get; set; }
         public int? RawMaterialId { get; set; }
+        public long? SAPID { get; set; }
 
         [ForeignKey("RawMaterialId")]
         [ValidateNever]
@@ -55,7 +57,7 @@ namespace EWOS_MVC.Models
 
         [StringLength(50, ErrorMessage = "Status tidak boleh lebih dari 50 karakter")]
         public string? Status { get; set; }
-
+        public int? RevisiNo { get; set; }
         public bool IsCalculateSaving { get; set; } = true;
         public DateTime? OCD { get; set; }
         public DateTime CreatedAt { get; set; }

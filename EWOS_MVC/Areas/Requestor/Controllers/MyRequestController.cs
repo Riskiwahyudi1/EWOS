@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EWOS_MVC.Areas.Requestor.Controllers
 {
-    [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,Supervisor")]
+    [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,EngineerFabrication")]
     [Area("Requestor")]
     public class MyRequestController : BaseController
     {
@@ -14,9 +14,9 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         {
             _context = context;
         }
-
+        //new order
         [HttpGet]
-        public async Task<IActionResult> Index(string status)
+        public async Task<IActionResult> Evaluation(string status)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
 
@@ -30,33 +30,114 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 .Where(s => s.Status == "WaitingApproval" || s.Status == "FabricationApproval")
                 .ToListAsync();
 
-            // --- Data modal untuk semua status ---
-            var modalData = await _context.ItemRequests
-                .Include(mc => mc.MachineCategories)
-                .Include(u => u.Users)
-                .Include(rm => rm.RawMaterials)
-                .Include(rs => rs.RequestStatus)
-                    .ThenInclude(u => u.Users)
-                .Where(u => u.UserId == userId)
-                .ToListAsync();
-
+           
             // --- Summary semua status ---
-            var statusSummary = await _context.ItemRequests
+            var statusSummaryRepeat = await _context.RepeatOrders
+                .Where(u => u.UsersId == userId)
+                .GroupBy(r => r.Status ?? "Unknown")
+                .ToDictionaryAsync(g => g.Key, g => g.Count());
+
+            // --- Summary semua status evaluasi---
+            var statusSummaryEval = await _context.ItemRequests
                 .Where(u => u.UserId == userId)
                 .GroupBy(r => r.Status ?? "Unknown")
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
 
-            ViewBag.StatusSummary = statusSummary;
+            ViewBag.StatusSummaryRepeat = statusSummaryRepeat;
+            ViewBag.StatusSummaryEval = statusSummaryEval;
             ViewBag.CurrentStatus = "WaitingApproval";
-            ViewBag.ModalData = modalData;
 
             return View(tableData);
         }
 
-
-        // Search request
+        //RepeatOrder 
         [HttpGet]
-        public async Task<IActionResult> Search(string keyword, int? categoryId, List<string> status)
+        public async Task<IActionResult> RepeatOrder(string status)
+        {
+            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+
+            // --- Data tabel hanya untuk status awal ---
+            var tableData = await _context.RepeatOrders
+                .Include(ir => ir.ItemRequests)
+                    .ThenInclude(mc => mc.MachineCategories)
+                .Where(u => u.UsersId == userId)
+                .Where(s => s.Status == "WaitingApproval" || s.Status == "FabricationApproval")
+                .ToListAsync();
+
+           
+            // --- Summary semua status ---
+            var statusSummaryRepeat = await _context.RepeatOrders
+                .Where(u => u.UsersId == userId)
+                .GroupBy(r => r.Status ?? "Unknown")
+                .ToDictionaryAsync(g => g.Key, g => g.Count());
+
+            // --- Summary semua status evaluasi---
+            var statusSummaryEval = await _context.ItemRequests
+                .Where(u => u.UserId == userId)
+                .GroupBy(r => r.Status ?? "Unknown")
+                .ToDictionaryAsync(g => g.Key, g => g.Count());
+
+            ViewBag.StatusSummaryRepeat = statusSummaryRepeat;
+            ViewBag.StatusSummaryEval = statusSummaryEval;
+            ViewBag.CurrentStatus = "WaitingApproval";
+
+
+            return View(tableData);
+        }
+
+        //load modal new request
+        [HttpGet]
+        public IActionResult LoadData(long id, string type)
+        {
+            var data = _context.ItemRequests
+                .Include(mc => mc.MachineCategories)
+                .Include(rs => rs.RequestStatus)
+                .Include(u => u.Users)
+                .FirstOrDefault(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Pass" => PartialView("~/Views/modals/Requestor/Evaluation/BuyOffPassModal.cshtml", data),
+                "Status" => PartialView("~/Views/modals/General/DetailStatus/StatusRequestModal.cshtml", data),
+                "Fail" => PartialView("~/Views/modals/Requestor/Evaluation/BuyOffFailModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/General/DetailRequest/RequestDetailSummaryModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        }
+        //load modal Ro
+        [HttpGet]
+        public IActionResult LoadDataRo(long id, string type)
+        {
+            var data = _context.RepeatOrders
+                .Include(ir => ir.ItemRequests)
+                    .ThenInclude(mc => mc.MachineCategories)
+                .Include(ir => ir.ItemRequests)
+                    .ThenInclude(rm => rm.RawMaterials)
+                .Include(u => u.Users)
+                .Include(rs => rs.RequestStatus)
+                    .ThenInclude(u => u.Users)
+                .FirstOrDefault(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Recived" => PartialView("~/Views/modals/Requestor/RepeatOrder/ReciveModal.cshtml", data),
+                "Detail" => PartialView("~/Views/modals/General/DetailRequest/ItemRequestRoDetailModal.cshtml", data),
+                "Status" => PartialView("~/Views/modals/General/DetailStatus/StatusRequestRoModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        }
+
+        // Search request baru
+        [HttpGet]
+        public async Task<IActionResult> SearchNew(string keyword, int? categoryId, List<string> status)
         {
             // Base query
             var query = _context.ItemRequests
@@ -101,26 +182,80 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
 
             return Json(result);
         }
+        // Search RO
+        [HttpGet]
+        public async Task<IActionResult> SearchRo(string keyword, int? categoryId, List<string> status)
+        {
+            // Base query
+            var query = _context.RepeatOrders
+                .Include(ir => ir.ItemRequests)
+                    .ThenInclude(m => m.MachineCategories)
+                .AsQueryable();
+
+            // Filter by keyword
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                query = query.Where(r => r.ItemRequests.PartName.Contains(keyword));
+            }
+
+            // Filter by category
+            if (categoryId.HasValue && categoryId.Value > 0)
+            {
+                query = query.Where(r => r.ItemRequests.MachineCategoryId == categoryId.Value);
+            }
+
+            // Filter by multiple statuses
+            if (status != null && status.Any())
+            {
+                query = query.Where(r => r.Status != null && status.Contains(r.Status));
+            }
+
+            // Execute query asynchronously
+            var result = await query
+                .Select(r => new
+                {
+                    r.Id,
+                    r.ItemRequests.PartName,
+                    r.ItemRequests.Weight,
+                    r.ItemRequests.ExternalFabCost,
+                    r.ItemRequests.FabricationTime,
+                    CategoryName = r.ItemRequests.MachineCategories.CategoryName,
+                    r.CRD,
+                    r.QuantityReq,
+                    r.QuantityDone,
+                    r.Status,
+                    r.CreatedAt
+                })
+                .ToListAsync();
+
+            return Json(result);
+        }
 
 
         //Result Pass
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Pass(long? ItemRequestId)
+        public async Task<IActionResult> Pass(long ItemRequestId, string Reason)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
 
             if (ItemRequestId == null)
             {
                 TempData["Error"] = "ItemRequestId tidak boleh kosong.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Evaluation");
             }
+            if (Reason == null)
+            {
+                TempData["Error"] = "Reason tidak boleh kosong.";
+                return RedirectToAction("Evaluation");
+            }
+
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
 
                 TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
-                return View("Index");
+                return View("Evaluation");
             }
 
             var findRequest = await _context.ItemRequests.FindAsync(ItemRequestId);
@@ -135,7 +270,8 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             var approvalRequest = new RequestStatusModel
             {
                 ItemRequestId = ItemRequestId,
-                Status = "ResultPass",
+                Status = "Buyoff Pass",
+                Reason = Reason,
                 UserId = userId,
                 CreatedAt = DateTime.Now
             };
@@ -144,26 +280,88 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Berhasil Update Data.";
-            return Redirect("/MyRequest/WaitingConfirmation");
+            return Redirect("Evaluation");
+        }
+
+        //Result Close
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Close(long ItemRequestId, long RepeatOrderId, string Reason)
+        {
+            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+
+            if (RepeatOrderId <= 0)
+            {
+                TempData["Error"] = "RepearOrderId tidak boleh kosong.";
+                return RedirectToAction("RepeatOrder");
+            }
+            if (ItemRequestId <= 0)
+            {
+                TempData["Error"] = "RepeatOrderId tidak boleh kosong.";
+                return RedirectToAction("RepeatOrder");
+            }
+            if (Reason == null)
+            {
+                TempData["Error"] = "Reason tidak boleh kosong.";
+                return RedirectToAction("RepeatOrder");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+
+                TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
+                return View("RepeatOrder");
+            }
+
+            var findRequest = await _context.RepeatOrders.FindAsync(RepeatOrderId);
+            if (findRequest == null)
+            {
+                return NotFound();
+            }
+            // Update proses
+            findRequest.Status = "Close";
+            findRequest.UpdatedAt = DateTime.Now;
+
+            var approvalRequest = new RequestStatusModel
+            {
+                ItemRequestId = ItemRequestId,
+                RepeatOrderId = RepeatOrderId,
+                Status = "Close",
+                Reason = Reason,
+                UserId = userId,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.RequestStatus.Add(approvalRequest);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Berhasil Update Data.";
+            return Redirect("RepeatOrder");
         }
 
         // result fail
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Fail(long? ItemRequestId, string Reason)
+        public async Task<IActionResult> Fail(long ItemRequestId, string Reason)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
             if (ItemRequestId == null)
             {
                 TempData["Error"] = "ItemRequestId tidak boleh kosong.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Evaluation");
+            }
+            if (Reason == null)
+            {
+                TempData["Error"] = "Reason tidak boleh kosong.";
+                return RedirectToAction("Evaluation");
             }
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
 
                 TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
-                return View("Index");
+                return View("Evaluation");
             }
 
             var findRequest = await _context.ItemRequests.FindAsync(ItemRequestId);
@@ -179,7 +377,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             var approvalRequest = new RequestStatusModel
             {
                 ItemRequestId = ItemRequestId,
-                Status = "ResultFail",
+                Status = "Buyoff Fail",
                 Reason = Reason,
                 UserId = userId,
                 CreatedAt = DateTime.Now
@@ -189,8 +387,61 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Berhasil Update Data.";
-            return Redirect("index");
+            return Redirect("Evaluation");
         }
 
+        //Revisi 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Revisi(long? ItemRequestId, string Reason)
+        {
+            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+
+            if (ItemRequestId == null)
+            {
+                TempData["Error"] = "ItemRequestId tidak boleh kosong.";
+                return RedirectToAction("Evaluation");
+            }
+
+            if (string.IsNullOrWhiteSpace(Reason))
+            {
+                TempData["Error"] = "Reason wajib diisi.";
+                return RedirectToAction("Evaluation");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+
+                TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
+                return View("Evaluation");
+            }
+
+            var findRequest = await _context.ItemRequests.FindAsync(ItemRequestId);
+            if (findRequest == null)
+            {
+                return NotFound();
+            }
+
+            //tambahkan revisi ke data request
+
+            if (findRequest.Status?.Equals("Fail", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                findRequest.RevisiNo = (findRequest.RevisiNo ?? 0) + 1;
+            }
+
+            // Update proses
+            findRequest.Status = "WaitingApproval";
+            findRequest.Description = Reason;
+            findRequest.UpdatedAt = DateTime.Now;
+
+            await _context.RequestStatus
+                        .Where(rs => rs.ItemRequestId == ItemRequestId)
+                        .ExecuteDeleteAsync();
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Berhasil Mengajukan revisi.";
+            return Redirect("Evaluation");
+        }
     }
 }

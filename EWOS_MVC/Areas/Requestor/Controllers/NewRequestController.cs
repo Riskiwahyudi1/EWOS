@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EWOS_MVC.Areas.Requestor.Controllers
 {
-    [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,Supervisor")]
+    [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,EngineerFabrication")]
     [Area("Requestor")]
     public class NewRequestController : BaseController
     {
@@ -30,20 +30,45 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
            IFormFile? fileDrawing,
            IFormFile? fileQuotation)
         {
+            //validasi modelstate
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 TempData["Error"] = "Terjadi kesalahan: " + string.Join(", ", errors);
                 return View("Index");
             }
-            string userName = ViewBag.UserName?.ToString();
-            var findUser = await _context.Users.FirstOrDefaultAsync(u => u.UserName == userName);
+
+            //validasi user yg login
+            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+            var findUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (findUser == null)
             {
                 TempData["Error"] = "User tidak ditemukan.";
                 return View("Index");
             }
+
+            // validasi kategori request
+            if (itemRequest.MachineCategoryId != 3)
+            {
+                bool isPriceEmpty = itemRequest.ExternalFabCost == null;
+                bool isQuotationEmpty = fileQuotation == null;
+                bool isSAPID = itemRequest.SAPID == null;
+
+                // Bangun pesan error secara efisien
+                string? errorMessage = isPriceEmpty && isQuotationEmpty && isSAPID ? "Price dan Quotation wajib diisi." :
+                                      isPriceEmpty ? "Price wajib diisi." :
+                                      isSAPID ? "Price wajib diisi." :
+                                      isQuotationEmpty ? "Quotation wajib diisi." :
+                                      null; // tidak ada error
+
+                if (errorMessage != null)
+                {
+                    TempData["Error"] = errorMessage;
+                    return RedirectToAction("Index");
+                }
+            }
+
 
             async Task<string?> SaveFileAsync(IFormFile? file, string folderName, string allowedExt, long maxSizeBytes)
             {

@@ -1,0 +1,179 @@
+﻿@model EWOS_MVC.Models.RepeatOrderModel
+@{
+
+    // cek apakah status terakhir reject
+    var isRejected = Model.Status?.ToString().Equals("Reject", StringComparison.OrdinalIgnoreCase) == true;
+
+    var latestReject = (Model.RequestStatus as IEnumerable<dynamic>)?
+        .FirstOrDefault(s =>
+            s.Status != null && s.Status.ToString().Contains("Reject", StringComparison.OrdinalIgnoreCase)
+        );
+}
+        
+<!-- Header berubah warna -->
+<div class="modal-header @(isRejected ? "bg-danger" : "bg-success")">
+    <h5 class="modal-title mb-2 text-white" id="modalApprove">Detail Status</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+</div>
+
+<div class="modal-body">
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <ul class="list-group list-group-flush border-start border-3 @(isRejected ? "border-danger" : "border-success")">
+
+                <!-- Request -->
+                <li class="list-group-item ps-4 position-relative">
+                    <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-success p-2">
+                        <i class="bi bi-person-plus"></i>
+                    </span>
+                    <strong>Request By:</strong> @(Model.Users?.Name ?? "-")
+                    <br><small class="text-muted">@Model.CreatedAt</small>
+                </li>
+
+                <!-- Supervisor -->
+                @{
+                    var approvedStatus = (Model.RequestStatus as IEnumerable<dynamic>)?
+                    .FirstOrDefault(s => s.Status?.ToString() == "EngineerApproved");
+                }
+                <li class="list-group-item ps-4 position-relative">
+                    @if (approvedStatus != null)
+                    {
+                        <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-success p-2">
+                            <i class="bi bi-check-circle"></i>
+                        </span>
+                        <strong>Approved By Engineer:</strong>
+
+                        @(approvedStatus.Users?.Name ?? "-")
+                        <br>
+                        <small class="text-muted">@approvedStatus.CreatedAt</small>
+                    }
+                    else
+                    {
+                        <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-secondary p-2">
+                            <i class="bi bi-clock"></i>
+                        </span>
+                        <strong>Approved By Engineer:</strong>
+
+                        <i class="text-muted">-</i>
+                        <br>
+                        <small class="text-muted">-</small>
+                    }
+                </li>
+
+                <!-- Tim Fabricasi -->
+                @{
+                    var fabApprove = (Model.RequestStatus as IEnumerable<dynamic>)?
+                    .FirstOrDefault(s => s.Status?.ToString() == "FabricationApproved");
+                }
+                <li class="list-group-item ps-4 position-relative">
+                    @if (fabApprove != null)
+                    {
+                        <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-success p-2">
+                            <i class="bi bi-check-circle"></i>
+                        </span>
+                        <strong>Approved By Fabrication Tim:</strong>
+
+                        @(fabApprove.Users?.Name ?? "-")
+                        <br>
+                        <small class="text-muted">@fabApprove.CreatedAt</small>
+                    }
+                    else
+                    {
+                        <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-secondary p-2">
+                            <i class="bi bi-clock"></i>
+                        </span>
+                        <strong>Approved By Fabrication Tim:</strong>
+
+                        <i class="text-muted">-</i>
+                        <br>
+                        <small class="text-muted">-</small>
+                    }
+                </li>
+
+                <!-- Fabrication -->
+                @{
+                    var InFabrication = (Model.RequestStatus as IEnumerable<dynamic>)?
+                    .FirstOrDefault(s => s.Status?.ToString() == "FabricationStarted");
+                }
+                <li class="list-group-item ps-4 position-relative">
+
+                    @if (InFabrication != null)
+                    {
+                        <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-success p-2">
+                            <i class="bi bi-check-circle"></i>
+                        </span>
+                        <strong>Fabrication By:</strong>
+
+                        @(InFabrication.Users?.Name ?? "-")
+                        <br>
+                        <small class="text-muted">@InFabrication.CreatedAt</small>
+                    }
+                    else
+                    {
+                        <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-secondary p-2">
+                            <i class="bi bi-clock"></i>
+                        </span>
+                        <strong>Fabrication By:</strong>
+
+                        <i class="text-muted">-</i>
+                        <br>
+                        <small class="text-muted">-</small>
+                    }
+                </li>
+
+                <!-- Received -->
+                @{
+                    var recivedStatus = (Model.RequestStatus as IEnumerable<dynamic>)?
+                    .FirstOrDefault(s => s.Status?.ToString() == "Close");
+                }
+
+                <li class="list-group-item ps-4 position-relative">
+                    @if (recivedStatus != null)
+                    {
+                        var isFail = recivedStatus.Status?.Contains("Fail", StringComparison.OrdinalIgnoreCase) == true;
+                        var badgeColor = isFail ? "bg-danger" : "bg-success";
+                        var borderColor = isFail ? "border-danger" : "border-success";
+                        var textColor = isFail ? "text-danger" : "text-muted";
+
+                        <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle @badgeColor p-2">
+                            <i class="bi @(isFail ? "bi-x-circle" : "bi-check-circle")"></i>
+                        </span>
+
+                        <strong>Confirmation Close By:</strong> @(recivedStatus.Users?.Name ?? "-")
+                        <br />
+                        <small>@recivedStatus.CreatedAt</small>
+
+                        <div class="mt-2 border-start border-2 @borderColor ps-3">
+                            <div class="@(isFail ? "text-danger" : "")">
+                                <small><strong>Description:</strong> @recivedStatus.Reason</small>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="position-absolute top-50 start-0 translate-middle badge rounded-circle bg-secondary p-2">
+                            <i class="bi bi-clock"></i>
+                        </span>
+
+                        <strong>Confirmation Close By:</strong> <i class="text-muted">-</i>
+                        <br />
+                        <small class="text-muted">-</small>
+
+                        <div class="mt-2 border-start border-2 border-secondary ps-3">
+                            <small><strong>Description:</strong> -</small>
+                        </div>
+                    }
+                </li>
+
+
+
+
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+</div>
+      

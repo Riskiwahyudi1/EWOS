@@ -91,32 +91,14 @@
             font-size: 14px;
         }
     </style>
-    <style>
-         /* loading efek */
-        #globalLoadingOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.6);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000; /* lebih tinggi dari modal */
-        }
-
-            #globalLoadingOverlay .spinner-border {
-                width: 3rem;
-                height: 3rem;
-            }
-    </style>
+  
 </head>
 <body>
     <!-- loading efek -->
     <div id="globalLoadingOverlay">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
+        <div id="loadingBox">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div id="loadingText"><i>Loading...</i></div>
         </div>
     </div>
     <div class="wrapper">
@@ -146,7 +128,7 @@
                 <a href="/AdminSystem/UserList" class="@(Context.Request.Path == "/AdminSystem/UserList" ? "active" : "")">
                     <i class="bi bi-people-fill"></i> User List
                 </a>
-                <a href="/AdminSystem/WeeksFabrication" class="@(Context.Request.Path == "/AdminSystem/WeeksFabrication" ? "active" : "")">
+                <a href="/AdminSystem/WeekFabrication" class="@(Context.Request.Path == "/AdminSystem/WeekFabrication" ? "active" : "")">
                     <i class="bi bi-calendar-check"></i> Weeks Fabrication
                 </a>
                  <a href="/AdminSystem/YearsSetting" class="@(Context.Request.Path == "/AdminSystem/YearsSetting" ? "active" : "")">
@@ -215,7 +197,7 @@
                     let spinnerTimeout = setTimeout(() => {
                         const overlay = document.getElementById("globalLoadingOverlay");
                         if (overlay) overlay.style.display = "flex";
-                    }, 1000); 
+                    }, 1000);
 
                     // Kirim form setelah submit
                     form.submit();
@@ -223,7 +205,6 @@
             });
         });
     </script>
-
   @*   @RenderBody()
     <partial name="_NotificationPartial" /> *@
     @RenderSection("Scripts", required: false)

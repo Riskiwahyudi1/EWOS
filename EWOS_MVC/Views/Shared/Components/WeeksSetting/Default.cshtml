@@ -1,0 +1,19 @@
+﻿@model List<EWOS_MVC.Models.WeeksSettingModel>
+
+@{
+     var today = DateTime.Now;
+
+    var currentWeek = Model.FirstOrDefault(w => w.StartDate <= today && w.EndDate >= today);
+    int? selectedId = ViewData["SelectedId"] as int?;
+ }
+
+<select name="WeekSettingId" class="form-select" aria-label="Default select example" required>
+    <option value="">-- Pilih Minggu --</option>
+    @foreach (var w in Model)
+    {
+        <option value="@w.Id" selected="@(w.Id == selectedId ? "selected" : null)">
+            Week @w.Week
+        </option>
+
+    }
+</select>

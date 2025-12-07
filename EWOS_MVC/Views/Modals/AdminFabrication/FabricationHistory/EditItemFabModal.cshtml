@@ -1,0 +1,49 @@
+﻿@model EWOS_MVC.Models.ItemFabricationModel
+
+<div class="modal-header bg-warning text-white">
+    <h5 class="modal-title">Edit Data</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form method="post" action="/FabricationHistory/Edit">
+    @Html.AntiForgeryToken()
+
+    <div class="modal-body">
+
+        <input type="hidden" name="ItemFabricationId" value="@Model.Id" />
+        <input type="hidden" name="RepeatOrderId" value="@Model.RepeatOrder?.Id" />
+
+        <div class="mb-3">
+            <label class="form-label">Part Name</label>
+            <input type="text" class="form-control" value="@Model.ItemRequest?.PartName" readonly />
+        </div>
+        @{
+            int QtyReq = Model.RepeatOrder.QuantityReq;
+            int done = Model.RepeatOrder.QuantityDone ?? 0;
+            int Onprogress = Model.RepeatOrder.QtyOnFab ?? 0;
+
+            int waitingFab = Math.Abs(QtyReq - (done + Onprogress));
+        }
+        <div class="mb-3">
+            <label class="form-label">Quantity Waiting Fabrication</label>
+            <input type="text" class="form-control" value="@waitingFab" readonly />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Quantity</label>
+            <input type="number"
+                   class="form-control"
+                   name="Quantity"
+                   value="@Model.Quantity"
+                   min="1"
+                   max="@(waitingFab + Model.Quantity)"
+                   required />
+        </div>
+
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-warning">Simpan</button>
+    </div>
+</form>

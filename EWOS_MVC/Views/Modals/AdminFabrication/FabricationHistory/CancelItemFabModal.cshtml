@@ -1,0 +1,22 @@
+﻿@model EWOS_MVC.Models.ItemFabricationModel
+
+<div class="modal-header bg-danger text-white">
+    <h5 class="modal-title" >Batalkan Fabrikasi</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<form method="post" action="/FabricationHistory/Cancel">
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        <p>Yakin ingin batalkan fabrikasi untuk <b>"@Model.ItemRequest?.PartName"</b></p>
+
+        <!-- Hidden untuk kirim dataa -->
+        <input type="hidden" name="ItemRequestId" value="@Model.ItemRequest?.Id" />
+        <input type="hidden" name="RepeatOrderId" value="@Model.RepeatOrder?.Id" />
+        <input type="hidden" name="itemFabId" value="@Model.Id" />
+
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary">Ya</button>
+    </div>
+</form>

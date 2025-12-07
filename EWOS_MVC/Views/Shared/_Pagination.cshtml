@@ -1,0 +1,70 @@
+﻿@model dynamic
+
+@{
+    int currentPage = Model.CurrentPage;
+    int totalPages = Model.TotalPages;
+    string search = Model.Search ?? "";
+    int maxVisible = 5;
+
+    int startPage = Math.Max(1, currentPage - 2);
+    int endPage = Math.Min(totalPages, startPage + maxVisible - 1);
+
+    if (endPage - startPage < maxVisible - 1)
+    {
+        startPage = Math.Max(1, endPage - maxVisible + 1);
+    }
+}
+
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-end">
+
+        <!-- Previous -->
+        <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+            <a class="page-link" href="@Url.Action(null, new { page = currentPage - 1, search = search })">
+                Previous
+            </a>
+        </li>
+
+        <!-- First page + ... -->
+        @if (startPage > 1)
+        {
+            <li class="page-item">
+                <a class="page-link" href="@Url.Action(null, new { page = 1, search = search })">1</a>
+            </li>
+
+            @if (startPage > 2)
+            {
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            }
+        }
+
+        <!-- Middle pages -->
+        @for (int i = startPage; i <= endPage; i++)
+        {
+            <li class="page-item @(i == currentPage ? "active" : "")">
+                <a class="page-link" href="@Url.Action(null, new { page = i, search = search })">@i</a>
+            </li>
+        }
+
+        <!-- ... + Last page -->
+        @if (endPage < totalPages)
+        {
+            @if (endPage < totalPages - 1)
+            {
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            }
+
+            <li class="page-item">
+                <a class="page-link" href="@Url.Action(null, new { page = totalPages, search = search })">@totalPages</a>
+            </li>
+        }
+
+        <!-- Next -->
+        <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+            <a class="page-link" href="@Url.Action(null, new { page = currentPage + 1, search = search })">
+                Next
+            </a>
+        </li>
+
+    </ul>
+</nav>

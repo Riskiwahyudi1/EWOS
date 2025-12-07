@@ -1,0 +1,21 @@
+﻿﻿@{
+var currentMonth = DateTime.Now.Month;
+}
+
+<select name="MonthSelect" class="form-select" aria-label="Default select example" required>
+    <option value="" disabled>-- Pilih Bulan --</option>
+
+    @for (int i = 1; i <= 12; i++)
+    {
+        var monthName = new DateTime(2025, i, 1).ToString("MMMM");
+
+        if (i == currentMonth)
+        {
+            <option value="@i" selected>@monthName</option>
+        }
+        else
+        {
+            <option value="@i">@monthName</option>
+        }
+    }
+</select>

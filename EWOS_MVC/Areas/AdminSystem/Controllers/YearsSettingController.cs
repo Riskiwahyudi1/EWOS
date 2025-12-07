@@ -9,6 +9,7 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
     [Area("AdminSystem")]
     public class YearsSettingController : BaseController
     {
+
         private readonly AppDbContext _context;
         public YearsSettingController(AppDbContext context)
         {
@@ -30,7 +31,8 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
                     string.IsNullOrEmpty(keyword) ||
                     y.Year.ToString().Contains(keyword)
                 )
-                .Select(y => new {
+                .Select(y => new
+                {
                     y.Id,
                     y.Year,
                     y.StartDate,
@@ -108,3 +110,4 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
         }
     }
 }
+

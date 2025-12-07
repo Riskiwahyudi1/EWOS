@@ -1,0 +1,10 @@
+﻿# .NET build output
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+*.cache
+*.log
+*.user
+*.vs/

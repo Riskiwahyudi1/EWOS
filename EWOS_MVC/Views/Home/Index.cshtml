@@ -2,6 +2,167 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h3 class="display-4">Welcome to Inhouse Fabrication System</h3>
-</div>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #e9eef7 0%, #ffffff 100%);
+            min-height: 100vh;
+        }
+
+        .dashboard-title {
+            font-weight: 700;
+            color: #2a2d3e;
+            margin-top: 20px;
+            letter-spacing: 1px;
+        }
+
+        /* Card Modern */
+        .stat-card {
+            transition: 0.3s ease-in-out;
+            border: none;
+            border-radius: 15px;
+        }
+
+            .stat-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+            }
+
+        .icon-wrapper {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        /* Panduan */
+        .guide-card {
+            border-radius: 15px;
+        }
+    </style>
+
+
+    <div class="container py-5 text-center">
+
+        <h3 class="display-5 dashboard-title">Welcome to Inhouse Fabrication System</h3>
+        <p class="text-muted">Dashboard ringkas & informatif untuk monitoring proses fabrikasi</p>
+
+        <div class="container mt-4">
+
+            <div class="row g-4 justify-content-center">
+
+                <!-- Total Request Fabrikasi -->
+                <div class="col-md-4">
+                    <div class="card stat-card shadow-sm p-3">
+                        <div class="card-body text-center">
+                            <div class="icon-wrapper bg-primary text-white shadow-sm">
+                                <i class="bi bi-clipboard-plus"></i>
+                            </div>
+                            <h6 class="text-secondary mb-1">Total Request Fabrikasi</h6>
+                            <h2 class="fw-bold text-primary">125</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Repeat Order -->
+                <div class="col-md-4">
+                    <div class="card stat-card shadow-sm p-3">
+                        <div class="card-body text-center">
+                            <div class="icon-wrapper bg-warning text-white shadow-sm">
+                                <i class="bi bi-repeat"></i>
+                            </div>
+                            <h6 class="text-secondary mb-1">Total Repeat Order</h6>
+                            <h2 class="fw-bold text-warning">45</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fabrikasi Selesai -->
+                <div class="col-md-4">
+                    <div class="card stat-card shadow-sm p-3">
+                        <div class="card-body text-center">
+                            <div class="icon-wrapper bg-success text-white shadow-sm">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                            <h6 class="text-secondary mb-1">Fabrikasi Selesai</h6>
+                            <h2 class="fw-bold text-success">98</h2>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        <!-- FAQ Section -->
+        <div class="card shadow-sm border-0 guide-card mt-5 p-4">
+            <h4 class="text-primary"><i class="bi bi-question-circle"></i> FAQ – Panduan Penggunaan System</h4>
+            <hr>
+
+            <div class="accordion" id="faqAccordion">
+
+                <!-- FAQ 1 -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faqOneHeading">
+                        <button class="accordion-button " type="button" data-bs-toggle="collapse" data-bs-target="#faqOne" aria-expanded="true">
+                            Bagaimana cara membuat request baru?
+                        </button>
+                    </h2>
+                    <div id="faqOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <ol class="text-start mb-0">
+                                <li>Buka menu <strong>Form Request</strong> untuk membuat request fabrikasi baru.</li>
+                                <li>Isi seluruh data item seperti nama produk, spesifikasi, jumlah, dan tanggal butuh.</li>
+                                <li>Klik <strong>Submit</strong> untuk mengirim request ke bagian fabrikasi.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ 2 -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faqTwoHeading">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqTwo">
+                            Bagaimana cara melakukan repeat order?
+                        </button>
+                    </h2>
+                    <div id="faqTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <ol class="text-start mb-0">
+                                <li>Buka menu <strong>List Product</strong>.</li>
+                                <li>Cari produk yang sudah pernah difabrikasi menggunakan kolom pencarian.</li>
+                                <li>Pilih produk yang ingin di-repeat.</li>
+                                <li>Klik tombol <strong>Request</strong> lalu masukan jumlah dan tanggal butuh.</li>
+                                <li>Submit permintaan repeat order.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ 3 -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faqThreeHeading">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqThree">
+                            Di mana saya bisa melihat status request?
+                        </button>
+                    </h2>
+                    <div id="faqThree" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <ol class="text-start mb-0">
+                                <li>Buka menu <strong>My Request</strong>.</li>
+                                <li>Pilih jenis request (Evaluasi atau Repeat Order).</li>
+                                <li>Lihat status request: Waiting, Proses, atau Selesai.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        </div>
+    </div>
+

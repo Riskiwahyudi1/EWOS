@@ -34,17 +34,13 @@
             <div class="form-container">
                 <h3 class="text-center">Form New Request</h3>
 
-                @if (TempData["Success"] != null)
-                {
-                    <div class="alert alert-success py-2">@TempData["Success"]</div>
-                }
 
                 @if (TempData["Error"] != null)
                 {
-                    <div class="alert alert-danger py-2">@TempData["Error"]</div>
+                    <div class="alert alert-danger py-2" id="showError">@TempData["Error"]</div>
                 }
 
-                <form method="post" action="/Requestor/NewRequest/CreateNewRequest" enctype="multipart/form-data">
+                <form method="post" action="/Requestor/NewRequest/CreateNewRequest" enctype="multipart/form-data" id="form">
                     @Html.AntiForgeryToken()
                     <div class="row g-3 align-items-start">
 
@@ -58,41 +54,64 @@
                         <!-- Part Name -->
                         <div class="col-12 col-sm-6">
                             <label for="PartName" class="form-label">
-                                <i class="bi bi-box-seam me-1"></i> Item Name
+                                <i class="bi bi-pencil-square"></i> Item Name
                             </label>
-                            <input type="text" class="form-control" id="PartName" name="PartName" placeholder="Input Item Name" />
+                            <input type="text" class="form-control" id="PartName" name="PartName" placeholder="Input Item Name"/>
                         </div>
-                        <!-- Quantity -->
-                        <div class="col-6 col-sm-3" id="qty">
-                            <label for="Jumlah" class="form-label">
-                                <i class="bi bi-123 me-1"></i> Quantity
+                        <!-- SAPID -->
+                        <div class="col-12 col-sm-6 " id="sapid">
+                            <label for="SAPID" class="form-label">
+                                <i class="bi bi-123"></i> SAPID
                             </label>
-                            <input type="number" class="form-control" id="quantity" value="1" readonly />
+                            <input type="number" class="form-control" id="SAPID" name="SAPID" placeholder="Input SAPID" />
                         </div>
-                        <!-- Unit -->
-                        <div class="col-6 col-sm-3" id="unitcontainer">
-                            <label for="unit" class="form-label">
-                                <i class="bi bi-list me-1"></i> Unit
+                        <!-- External Fab Price -->
+                        <div class="col-12 col-sm-6" id="price">
+                            <label for="ExternalFabCost" class="form-label">
+                                <i class="bi bi-currency-dollar"></i> External Price
                             </label>
-                            <select class="form-select" id="unit" name="Unit">
-                                <option value="Pcs">Pcs</option>
-                                <option value="Set">Set</option>
-                            </select>
+                            <input type="number" class="form-control" id="ExternalFabCost" name="ExternalFabCost" placeholder="Input Price" />
+                        </div>
+                        <!-- Container Quantity dan Unit -->
+                        <div class="col-12 col-sm-6" id="qty">
+                            <div class="row g-2 align-items-end">
+                                <!-- Quantity -->
+                                <div class="col-6">
+                                    <label for="quantity" class="form-label fw-semibold">
+                                        <i class="bi bi-1-circle"></i> Quantity
+                                    </label>
+                                    <input type="number" class="form-control" id="quantity" value="1" readonly />
+                                </div>
+
+                                <!-- Unit -->
+                                <div class="col-6">
+                                    <label for="unit" class="form-label fw-semibold">
+                                        <i class="bi bi-list me-1"></i> Unit
+                                    </label>
+                                    <select class="form-select" id="unit" name="Unit">
+                                        <option value="Pcs">Pcs</option>
+                                        <option value="Set">Set</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-text mt-1">
+                                Can only submit 1 pcs during the evaluation period.
+                            </div>
                         </div>
 
                         <!-- Target Selesai -->
                         <div class="col-12 col-sm-6">
                             <label for="crd" class="form-label">
-                                <i class="bi bi-calendar-event me-1"></i> Date Required
+                                <i class="bi bi-calendar-event-fill me-1"></i> Date Required
                             </label>
-                            <input type="date" class="form-control" id="crd" name="CRD" />
+                            <input type="date" class="form-control" id="crd" name="CRD" required/>
                             <div class="form-text text-muted">Input the date when you need this request ready.</div>
                         </div>
 
                         <!-- File design -->
                         <div class="col-12 col-sm-6">
                             <label for="fileDesign" class="form-label">
-                                <i class="bi bi-file-earmark-text me-1"></i> File Design
+                                <i class="bi bi-file-earmark-zip-fill"></i> File Design
                             </label>
                             <input class="form-control" type="file" id="fileDesign" name="fileDesign" />
                             <div class="form-text text-muted text-sm">Max 1MB, .zip only is allowed.</div>
@@ -101,7 +120,7 @@
                         <!-- File Drawing -->
                         <div class="col-12 col-sm-6">
                             <label for="fileDrawing" class="form-label">
-                                <i class="bi bi-file-earmark-text me-1"></i> File Drawing
+                                <i class="bi bi-file-earmark-text-fill me-1"></i> File Drawing
                             </label>
                             <input class="form-control" type="file" id="fileDrawing" name="fileDrawing" />
                             <div class="form-text text-muted text-sm">Max 1MB, .pdf only is allowed.</div>
@@ -110,7 +129,7 @@
                         <!-- File Quotation -->
                         <div class="col-12 col-sm-6" id="quatationcontainer">
                             <label for="fileQuotation" class="form-label">
-                                <i class="bi bi-file-earmark-spreadsheet me-1"></i> File Quotation
+                                <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> File Quotation
                             </label>
                             <input class="form-control" type="file" id="fileQuotation" name="fileQuotation" />
                             <div class="form-text text-muted text-sm">Max 1MB, .pdf only is allowed.</div>
@@ -121,7 +140,7 @@
                             <label for="description" class="form-label">
                                 <i class="bi bi-chat-left-text-fill me-1"></i> Deskripsi
                             </label>
-                            <textarea class="form-control" id="description" name="Description" rows="3" placeholder="Input Deskripsi"></textarea>
+                            <textarea class="form-control" id="description" name="Description" rows="3" placeholder="Input Deskripsi " required></textarea>
                         </div>
 
                         <!-- Submit Button -->
@@ -189,24 +208,70 @@
     document.addEventListener("DOMContentLoaded", function() {
         const kategori = document.getElementById("MachineCategoryId");
         const jumlah = document.getElementById("qty");
-        const unit = document.getElementById("unitcontainer");
+        const price = document.getElementById("price");
+        const sapid = document.getElementById("sapid");
         const quatation = document.getElementById("quatationcontainer");
+        const showError = document.getElementById("showError");
+        const form = document.getElementById("form");
 
-        function updateVisibility() {
-            if (kategori.value === "3") {
-            unit.classList.add("d-none");
-            jumlah.classList.add("d-none");
-            quatation.classList.add("d-none");
-        } else {
-            unit.classList.remove("d-none");
-            jumlah.classList.remove("d-none");
-            quatation.classList.remove("d-none");
-        }
-        }
+              function updateVisibility() {
+                if (kategori.value === "3") {
+
+                    price.classList.add("d-none");
+                    sapid.classList.add("d-none");
+                    jumlah.classList.add("d-none");
+                    quatation.classList.add("d-none");
+                } else {
+                    price.classList.remove("d-none");
+                    sapid.classList.remove("d-none");
+                    jumlah.classList.remove("d-none");
+                    quatation.classList.remove("d-none");
+                }
+            }
+
 
         updateVisibility();
 
         kategori.addEventListener("change", updateVisibility);
+        // Validasi sebelum submit
+            form.addEventListener("submit", function(e) {
+                if (kategori.value !== "3") {
+                    const priceInput = price.querySelector("input");   
+                    const priceValue = priceInput.value.trim();
+
+                    const quatationInput = quatation.querySelector("input");
+                    const quatationValue = quatationInput.files.length;     
+
+                    const sapidInput = sapid.querySelector("input");       
+                    const sapidValue = sapidInput.value.trim();
+
+                    if (!priceValue && !quatationValue && !sapidValue) {
+                            showError.innerHTML = "Price, Quotation, dan SAPID wajib diisi!";
+                            e.preventDefault();
+                            return false;
+                        } else if (!priceValue) {
+                            showError.innerHTML = "Price wajib diisi!";
+                            e.preventDefault();
+                            return false;
+                        } else if (!quatationValue) {
+                            showError.innerHTML = "Quotation wajib diisi!";
+                            e.preventDefault();
+                            return false;
+                        } else if (!sapidValue) {
+                            showError.innerHTML = "SAPID wajib diisi!";
+                            e.preventDefault();
+                            return false;
+                        } else {
+                            showError.innerHTML = ""; 
+                            return false;
+                        }
+                    } else {
+                        showError.innerHTML = "";
+
+                    }
+            });
+
+    
     });
 </script>
 

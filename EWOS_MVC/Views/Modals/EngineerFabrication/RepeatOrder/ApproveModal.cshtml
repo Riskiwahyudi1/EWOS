@@ -1,0 +1,29 @@
+﻿@model EWOS_MVC.Models.RepeatOrderModel
+
+<div class="modal-header bg-success">
+    <h5 class="modal-title mb-2 text-white" >Approve Request</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+</div>
+<form method="post" action="/EngineerFabrication/Approval/Approve" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    
+    <div class="modal-body">
+        <div class="form-group">
+            <label class="my-2">Id Request</label>
+            <input class="form-control" value="@Model.Id" readonly />
+            <span  class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label class="my-2">Item Name</label>
+            <input type="hidden" name="RepeatOrderId" value="@Model.Id" />
+            <input type="hidden" name="ItemRequestId" value="@Model.ItemRequests.Id" />
+            <input name="PartName" class="form-control" value="@Model.ItemRequests.PartName" readonly />
+            <span  class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-success">Approve</button>
+    </div>
+</form>

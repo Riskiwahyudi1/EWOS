@@ -1,0 +1,119 @@
+﻿@model EWOS_MVC.Models.ItemRequestModel
+
+<div class="modal-header bg-warning text-white">
+    <h5 class="modal-title" >Edit Data</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+</div>
+<form method="post" action="/AdminFabrication/Request/Edit" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        <input type="hidden" name="Id" value="@Model.Id" />
+        <input type="hidden" name="RedirectBack" value="/Requestor/listProduct" />
+        <input type="hidden" name="Description" value="@Model.Description" />
+        <div class="form-group mb-3">
+            <label>Id Request</label>
+            <input name="Id" class="form-control" value="@Model.Id" readonly />
+        </div>
+        <div class="form-group mb-3">
+            <label>Part Name</label>
+            <input name="PartName" class="form-control" value="@Model.PartName" required />
+        </div>
+
+        <div class="form-group mb-3">
+            <label asp-for="MachineCategories">Machine Category</label>
+            @await Component.InvokeAsync("MachineCategories", new { selectedId = Model.MachineCategoryId })
+            <span asp-validation-for="MachineCategories" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label>External Fab Cost($)</label>
+            <input name="ExternalFabCost" class="form-control" type="number" step="0.01" placeholder="0,00" value="@Model.ExternalFabCost" />
+        </div>
+        <div class="form-group mb-3">
+            <label>Fabrication Time</label>
+            <input name="FabricationTime" class="form-control" type="number" step="0.01" placeholder="0,00" value="@Model.FabricationTime" />
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="RawMaterials">Raw Material</label>
+            @await Component.InvokeAsync("RawMaterials", new { selectedId = Model.RawMaterialId, machineCategoryId = Model.MachineCategoryId })
+            <span asp-validation-for="RawMaterials" class="text-danger"></span>
+        </div>
+        @if (Model.MachineCategoryId == 2)
+        {
+            <div class="form-group mb-3">
+                <label>Weight</label>
+                <input name="Weight" class="form-control" type="number" step="0.01" placeholder="0,00" value="@(Model.Weight?.ToString("0.00") ?? "")" />
+            </div>
+        }
+        <div class="form-group mb-3">
+            <label>Part Code</label>
+            <input name="PartCode" class="form-control" placeholder="Input Part Code" value="@Model.PartCode" />
+        </div>
+        <div class="form-group mb-3" id="unitcontainer">
+            <label for="unit" class="form-label">
+                <i class="bi bi-list me-1"></i> Unit
+            </label>
+            <select class="form-select" id="unit" name="Unit">
+                <option selected value="@Model.Unit">@Model.Unit</option>
+
+                @if (Model.Unit != "Pcs")
+                {
+                    <option value="Pcs">Pcs</option>
+                }
+                @if (Model.Unit != "Set")
+                {
+                    <option value="Set">Set</option>
+                }
+            </select>
+        </div>
+        <div class="form-group mb-3" id="unitcontainer">
+            <label for="unit" class="form-label">
+                <i class="bi bi-currency-dollar"></i> Saving Calculation
+            </label>
+            <select class="form-select" id="unit" name="IsCalculateSaving">
+                @if (Model.IsCalculateSaving)
+                {
+                    <option value="true" selected>Yes</option>
+                    <option value="false">No</option>
+                }
+                else
+                {
+                    <option value="true">Yes</option>
+                    <option value="false" selected>No</option>
+                }
+            </select>
+
+
+        </div>
+
+        @* <!-- File Design -->
+        <div class="form-group mb-3">
+            <label for="fileDesign" class="form-label">
+                <i class="bi bi-file-earmark-text me-1"></i> Update File Design
+            </label>
+            <input class="form-control" type="file" id="fileDesign" name="fileDesign" />
+            <div class="form-text text-muted text-sm">Max 1MB, .zip only is allowed.</div>
+        </div> *@
+
+        <!-- File Drawing -->
+        <div class="form-group mb-3">
+            <label for="fileDrawing" class="form-label">
+                <i class="bi bi-file-earmark-text me-1"></i> Update File Drawing
+            </label>
+            <input class="form-control" type="file" id="fileDrawing" accept=".pdf" name="fileDrawing" />
+            <div class="form-text text-muted text-sm">Max 1MB, .pdf only is allowed.</div>
+        </div>
+
+        <!-- File Quotation -->
+        <div class="form-group mb-3" id="quatationcontainer">
+            <label for="fileQuotation" class="form-label">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Update File Quotation
+            </label>
+            <input class="form-control" type="file" id="fileQuotation" accept=".pdf" name="fileQuotation" />
+            <div class="form-text text-muted text-sm">Max 1MB, .pdf only is allowed.</div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+    </div>
+</form>

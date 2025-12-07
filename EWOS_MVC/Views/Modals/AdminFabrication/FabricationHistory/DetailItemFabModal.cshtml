@@ -1,0 +1,96 @@
+﻿@model EWOS_MVC.Models.ItemFabricationModel
+
+<div class="modal-header bg-info text-white">
+    <h5 class="modal-title">Detail Data Fabrikasi</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<!-- Modal Body -->
+<div class="modal-body">
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle w-100">
+            <tbody>
+               
+                @if(Model.RepeatOrderId != null)
+                {
+                <tr>
+                    <th class="col-sm-4">Repeat Order Id</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.RepeatOrder?.Id
+                    </td>
+                </tr>
+                    
+                }
+                <tr>
+                    <th class="col-sm-4">Part Request Id</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.ItemRequest?.Id
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Purchase Id</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.ItemRequest?.Id
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Part Name</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.ItemRequest?.PartName
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Fab Code</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        <small>@Model.FabCode</small>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th class="col-sm-4">Quantity</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.Quantity @Model.ItemRequest?.Unit
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Machine</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.Machine?.MachineName
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th class="col-sm-4">External Cost/Pcs(USD)</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @((Model.ItemRequest?.ExternalFabCost != null) ? Model.ItemRequest?.ExternalFabCost
+                            : "-")
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Saving Cost(USD)</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @((Model.TotalSaving != null)
+                            ? Model.TotalSaving
+                            : "-")
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Fabrication Time</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.FabricationTime
+                    </td>
+                </tr>
+                <tr>
+                    <th class="col-sm-4">Request Date</th>
+                    <td class="col-sm-8" style="word-break: break-word;">
+                        @Model.CreatedAt.ToString("dd-MM-yyyy")
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Footer -->
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+</div>

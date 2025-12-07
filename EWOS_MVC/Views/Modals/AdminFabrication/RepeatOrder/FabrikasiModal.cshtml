@@ -1,0 +1,42 @@
+﻿@model EWOS_MVC.Models.RepeatOrderModel
+
+<div class="modal-header bg-primary">
+    <h5 class="modal-title">Fabrikasi</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+</div>
+<div class="modal-body">
+    <form method="post" action="/AdminFabrication/Request/AddFabrikasiRo">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="RepeatOrderId" value="@Model.Id" />
+        <input type="hidden" name="ItemRequestId" value="@Model.ItemRequests.Id" />
+        <div class="form-group mb-3">
+            <label for="MachineId" class="mb-2">Mesin Fabrikasi</label>
+            @await Component.InvokeAsync("MachineList", new { selectedId = Model.ItemRequests.MachineCategoryId })
+            <span class="text-danger"></span>
+        </div>
+        @{
+            int QtyReq = Model.QuantityReq;
+            int done = Model.QuantityDone ?? 0;
+            int Onprogress = Model.QtyOnFab ?? 0;
+
+            int waitingFab = Math.Abs(QtyReq - (done + Onprogress));
+        }
+        <div class="form-group mb-3">
+            <label for="Quantity" class="mb-2">Waiting Quantity</label>
+
+            <input type="number" min="1" max="@waitingFab" placeholder="Masukan jumlah" class="form-control" value="@waitingFab" readonly />
+            <span class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label for="Quantity" class="mb-2">Quantity</label>
+           
+            <input name="Quantity" type="number" min="1" max="@waitingFab" placeholder="Masukan jumlah" class="form-control" value="" required />
+            <span class="text-danger"></span>
+        </div>
+      
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-primary">Proses</button>
+        </div>
+    </form>
+</div>

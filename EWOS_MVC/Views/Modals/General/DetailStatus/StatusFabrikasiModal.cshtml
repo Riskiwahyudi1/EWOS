@@ -1,0 +1,60 @@
+﻿@model List<EWOS_MVC.Models.ItemFabricationModel>
+
+<!-- Modal Header -->
+<div class="modal-header bg-info text-white">
+    <h5 class="modal-title">Progress Fabrikasi</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+</div>
+
+<div class="modal-body">
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped table-hover align-middle">
+            <thead class="table-light">
+                <tr class="text-center">
+                    <th style="width: 40px;">No</th>
+                    <th style="width: 60px;">Qty</th>
+                    <th style="width: 60px;">Week</th>
+                    <th style="width: 110px;">Date</th>
+                    <th style="width: 180px;">Fabrication By</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int index = 1;
+                }
+
+                @if (Model == null || !Model.Any())
+                {
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-3">
+                            Tidak ada data.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var rm in Model)
+                    {
+                        <tr>
+                            <td class="text-center">@index</td>
+                            <td class="text-center">@rm.Quantity</td>
+                            <td class="text-center">@rm.WeeksSetting?.Week</td>
+                            <td class="text-center">
+                                @rm.CreatedAt.ToString("dd MMM yyyy")
+                            </td>
+                            <td class="text-center">@rm.Users.Name</td>
+                        </tr>
+                        index++;
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- Modal Footer -->
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+</div>

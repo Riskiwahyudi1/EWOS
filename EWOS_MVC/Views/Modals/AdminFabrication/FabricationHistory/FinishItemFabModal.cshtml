@@ -1,0 +1,36 @@
+﻿@model EWOS_MVC.Models.ItemFabricationModel
+
+<div class="modal-header bg-success text-white">
+    <h5 class="modal-title">Finish Fabrikasi</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<form method="post" action="/FabricationHistory/Finish" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <div class="modal-body">
+        <div class="mb-3">
+            <label class="form-label">Request Name</label>
+            <input type="text" name="fileCOC" id="fileCOC" class="form-control" value="@Model.ItemRequest?.PartName" readonly />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Fabrication Code</label>
+            <input type="text" name="FabCode" id="FabCode" class="form-control" value="" placeholder="EXAMPLE: WS-CODE FAB-WWYY-XXXX" />
+        </div>
+        <!-- Hidden Inputs -->
+        <input type="hidden" name="ItemRequestId" value="@Model.ItemRequest?.Id" />
+        <input type="hidden" name="RepeatOrderId" value="@Model.RepeatOrder?.Id" />
+        <input type="hidden" name="Id" value="@Model.Id" />
+
+        <div class="mb-3">
+            <label class="form-label">Upload COC (Format .pdf, max 1MB)</label>
+            <input type="file" name="fileCOC" id="fileCOC" class="form-control" accept=".pdf" />
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary">Ya</button>
+    </div>
+</form>
+

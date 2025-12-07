@@ -33,17 +33,23 @@ namespace EWOS_MVC.Models
         [Required(ErrorMessage = "Quantity Request wajib diisi")]
         public int QuantityReq { get; set; }
 
+        public int? QtyOnFab { get; set; }
+
+        public string? COCPath{ get; set; }
+
         public int? QuantityDone { get; set; }
 
         [Required(ErrorMessage = "Deskripsi wajib diisi")]
         public string Description { get; set; }
 
-     
+
         public string? Status { get; set; }
         [Required]
         public DateTime CreatedAt { get; set; }
 
         [Required]
         public DateTime UpdatedAt { get; set; }
+
+        public ICollection<RequestStatusModel> RequestStatus { get; set; } = new List<RequestStatusModel>();
     }
 }
