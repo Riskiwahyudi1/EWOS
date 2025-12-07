@@ -295,7 +295,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 throw new Exception($"Ukuran file melebihi batas 1MB.");
 
             // Folder upload
-            var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/COC");
+            var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "Storage/Uploads/COC");
 
             if (!Directory.Exists(uploadFolder))
                 Directory.CreateDirectory(uploadFolder);
@@ -305,7 +305,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             {
                 if (!string.IsNullOrEmpty(repeatOrder?.COCPath))
                 {
-                    var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", repeatOrder.COCPath.TrimStart('/'));
+                    var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "Storage", repeatOrder.COCPath.TrimStart('/'));
                     if (System.IO.File.Exists(oldPath))
                         System.IO.File.Delete(oldPath);
                 }
@@ -314,7 +314,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             {
                 if (!string.IsNullOrEmpty(itemRequest?.COCPath))
                 {
-                    var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", itemRequest.COCPath.TrimStart('/'));
+                    var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "Storage", itemRequest.COCPath.TrimStart('/'));
                     if (System.IO.File.Exists(oldPath))
                         System.IO.File.Delete(oldPath);
                 }

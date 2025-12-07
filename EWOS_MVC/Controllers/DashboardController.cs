@@ -90,13 +90,13 @@ namespace EWOS_MVC.Controllers
             // 4. Buat categories dan series
             var monthReq = new List<string>();
             var qtyReqByMonth = new List<int>();
+            var cumulativeReqQty = new List<int>();
+            int runningTotal = 0;
 
             foreach (var m in allMonths)
             {
                 // Nama bulan (Jan, Feb, dst)
-                monthReq.Add(
-                    new DateTime(m.Year, m.Month, 1).ToString("MMMM")
-                );
+                monthReq.Add(new DateTime(m.Year, m.Month, 1).ToString("MMMM"));
 
                 // Ambil jumlah Item Request di bulan ini
                 int itemCount = itemReqPerMonth
@@ -109,7 +109,12 @@ namespace EWOS_MVC.Controllers
                     .Sum(x => x.TotalQty);
 
                 // Gabungkan keduanya
-                qtyReqByMonth.Add(itemCount + repeatQty);
+                int total = itemCount + repeatQty;
+                qtyReqByMonth.Add(total);
+
+                // Hitung cumulative
+                runningTotal += total;
+                cumulativeReqQty.Add(runningTotal);
             }
 
 
@@ -233,6 +238,7 @@ namespace EWOS_MVC.Controllers
                 machineUtilization,
                 monthReq,
                 qtyReqByMonth,
+                cumulativeReqQty,
                 monthLabels,
                 savingByMonth,
                 savingByCategory,
@@ -309,6 +315,8 @@ namespace EWOS_MVC.Controllers
 
             var monthReq = new List<string>();
             var qtyReqByMonth = new List<int>();
+            var cumulativeReqQty = new List<int>();
+            int runningTotal = 0;
 
             foreach (var m in allMonths)
             {
@@ -322,7 +330,13 @@ namespace EWOS_MVC.Controllers
                     .Where(x => x.Year == m.Year && x.Month == m.Month)
                     .Sum(x => x.TotalQty);
 
-                qtyReqByMonth.Add(itemCount + repeatQty);
+                // Gabungkan keduanya
+                int total = itemCount + repeatQty;
+                qtyReqByMonth.Add(total);
+
+                // Hitung cumulative
+                runningTotal += total;
+                cumulativeReqQty.Add(runningTotal);
             }
 
             // -------------------------------------------------------
@@ -333,7 +347,7 @@ namespace EWOS_MVC.Controllers
             var calculatenewNRo = totalNewReq + totalRo;
 
             var totalDoneNewReq = allDataItemnewReq.Where(s => s.Status == "Maspro").Count();
-            var totalDoneRo = allDataItemRO.Where(s => s.Status == "Close").Sum(q => q.QuantityReq);
+            var totalDoneRo = allDataItemRO.Where(s => s.Status == "Close" || s.Status == "Done").Sum(q => q.QuantityReq);
             var calculatFabDone = totalDoneNewReq + totalDoneRo;
 
 
@@ -427,8 +441,8 @@ namespace EWOS_MVC.Controllers
             {
                 potentialSaving,
                 machineUtilization,
-               
                 monthReq,
+                cumulativeReqQty,
                 qtyReqByMonth,
                 monthLabels,
                 savingByMonth,

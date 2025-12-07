@@ -30,6 +30,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
            IFormFile? fileDrawing,
            IFormFile? fileQuotation)
         {
+            Task.Delay(5000);
             //validasi modelstate
             if (!ModelState.IsValid)
             {
@@ -84,7 +85,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     throw new Exception($"Ukuran file {file.FileName} melebihi batas.");
 
                 // cek folder upload
-                var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), $"wwwroot/uploads/{folderName}");
+                var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), $"Storage/Uploads/{folderName}");
                 if (!Directory.Exists(uploadFolder))
                     Directory.CreateDirectory(uploadFolder);
 

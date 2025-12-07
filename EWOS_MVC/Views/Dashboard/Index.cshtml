@@ -81,19 +81,42 @@
          // =============================
         // 1. TREN REQUEST FABRIKASI/MONTH
         // ===============================
-        var requestCountOptions = {
-            chart: { type: 'bar', height: 250 },
-            series: [{
-                name: 'Quantity',
-                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.qtyReqByMonth))
-            }],
+         var requestCountOptions = {
+            chart: { type: 'line', height: 250 },
+            series: [
+                {
+                    name: 'Quantity',
+                    type: 'bar',
+                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.qtyReqByMonth))
+                },
+                {
+                    name: 'Kumulatif',
+                    type: 'line',
+                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.cumulativeReqQty))
+                }
+            ],
+            stroke: {
+                width: [0, 3], // 0 untuk bar, 3 untuk line
+                curve: ['straight', 'smooth']
+            },
+            dataLabels: {
+                enabled: true,
+                enabledOnSeries: [0,1]
+            },
             xaxis: {
                 categories: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.monthReq))
-            }
+            },
+            yaxis: [
+                { title: { text: 'Quantity' } },
+                { opposite: true, title: { text: 'Kumulatif' } } // line chart di axis kanan
+            ],
+            tooltip: { shared: true }
         };
-        // Simpan chart global
+
+        // Render chart
         window.barChart = new ApexCharts(document.querySelector("#barChart"), requestCountOptions);
         window.barChart.render();
+
 
          // =======================================
         // 2.RADIAL CHART (fabrikasi count)
@@ -110,6 +133,7 @@
                 100,
                 percentWaiting,
                 percentDone
+
             ],
             chart: {
                 height: 300,
@@ -362,7 +386,6 @@
                 const response = await fetch(`/Dashboard/Filter?year=${year}&categoryId=${categoryId}`);
                 const data = await response.json();
 
-
             const totalRequest      = data.totalRequest ?? 0;
             const totalRequestDone  = data.totalRequestDone ?? 0;
             const totalWaiting      = totalRequest - totalRequestDone;
@@ -373,26 +396,44 @@
             // =============================
             // 1. Hitung persentase
             // =============================
-            const percentWaiting = ((totalWaiting / safeDiv) * 100).toFixed(2);
-            const percentDone    = ((totalRequestDone / safeDiv) * 100).toFixed(2);
+ 
+                const percentWaiting = ((totalWaiting / safeDiv) * 100);
+                const percentDone    = ((totalRequestDone / safeDiv) * 100);
 
                 if (window.barChart) {
-                    window.barChart.updateSeries(
-                        [{ name: "Quantity", data: data.qtyReqByMonth }],
+                    // Update series: bar + line
+                    window.barChart.updateSeries([
                         {
-                            animate: true,
-                            redraw: true,
-                            dynamicAnimation: {
-                                enabled: true,
-                                speed: 800
-                            }
+                            name: "Quantity",
+                            type: 'bar',
+                            data: data.qtyReqByMonth
+                        },
+                        {
+                            name: "Kumulatif",
+                            type: 'line',
+                            data: data.cumulativeReqQty   
                         }
-                    );
+                    ], {
+                        animate: true,
+                        redraw: true,
+                        dynamicAnimation: { enabled: true, speed: 800 }
+                    });
 
+                    // Update x-axis & stroke
                     window.barChart.updateOptions({
-                        xaxis: { categories: data.monthReq }
+                        xaxis: { categories: data.monthReq },
+                        stroke: {
+                            width: [0, 3],       // 0 untuk bar, 3 untuk line
+                            curve: ['straight', 'smooth']
+                        },
+                        yaxis: [
+                            { title: { text: 'Quantity' } },
+                            { opposite: true, title: { text: 'Kumulatif' } } // line chart di axis kanan
+                        ],
+                        tooltip: { shared: true }
                     });
                 }
+
             // =============================
             // 2. UPDATE RADIAL CHART (fabrikasi count)
             // =============================
@@ -446,10 +487,10 @@
                 if (window.savingChart) {
 
                     const sbc = data.savingByCategory || {};
-                    const cumulative = data.savingCumulative || [];
+                    const cumulative = data.cumulative || [];
                     const months = data.monthSaving || [];
                     const potential = data.potentialSaving ?? 0;
-
+                    console.log(data)
                     // kategori yang dipilih user
                     const selectedCat = categoryId.toString();
                     const selectedData = sbc[selectedCat] || [];
@@ -463,11 +504,15 @@
                         {
                             name: 'Kumulatif (Line)',
                             type: 'line',
-                            data: cumulative //!!!!!!!!!!!!!
+                            data: cumulative 
                         }
                     ]);
 
                     window.savingChart.updateOptions({
+                        stroke: {
+                            width: [0, 3], 
+                            curve: ['straight', 'smooth']
+                        },
                         labels: months
                     });
 
@@ -476,6 +521,8 @@
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
+
+
                     document.getElementById("potentialSavingText").innerText = `USD $${formatted}`;
                     }
 

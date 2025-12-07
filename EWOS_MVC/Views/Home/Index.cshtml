@@ -3,99 +3,97 @@
 }
 
 
-    <style>
-        body {
-            background: linear-gradient(135deg, #e9eef7 0%, #ffffff 100%);
-            min-height: 100vh;
+<style>
+    body {
+        background: linear-gradient(135deg, #e9eef7 0%, #ffffff 100%);
+        min-height: 100vh;
+    }
+
+    .dashboard-title {
+        font-weight: 700;
+        color: #2a2d3e;
+        margin-top: 20px;
+        letter-spacing: 1px;
+    }
+
+    /* Card Modern */
+    .stat-card {
+        transition: 0.3s ease-in-out;
+        border: none;
+        border-radius: 15px;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
         }
 
-        .dashboard-title {
-            font-weight: 700;
-            color: #2a2d3e;
-            margin-top: 20px;
-            letter-spacing: 1px;
-        }
+    .icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
 
-        /* Card Modern */
-        .stat-card {
-            transition: 0.3s ease-in-out;
-            border: none;
-            border-radius: 15px;
-        }
-
-            .stat-card:hover {
-                transform: translateY(-8px);
-                box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
-            }
-
-        .icon-wrapper {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-
-        /* Panduan */
-        .guide-card {
-            border-radius: 15px;
-        }
-    </style>
+    /* Panduan */
+    .guide-card {
+        border-radius: 15px;
+    }
+</style>
 
 
-    <div class="container py-5 text-center">
+<div class="container text-center">
 
-        <h3 class="display-5 dashboard-title">Welcome to Inhouse Fabrication System</h3>
-        <p class="text-muted">Dashboard ringkas & informatif untuk monitoring proses fabrikasi</p>
+    <h3 class="display-5 mb-3 dashboard-title">Welcome to Inhouse Fabrication System</h3>
 
-        <div class="container mt-4">
+    <div class="container mt-4">
 
-            <div class="row g-4 justify-content-center">
+        <div class="row g-4 justify-content-center">
 
-                <!-- Total Request Fabrikasi -->
-                <div class="col-md-4">
-                    <div class="card stat-card shadow-sm p-3">
-                        <div class="card-body text-center">
-                            <div class="icon-wrapper bg-primary text-white shadow-sm">
-                                <i class="bi bi-clipboard-plus"></i>
-                            </div>
-                            <h6 class="text-secondary mb-1">Total Request Fabrikasi</h6>
-                            <h2 class="fw-bold text-primary">125</h2>
+            <!-- Total Request Fabrikasi -->
+            <div class="col-md-4">
+                <div class="card stat-card shadow-sm p-3">
+                    <div class="card-body text-center">
+                        <div class="icon-wrapper bg-primary text-white shadow-sm">
+                            <i class="bi bi-clipboard-plus"></i>
                         </div>
+                        <h6 class="text-secondary mb-1">Total Request Fabrikasi</h6>
+                        <h2 class="fw-bold text-primary">@ViewBag.TotalReqNew</h2>
                     </div>
                 </div>
-
-                <!-- Total Repeat Order -->
-                <div class="col-md-4">
-                    <div class="card stat-card shadow-sm p-3">
-                        <div class="card-body text-center">
-                            <div class="icon-wrapper bg-warning text-white shadow-sm">
-                                <i class="bi bi-repeat"></i>
-                            </div>
-                            <h6 class="text-secondary mb-1">Total Repeat Order</h6>
-                            <h2 class="fw-bold text-warning">45</h2>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Fabrikasi Selesai -->
-                <div class="col-md-4">
-                    <div class="card stat-card shadow-sm p-3">
-                        <div class="card-body text-center">
-                            <div class="icon-wrapper bg-success text-white shadow-sm">
-                                <i class="bi bi-check-circle"></i>
-                            </div>
-                            <h6 class="text-secondary mb-1">Fabrikasi Selesai</h6>
-                            <h2 class="fw-bold text-success">98</h2>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
+            <!-- Total Repeat Order -->
+            <div class="col-md-4">
+                <div class="card stat-card shadow-sm p-3">
+                    <div class="card-body text-center">
+                        <div class="icon-wrapper bg-warning text-white shadow-sm">
+                            <i class="bi bi-repeat"></i>
+                        </div>
+                        <h6 class="text-secondary mb-1">Total Repeat Order</h6>
+                        <h2 class="fw-bold text-warning">@ViewBag.TotalRO</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fabrikasi Selesai -->
+            <div class="col-md-4">
+                <div class="card stat-card shadow-sm p-3">
+                    <div class="card-body text-center">
+                        <div class="icon-wrapper bg-success text-white shadow-sm">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <h6 class="text-secondary mb-1">Fabrikasi Selesai</h6>
+                        <h2 class="fw-bold text-success">@ViewBag.TotalFab</h2>
+                    </div>
+                </div>
+            </div>
+
+        </div>
         <!-- FAQ Section -->
         <div class="card shadow-sm border-0 guide-card mt-5 p-4">
             <h4 class="text-primary"><i class="bi bi-question-circle"></i> FAQ – Panduan Penggunaan System</h4>
@@ -163,6 +161,6 @@
         </div>
 
 
-        </div>
     </div>
+</div>
 

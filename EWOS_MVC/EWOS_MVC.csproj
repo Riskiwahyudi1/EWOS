@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Storage\Uploads\" />
     <Folder Include="wwwroot\uploads\design\" />
     <Folder Include="wwwroot\uploads\drawing\" />
     <Folder Include="wwwroot\uploads\quotation\" />

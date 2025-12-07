@@ -1,6 +1,7 @@
 using EWOS_MVC.Services;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,6 +41,15 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "Storage", "Uploads");
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads",
+    ServeUnknownFileTypes = true
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
