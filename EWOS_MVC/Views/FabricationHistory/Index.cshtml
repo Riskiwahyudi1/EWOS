@@ -43,7 +43,10 @@
         </div>
     </div>
 </div>
-
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger py-2" id="showError">@TempData["Error"]</div>
+}
 <hr class="my-4">
 <div style="display: flex; gap: 30px; margin: 30px 0;">
     <!-- Machine Utilization -->
@@ -63,7 +66,7 @@
                         <th>Item Name</th>
                         <th>Quantity</th>
                         <th>Saving Cost(USD)</th>
-                        <th>Fabrication Time</th>
+                        <th>Time</th>
                         <th>Status</th>
                         <th class="text-center">Action</th>
                     </tr>
@@ -86,8 +89,18 @@
                             <tr>
                                 <td class="text-center">@index</td>
                                 <td>@ifab.ItemRequest.PartName</td>
-                                <td>@ifab.Quantity @ifab.ItemRequest.Unit</td>
-                                <td>@ifab.TotalSaving</td>
+                                @if (ifab.Status == "Evaluation")
+                                {
+                                    <td>-</td>
+                                    <td>-</td>
+
+                                }
+                                else
+                                {
+                                    <td>@ifab.Quantity @ifab.ItemRequest.Unit</td>
+                                    <td>@ifab.TotalSaving</td>
+
+                                }
                                 <td>@(ifab.FabricationTime.ToString() ?? "-") Hours</td>
                                 <td>@ifab.Status</td>
                                 <td class="text-center">
@@ -114,10 +127,27 @@
                                                 data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Cancel">
                                             Cancel
                                         </button>
-                                        <button class="btn btn-warning btn-sm open-modal @(isEvaluate ? "disable" : "")"
-                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Edit"
-                                                @(isEvaluate ? "disabled" : "")>
-                                            Edit
+                                        @if (!isEvaluate)
+                                        {
+
+                                            <button class="btn btn-warning btn-sm open-modal"
+                                                    data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Edit" style="min-width:60px">
+                                                Edit
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-warning btn-sm open-modal"
+                                                    data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=evaluasi" style="min-width:60px">
+                                                Evaluasi
+                                            </button>
+                                        }
+                                    }
+                                    else if (status == "evaluation" && isAdminFabrication)
+                                    {
+                                        <button class="btn btn-danger btn-sm open-modal"
+                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=CancelEval" >
+                                            Cancel
                                         </button>
                                     }
                                     else if ((status == "fabricationdone") && isAdminFabrication && ifab.ItemRequest.MachineCategoryId == 1)
@@ -143,7 +173,6 @@
         </div>
     </div>
 </div>
-
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -256,43 +285,70 @@
                    let html = '';
                      data.data.forEach((rq, idx) => {
 
-                   let buttons = "";
-                   const status = rq.status?.trim().toLowerCase();
-                   let isAdmin = window.isAdminFabrication === true;
-                   console.log(status)
-                    if (status === "onprogress" && isAdmin) {
+                       let buttons = "";
+    const status = rq.status?.trim().toLowerCase();
+    let isAdmin = window.isAdminFabrication === true;
+    const isEvaluation = rq.repeatOrderId === null; 
 
-                        buttons += `
-                            <button class="btn btn-primary btn-sm open-modal"
-                                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Finish">
-                                Done
-                            </button>
+    if (status === "onprogress" && isAdmin) {
 
-                            <button class="btn btn-danger btn-sm open-modal"
-                                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Cancel">
-                                Cancel
-                            </button>
+        buttons += `
+            <button class="btn btn-primary btn-sm open-modal"
+                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Finish">
+                Done
+            </button>
 
-                            <button class="btn btn-warning btn-sm open-modal"
-                                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Edit">
-                                Edit
-                            </button>
-                        `;
-                    } else if(status === "fabricationdone" && isAdmin && rq.machineCategory === 1){
+            <button class="btn btn-danger btn-sm open-modal"
+                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Cancel">
+                Cancel
+            </button>
+        `;
 
-                        buttons +=`<button class="btn btn-primary btn-sm open-modal"
-                                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=updateCOC">
-                                Edit COC
-                         </button>
-                         `
-                    }
+        if (!isEvaluation) {
+            // RepeatOrderId ADA → tombol Edit
+            buttons += `
+            <button class="btn btn-warning btn-sm open-modal"
+                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Edit" style="min-width:60px">
+                Edit
+            </button>
+            `;
+        } else {
+            // RepeatOrderId NULL → tombol Evaluasi
+            buttons += `
+            <button class="btn btn-warning btn-sm open-modal "
+                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=evaluasi" style="min-width:60px">
+                Evaluasi
+            </button>
+            `;
+        }
+    }
+    else if (status === "evaluation" && isAdmin) {
 
-                    buttons += `
-                        <button class="btn btn-info btn-sm open-modal"
-                                data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Detail">
-                            Detail
-                        </button>
-                    `;
+        buttons += `
+            <button class="btn btn-danger btn-sm open-modal"
+                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=CancelEval">
+                Cancel
+            </button>
+        `;
+    }
+    else if (status === "fabricationdone" && isAdmin && rq.machineCategory === 1) {
+
+        buttons += `
+            <button class="btn btn-primary btn-sm open-modal"
+                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=updateCOC">
+                Edit COC
+            </button>
+        `;
+    }
+
+    // Tombol detail selalu muncul
+    buttons += `
+        <button class="btn btn-info btn-sm open-modal"
+                data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Detail">
+            Detail
+        </button>
+    `;
+
 
                        html += `
                            <tr>

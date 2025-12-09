@@ -1,4 +1,5 @@
 ﻿using EWOS_MVC.Models;
+using EWOS_MVC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,9 +10,13 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
     public class FabricationHistoryController : BaseController
     {
         private readonly AppDbContext _context;
-        public FabricationHistoryController(AppDbContext context)
+        private readonly WeekHelper _weekHelper;
+        private readonly YearsHelper _yearHelper;
+        public FabricationHistoryController(AppDbContext context, WeekHelper weekHelper, YearsHelper yearHelper)
         {
             _context = context;
+            _weekHelper = weekHelper;
+            _yearHelper = yearHelper;
         }
 
         public async Task<IActionResult> Index()
@@ -53,7 +58,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
 
             //total jam fabrikasi mesin
             decimal totalTimeFabrikasi = await _context.ItemFabrications
-                    .Where(wk => wk.WeeksSettingId == mingguSekarang.Id && (wk.Status == "FabricationDone" || wk.Status == "Close"))
+                    .Where(wk => wk.WeeksSettingId == mingguSekarang.Id && (wk.Status == "FabricationDone" || wk.Status == "Evaluation"))
                     .SumAsync(m => m.FabricationTime);
 
             //ambil data semua mesin
@@ -89,7 +94,9 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 "Edit" => PartialView("~/Views/modals/AdminFabrication/FabricationHistory/EditItemFabModal.cshtml", data),
                 "Finish" => PartialView("~/Views/modals/AdminFabrication/FabricationHistory/FinishItemFabModal.cshtml", data),
                 "updateCOC" => PartialView("~/Views/modals/AdminFabrication/FabricationHistory/UpdateCOCModal.cshtml", data),
+                "evaluasi" => PartialView("~/Views/modals/AdminFabrication/FabricationHistory/EvaluasiModal.cshtml", data),
                 "Cancel" => PartialView("~/Views/modals/AdminFabrication/FabricationHistory/CancelItemFabModal.cshtml", data),
+                "CancelEval" => PartialView("~/Views/modals/AdminFabrication/FabricationHistory/CancelEvaluationModal.cshtml", data),
                 "Detail" => PartialView("~/Views/modals/AdminFabrication/FabricationHistory/DetailItemFabModal.cshtml", data),
                 _ => BadRequest("Unknown modal type")
             };
@@ -237,6 +244,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 {
                     r.Id,
                     PartName = r.ItemRequest.PartName,
+                    RepeatOrderId = r.RepeatOrderId,
                     r.ItemRequest.CRD,
                     r.Status,
                     machineCategory = r.ItemRequest.MachineCategoryId,
@@ -611,6 +619,43 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             }
         }
 
+        //Proses cancel
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelEval(long itemFabId)
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Cari data Evaluasi
+                var fabricationData = await _context.ItemFabrications
+                    .FirstOrDefaultAsync(f => f.Id == itemFabId);
+
+                if (fabricationData != null)
+                {
+                    // Hapus data evaluasi
+                    _context.ItemFabrications.Remove(fabricationData);
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync(); 
+
+                    TempData["Success"] = "Evaluasi dibatalkan.";
+                }
+                else
+                {
+                    TempData["Error"] = "Tidak ditemukan data ItemFabrication yang terkait.";
+                }
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(); 
+                TempData["Error"] = "Terjadi kesalahan saat membatalkan data: " + ex.Message;
+            }
+
+            return RedirectToAction("Index");
+        }
+
+
 
         //Edit quantity
         [HttpPost]
@@ -670,5 +715,83 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             TempData["Success"] = "Data berhasil diubah.";
             return Redirect("index");
         }
+
+    //tambah fabrikasi request baru
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddEvaluasi(int MachineId, long ItemRequestId, decimal EvaluationTime)
+        {
+            int userId = 1;
+
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Data tidak valid: " +
+                    string.Join(", ", ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage));
+                return Redirect("/FabricationHistory");
+            }
+
+            //  Ambil tahun aktif
+            int tahunSekarang = DateTime.Now.Year;
+            var getTahun = await _yearHelper.GetCurrentYearAsync();
+
+            // buat default jika belum ada
+            if (getTahun == null)
+            {
+                TempData["Error"] = "Tahun Fabrikasi sekarang belum tersedia, minta admin sistem menambahkan!! ";
+                return Redirect("/FabricationHistory");
+
+            }
+            //  get mg aktif dari helper
+            var mingguSekarang = await _weekHelper.GetMingguAktifAsync(getTahun.Id);
+
+            if (mingguSekarang == null)
+            {
+                TempData["Error"] = "Minggu aktif tidak ditemukan.";
+                return Redirect("/FabricationHistory");
+            }
+
+            //ambil data mesin
+            var machine = await _context.Machines.FindAsync(MachineId);
+            if (machine == null)
+                return NotFound();
+
+            //  Jalankan semua perubahan dalam 1 transaksi
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // buat record baru
+                var item = new ItemFabricationModel
+                {
+                    ItemRequestId = ItemRequestId,
+                    MachineId = MachineId,
+                    UserId = userId,
+                    WeeksSettingId = mingguSekarang.Id,
+                    Status = "Evaluation",
+                    Quantity = 1,
+                    FabricationTime = EvaluationTime,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+
+                _context.ItemFabrications.Add(item);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                TempData["Success"] = "Evaluation has been created.";
+                return Redirect("/FabricationHistory");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                TempData["Error"] = "Terjadi kesalahan: " + ex.Message;
+                return Redirect("/FabricationHistory");
+            }
+
+        }
+
     }
 }

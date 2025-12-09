@@ -1,0 +1,27 @@
+﻿@model EWOS_MVC.Models.ItemFabricationModel
+
+<div class="modal-header bg-primary">
+    <h5 class="modal-title">Evaluasi Fabrikasi</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+</div>
+<div class="modal-body">
+    <form method="post" action="/FabricationHistory/AddEvaluasi">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" name="ItemRequestId" value="@Model.ItemRequest.Id" />
+        <input type="hidden" name="MachineId" value="@Model.MachineId" />
+
+        <div class="mb-3">
+            <label class="form-label">Part Name</label>
+            <input value="@Model.ItemRequest.PartName" class="form-control" readonly />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Evaluation Time(Hours)</label>
+            <input type="number" name="EvaluationTime" step="0.01" class="form-control" required />
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-primary">Tambah</button>
+        </div>
+    </form>
+</div>
