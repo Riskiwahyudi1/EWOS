@@ -133,26 +133,82 @@
 <div id="pagination-server">
     @if (Model.TotalPages > 1)
     {
-        <nav aria-label="Page navigation example">
+        int maxPagesToShow = 3;
+        int startPage = Model.PageIndex - 2;
+        int endPage = Model.PageIndex + 2;
+
+        // Koreksi awal jika startPage < 1
+        if (startPage < 1)
+        {
+            endPage += (1 - startPage);
+            startPage = 1;
+        }
+
+        // Koreksi akhir jika endPage > TotalPages
+        if (endPage > Model.TotalPages)
+        {
+            startPage -= (endPage - Model.TotalPages);
+            endPage = Model.TotalPages;
+        }
+
+        // Pastikan jumlah tombol maksimum 5
+        if (endPage - startPage + 1 > maxPagesToShow)
+        {
+            endPage = startPage + maxPagesToShow - 1;
+        }
+        if (startPage < 1)
+        {
+            startPage = 1;
+        }
+
+        <nav aria-label="Page navigation">
             <ul class="pagination justify-content-end">
+
+                <!-- Previous -->
                 <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
                     <a class="page-link" href="?page=@(Model.PageIndex - 1)">Previous</a>
                 </li>
 
-                @for (int i = 1; i <= Model.TotalPages; i++)
+                <!-- Jika page di awal -> tampil "1" lalu ... -->
+                @if (startPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">1</a>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                }
+
+                <!-- Page number utama -->
+                @for (int i = startPage; i <= endPage; i++)
                 {
                     <li class="page-item @(i == Model.PageIndex ? "active" : "")">
                         <a class="page-link" href="?page=@i">@i</a>
                     </li>
                 }
 
+                <!-- Jika page di akhir -> tampil ... lalu lastPage -->
+                @if (endPage < Model.TotalPages)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=@Model.TotalPages">@Model.TotalPages</a>
+                    </li>
+                }
+
+                <!-- Next -->
                 <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
                     <a class="page-link" href="?page=@(Model.PageIndex + 1)">Next</a>
                 </li>
+
             </ul>
         </nav>
     }
 </div>
+
 <!-- Pagination JS (hidden default) -->
 <div id="pagination-client" style="display:none;">
     <nav>

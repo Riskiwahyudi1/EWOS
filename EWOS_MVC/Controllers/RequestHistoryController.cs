@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using EWOS_MVC.Models;
+using EWOS_MVC.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace EWOS_MVC.Controllers
 {
@@ -10,15 +13,23 @@ namespace EWOS_MVC.Controllers
         {
             _context = context;
         }
-        public async Task<IActionResult> NewRequest()
+        public async Task<IActionResult> NewRequest(int page = 1)
         {
-            var newRequest = await _context.ItemRequests
-                               .Include(mc => mc.MachineCategories)
-                               .Include(u => u.Users)
-                               .Where(rq => rq.Status == "WaitingApproval" || rq.Status == "FabricationApproval")
-                               .Include(rs => rs.RequestStatus)
-                                   .ThenInclude(u => u.Users)
-                               .ToListAsync();
+            int pageSize = 20;
+            var newRequest = _context.ItemRequests
+                .Include(mc => mc.MachineCategories)
+                .Include(u => u.Users)
+                .Include(rs => rs.RequestStatus)
+                    .ThenInclude(u => u.Users)
+                .Where(rq => rq.Status == "Maspro"
+                          || rq.Status == "Fail")
+                .OrderBy(x => x.Id)
+                .AsQueryable();
+
+
+            // PAGINATION
+            var paginatedData = await PaginatedHelper<ItemRequestModel>
+                .CreateAsync(newRequest, page, pageSize);
 
             // --- Summary semua status new request---
             var statusSummaryNew = await _context.ItemRequests
@@ -27,7 +38,7 @@ namespace EWOS_MVC.Controllers
 
             ViewBag.StatusSummaryNew = statusSummaryNew;
             ViewBag.CurrentStatus = "WaitingApproval";
-            return View(newRequest);
+            return View(paginatedData);
         }
         public async Task<IActionResult> RepeatOrder()
         {
