@@ -65,6 +65,25 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
             return View(weeks);
         }
 
+        //load modal Week
+        [HttpGet]
+        public IActionResult LoadData(long id, string type)
+        {
+            var data = _context.WeeksSetting
+                .FirstOrDefault(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                
+                "Edit" => PartialView("~/Views/modals/AdminSystem/EditWeekModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        }
+
         [HttpGet]
         public IActionResult Search(string keyword, int? YearSettingId)
         {

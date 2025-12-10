@@ -23,7 +23,7 @@
         class="btn btn-success my-4"
         data-bs-toggle="modal"
         data-bs-target="#modalConfirmGenerate"
-        @(Model != null && Model.Any() ? "disabled" : "")>
+@(Model != null && Model.Any() ? "disabled" : "")>
     ➕ Generate Week
 </button>
 
@@ -60,8 +60,10 @@
                     <td>@week.StartDate</td>
                     <td>@week.EndDate</td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-@week.Id">
-                            ✏️ Edit
+
+                        <button class="btn btn-warning btn-sm open-modal"
+                                data-url="/AdminSystem/WeekFabrication/LoadData?id=@week.Id&amp;type=Edit">
+                            Edit
                         </button>
                     </td>
                 </tr>
@@ -79,8 +81,8 @@
         </li>
 
         @{
-            int totalPages = ViewBag.TotalPages as int? ?? 1; 
-            int currentPage = ViewBag.CurrentPage as int? ?? 1; 
+            int totalPages = ViewBag.TotalPages as int? ?? 1;
+            int currentPage = ViewBag.CurrentPage as int? ?? 1;
             int maxVisiblePages = 5;
 
             int startPage = Math.Max(1, currentPage - 2);
@@ -134,60 +136,60 @@
 
 @if (Model != null && Model.Any())
 {
- 
 
-<!-- Modal Edit -->
-@foreach (var week in Model)
-{
-    <div class="modal fade" id="modalEdit-@week.Id" tabindex="-1" aria-labelledby="modalEditLabel-@week.Id" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form method="post" action="/AdminSystem/WeekFabrication/Edit">
-                    @Html.AntiForgeryToken()
 
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalEditLabel-@week.Id">Edit Week</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                    </div>
+    <!-- Modal Edit -->
+    @foreach (var week in Model)
+    {
+        <div class="modal fade" id="modalEdit-@week.Id" tabindex="-1" aria-labelledby="modalEditLabel-@week.Id" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="/AdminSystem/WeekFabrication/Edit">
+                        @Html.AntiForgeryToken()
 
-                    <div class="modal-body">
-                        <input type="hidden" name="Id" value="@week.Id" />
-
-                        <div class="form-group mb-2">
-                            <label>Week No</label>
-                            <input name="Week" class="form-control" value="@week.Week" readonly />
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalEditLabel-@week.Id">Edit Week</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                         </div>
 
-                        <div class="form-group mb-2">
-                            <label>Work Days</label>
-                            <input type="number" step="0.01" name="WorkingDays" class="form-control" value="@week.WorkingDays" required />
-                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="Id" value="@week.Id" />
 
-                        <div class="form-group mb-2">
-                            <label>Month</label>
-                            <input name="Month" type="number" class="form-control" value="@week.Month" required />
-                        </div>
+                            <div class="form-group mb-2">
+                                <label>Week No</label>
+                                <input name="Week" class="form-control" value="@week.Week" readonly />
+                            </div>
 
-                        <div class="form-group mb-2">
-                            <label>Week Start</label>
+                            <div class="form-group mb-2">
+                                <label>Work Days</label>
+                                <input type="number" step="0.01" name="WorkingDays" class="form-control" value="@week.WorkingDays" required />
+                            </div>
+
+                            <div class="form-group mb-2">
+                                <label>Month</label>
+                                <input name="Month" type="number" class="form-control" value="@week.Month" required />
+                            </div>
+
+                            <div class="form-group mb-2">
+                                <label>Week Start</label>
                                 <input name="StartDate" type="datetime-local" class="form-control" value="@week.StartDate.ToString("yyyy-MM-ddTHH:mm")" required />
-                        </div>
-                         
-                        <div class="form-group mb-2">
-                            <label>Week End</label>
-                                <input name="EndDate" type="datetime-local" class="form-control" value="@week.EndDate.ToString("yyyy-MM-ddTHH:mm")" required />
-                        </div>
-                    </div>
+                            </div>
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save</button>
-                    </div>
-                </form>
+                            <div class="form-group mb-2">
+                                <label>Week End</label>
+                                <input name="EndDate" type="datetime-local" class="form-control" value="@week.EndDate.ToString("yyyy-MM-ddTHH:mm")" required />
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
-}
+    }
 }
 <!-- Modal Konfirmasi + Form -->
 <div class="modal fade" id="modalConfirmGenerate" tabindex="-1" aria-labelledby="modalConfirmGenerateLabel" aria-hidden="true">
@@ -285,9 +287,13 @@
                 <td>${w.dayCount}</td>
                 <td>${w.startDate}</td>
                 <td>${w.endDate}</td>
-                <td class="text-center">
-                  <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-${w.id}">✏️ Edit</button>
-                </td>
+                    <td class="text-center">
+                          <button class="btn btn-warning btn-sm open-modal"
+            data-url="/AdminSystem/WeekFabrication/LoadData?id=${w.Id}&type=Edit">
+        Edit
+    </button>
+                    </td>
+
               </tr>`;
           });
 
@@ -310,7 +316,7 @@
         debounceTimer = setTimeout(fetchAndRender, 350);
       });
 
-      // Event ketika mengubah dropdown 
+      // Event ketika mengubah dropdown
       if (YearsFilter) {
         YearsFilter.addEventListener('change', function () {
             idYear.value = YearsFilter.value
