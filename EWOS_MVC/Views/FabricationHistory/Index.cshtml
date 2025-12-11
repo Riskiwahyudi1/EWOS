@@ -111,59 +111,86 @@
                                         var status = ifab.Status?.Trim().ToLower();
                                     }
 
-                                    <script>
-                                        window.isAdminFabrication = @isAdminFabrication.ToString().ToLower();
-                                    </script>
-
-                                    @if (status == "onprogress" && isAdminFabrication)
-                                    {
-
-                                        <button class="btn btn-primary btn-sm open-modal"
-                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Finish">
-                                            Done
+                                    <div class="dropdown">
+                                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            Actions
                                         </button>
 
-                                        <button class="btn btn-danger btn-sm open-modal"
-                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Cancel">
-                                            Cancel
-                                        </button>
-                                        @if (!isEvaluate)
-                                        {
+                                        <ul class="dropdown-menu p-2" style="min-width: 150px">
 
-                                            <button class="btn btn-warning btn-sm open-modal"
-                                                    data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Edit" style="min-width:60px">
-                                                Edit
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <button class="btn btn-warning btn-sm open-modal"
-                                                    data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=evaluasi" style="min-width:60px">
-                                                Evaluasi
-                                            </button>
-                                        }
-                                    }
-                                    else if (status == "evaluation" && isAdminFabrication)
-                                    {
-                                        <button class="btn btn-danger btn-sm open-modal"
-                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=CancelEval" >
-                                            Cancel
-                                        </button>
-                                    }
-                                    else if ((status == "fabricationdone") && isAdminFabrication && ifab.ItemRequest.MachineCategoryId == 1)
-                                    {
-                                        <button class="btn btn-primary btn-sm open-modal"
-                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=updateCOC">
-                                            Edit COC
-                                        </button>
-                                    }
+                                            @* === STATUS: ON PROGRESS === *@
+                                            @if (status == "onprogress" && isAdminFabrication)
+                                            {
+                                                <li>
+                                                    <button class="btn btn-primary btn-sm w-100 text-center open-modal"
+                                                            data-url="/FabricationHistory/LoadData?id=@ifab.Id&type=Finish">
+                                                        Done
+                                                    </button>
+                                                </li>
 
-                                    <button class="btn btn-info btn-sm open-modal"
-                                            data-url="/FabricationHistory/LoadData?id=@ifab.Id&amp;type=Detail">
-                                        Detail
-                                    </button>
+                                                <li class="mt-1">
+                                                    <button class="btn btn-danger btn-sm w-100 text-center open-modal"
+                                                            data-url="/FabricationHistory/LoadData?id=@ifab.Id&type=Cancel">
+                                                        Cancel
+                                                    </button>
+                                                </li>
 
+                                                @if (!isEvaluate)
+                                                {
+                                                    <li class="mt-1">
+                                                        <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&type=Edit">
+                                                            Edit
+                                                        </button>
+                                                    </li>
+                                                }
+                                                else
+                                                {
+                                                    <li class="mt-1">
+                                                        <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                                                data-url="/FabricationHistory/LoadData?id=@ifab.Id&type=Evaluasi">
+                                                            Evaluasi
+                                                        </button>
+                                                    </li>
+                                                }
+                                            }
+
+                                            @* === STATUS: EVALUATION === *@
+                                            @if (status == "evaluation" && isAdminFabrication)
+                                            {
+                                                <li class="mt-1">
+                                                    <button class="btn btn-danger btn-sm w-100 text-center open-modal"
+                                                            data-url="/FabricationHistory/LoadData?id=@ifab.Id&type=CancelEval">
+                                                        Cancel Evaluation
+                                                    </button>
+                                                </li>
+                                            }
+
+                                            @* === STATUS: FABRICATION DONE + MACHINE CATEGORY 1 === *@
+                                            @if (status == "fabricationdone" && isAdminFabrication && ifab.ItemRequest.MachineCategoryId == 1)
+                                            {
+                                                <li class="mt-1">
+                                                    <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                                            data-url="/FabricationHistory/LoadData?id=@ifab.Id&type=updateCOC">
+                                                        Edit 
+                                                    </button>
+                                                </li>
+                                            }
+
+                                            <li class="mt-1">
+                                                <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                                                        data-url="/FabricationHistory/LoadData?id=@ifab.Id&type=Detail">
+                                                    Detail
+                                                </button>
+                                            </li>
+
+                                        </ul>
+
+
+
+                                    </div>
                                 </td>
+
                             </tr>
                             index++;
                         }
@@ -285,69 +312,98 @@
                    let html = '';
                      data.data.forEach((rq, idx) => {
 
-                       let buttons = "";
+                           let buttons = "";
     const status = rq.status?.trim().toLowerCase();
     let isAdmin = window.isAdminFabrication === true;
-    const isEvaluation = rq.repeatOrderId === null; 
+    const isEvaluation = rq.repeatOrderId === null;
+
+    // MULAI DROPDOWN
+    buttons += `
+    <div class="dropdown">
+            <button class="btn btn-secondary btn-sm dropdown-toggle"
+            type="button"
+            data-bs-toggle="dropdown"
+            data-bs-display="static">
+        Actions
+    </button>
+
+
+        <ul class="dropdown-menu p-2" style="min-width: 150px z-index: 9999;">
+    `;
 
     if (status === "onprogress" && isAdmin) {
 
         buttons += `
-            <button class="btn btn-primary btn-sm open-modal"
+            <li>
+                <button class="btn btn-primary btn-sm w-100 text-center open-modal"
                     data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Finish">
-                Done
-            </button>
+                    Done
+                </button>
+            </li>
 
-            <button class="btn btn-danger btn-sm open-modal"
+            <li class="mt-1">
+                <button class="btn btn-danger btn-sm w-100 text-center open-modal"
                     data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Cancel">
-                Cancel
-            </button>
+                    Cancel
+                </button>
+            </li>
         `;
 
         if (!isEvaluation) {
-            // RepeatOrderId ADA → tombol Edit
             buttons += `
-            <button class="btn btn-warning btn-sm open-modal"
-                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Edit" style="min-width:60px">
-                Edit
-            </button>
+                <li class="mt-1">
+                    <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                        data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Edit">
+                        Edit
+                    </button>
+                </li>
             `;
         } else {
-            // RepeatOrderId NULL → tombol Evaluasi
             buttons += `
-            <button class="btn btn-warning btn-sm open-modal "
-                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=evaluasi" style="min-width:60px">
-                Evaluasi
-            </button>
+                <li class="mt-1">
+                    <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                        data-url="/FabricationHistory/LoadData?id=${rq.id}&type=evaluasi">
+                        Evaluasi
+                    </button>
+                </li>
             `;
         }
     }
     else if (status === "evaluation" && isAdmin) {
 
         buttons += `
-            <button class="btn btn-danger btn-sm open-modal"
+            <li class="mt-1">
+                <button class="btn btn-danger btn-sm w-100 text-center open-modal"
                     data-url="/FabricationHistory/LoadData?id=${rq.id}&type=CancelEval">
-                Cancel
-            </button>
+                    Cancel Evaluation
+                </button>
+            </li>
         `;
     }
     else if (status === "fabricationdone" && isAdmin && rq.machineCategory === 1) {
 
         buttons += `
-            <button class="btn btn-primary btn-sm open-modal"
+            <li class="mt-1">
+                <button class="btn btn-warning btn-sm w-100 text-center open-modal"
                     data-url="/FabricationHistory/LoadData?id=${rq.id}&type=updateCOC">
-                Edit COC
-            </button>
+                    Edit COC
+                </button>
+            </li>
         `;
     }
 
-    // Tombol detail selalu muncul
+    // Tombol detail selalu ada
     buttons += `
-        <button class="btn btn-info btn-sm open-modal"
-                data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Detail">
-            Detail
-        </button>
+            <li class="mt-1">
+                <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Detail">
+                    Detail
+                </button>
+            </li>
+        </ul>
+    </div>
     `;
+
 
 
                        html += `

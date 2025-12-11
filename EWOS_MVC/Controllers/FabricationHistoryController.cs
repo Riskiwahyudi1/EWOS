@@ -170,6 +170,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
 
             //ambil week sekarang
             var mingguSekarang = _context.WeeksSetting
+                .Where(y =>y.YearSettingId == yearSettingId )
                 .FirstOrDefault(w =>
                     DateTime.Now >= w.StartDate &&
                     DateTime.Now <= w.EndDate);
@@ -227,7 +228,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             // Hitung Utilization
             decimal totalTimeFabrikasi = _context.ItemFabrications
                 .Where(m => mesinIds.Contains(m.MachineId) &&
-                            m.WeeksSettingId == week.Id)
+                            m.WeeksSettingId == week.Id && m.WeeksSetting.YearSettingId == yearSettingId)
                 .Sum(m => (decimal?)m.FabricationTime ?? 0);
 
 
