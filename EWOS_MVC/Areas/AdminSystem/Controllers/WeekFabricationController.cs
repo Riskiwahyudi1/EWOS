@@ -16,73 +16,26 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
         private readonly AppDbContext _context;
         private readonly YearsHelper _yearHelper;
 
-        private const int PageSize = 10;
         public WeekFabricationController(AppDbContext context, YearsHelper yearHelper)
         {
             _context = context;
             _yearHelper = yearHelper;
         }
-        public async Task<IActionResult> Index(int page = 1, string search = "")
+        public async Task<IActionResult> Index(int page = 1)
         {
+            int pageSize = 20;
 
-            // Ambil data awal
-            var query = _context.WeeksSetting.AsQueryable();
+            var query = _context.WeeksSetting
+                .Where(y =>y.YearsSetting.Year == DateTime.Now.Year)
+                .OrderBy(w => w.Week);
 
-            // Filter kalau ada kata pencarian
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(w =>
-                    w.Week.ToString().Contains(search) ||
-                    w.WorkingDays.ToString().Contains(search) ||
-                    w.StartDate.ToString().Contains(search) ||
-                    w.EndDate.ToString().Contains(search));
-            }
+            var paginatedData = await PaginatedHelper<WeeksSettingModel>
+                .CreateAsync(query, page, pageSize);
 
-
-            // Hitung total data
-            int totalItems = query.Count();
-
-            // Ambil data per halaman
-            var weeks = query
-                .OrderBy(w => w.Week)
-                .Skip((page - 1) * PageSize)
-                .Take(PageSize)
-                .ToList();
-
-            // Hitung total halaman
-            var totalPages = (int)Math.Ceiling(totalItems / (double)PageSize);
-
-            //ambil id tahun sekarang
-            var getYear = await  _yearHelper.GetCurrentYearAsync();
-
-
-            // Kirim data ke ViewBag
-            ViewBag.YearId = getYear.Id;
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.Search = search;
-
-            return View(weeks);
+            return View(paginatedData);
         }
 
-        //load modal Week
-        [HttpGet]
-        public IActionResult LoadData(long id, string type)
-        {
-            var data = _context.WeeksSetting
-                .FirstOrDefault(i => i.Id == id);
 
-            if (data == null) return NotFound();
-
-            return type switch
-            {
-                
-                "Edit" => PartialView("~/Views/modals/AdminSystem/EditWeekModal.cshtml", data),
-                _ => BadRequest("Unknown modal type")
-            };
-
-            ;
-        }
 
         [HttpGet]
         public IActionResult Search(string keyword, int? YearSettingId)
@@ -114,7 +67,6 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
                         startDate = w.StartDate.ToString("yyyy-MM-dd HH:mm"),
                         endDate = w.EndDate.ToString("yyyy-MM-dd HH:mm")
                     })
-                    .Take(10)
                     .ToList();
 
                 return Json(result);
@@ -124,6 +76,25 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
                 return Json(new { error = true, message = ex.Message });
             }
         }
+
+        // load data modal
+        [HttpGet]
+        public async Task<IActionResult> LoadData(long id, string type)
+        {
+            var data = await _context.WeeksSetting
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Edit" => PartialView("~/Views/modals/AdminSystem/EditWeekModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        }
+
         //Edit data
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -170,43 +141,43 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
 
             var getYear = await _context.YearsSetting.FirstOrDefaultAsync(y => y.Id == YearSettingId);
 
-            if(getYear == null)
+            if (getYear == null)
             {
                 TempData["Error"] = "Data tahun tidak ditemukan";
                 return View("Index");
             }
 
             //generate minggu jika belum ada
-          
-                var weekStart = getYear.StartDate;
-                int weekNumber = 1;
-                var akhirTahun = new DateTime(getYear.Year, 12, 31, 23, 59, 59);
 
-                while (weekStart <= akhirTahun)
+            var weekStart = getYear.StartDate;
+            int weekNumber = 1;
+            var akhirTahun = new DateTime(getYear.Year, 12, 31, 23, 59, 59);
+
+            while (weekStart <= akhirTahun)
+            {
+                var nextWeekDate = weekStart.AddDays(7);
+                DateTime weekEnd = new DateTime(
+                    nextWeekDate.Year, nextWeekDate.Month, nextWeekDate.Day,
+                    6, 59, 59
+                );
+                if (weekEnd > akhirTahun)
+                    weekEnd = akhirTahun;
+
+                _context.WeeksSetting.Add(new WeeksSettingModel
                 {
-                    var nextWeekDate = weekStart.AddDays(7);
-                    DateTime weekEnd = new DateTime(
-                        nextWeekDate.Year, nextWeekDate.Month, nextWeekDate.Day,
-                        6, 59, 59
-                    );
-                    if (weekEnd > akhirTahun)
-                        weekEnd = akhirTahun;
+                    YearSettingId = YearSettingId,
+                    Week = weekNumber,
+                    Month = weekStart.Month,
+                    WorkingDays = 5.5m,
+                    StartDate = weekStart,
+                    EndDate = weekEnd
+                });
 
-                    _context.WeeksSetting.Add(new WeeksSettingModel
-                    {
-                        YearSettingId = YearSettingId,
-                        Week = weekNumber,
-                        Month = weekStart.Month,
-                        WorkingDays = 5.5m,
-                        StartDate = weekStart,
-                        EndDate = weekEnd
-                    });
+                weekNumber++;
+                weekStart = weekEnd.AddSeconds(1);
+            }
 
-                    weekNumber++;
-                    weekStart = weekEnd.AddSeconds(1);
-                }
-
-                await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             return RedirectToAction("Index");
 
 

@@ -1,0 +1,33 @@
+﻿@model EWOS_MVC.Models.RawMaterialModel
+
+<form method="post" action="/AdminSystem/rawMaterial/Edit">
+    @Html.AntiForgeryToken()
+    <div class="modal-header">
+        <h5 class="modal-title">Edit Data</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" name="Id" value="@Model.Id" />
+        <div class="form-group mb-3">
+            <label>SAP ID</label>
+            <input name="SAPID" class="form-control" type="number" value="@Model.SAPID" required />
+        </div>
+        <div class="form-group mb-3">
+            <label>Name</label>
+            <input name="Name" class="form-control" value="@Model.Name" required />
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="MachineCategories">Machine Categories</label>
+            @await Component.InvokeAsync("MachineCategories", new { selectedId = Model.MachineCategoryId })
+            <span asp-validation-for="MachineCategories" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label>Price</label>
+            <input type="number" name="Price" class="form-control" step="0.01" placeholder="0,00" value="@Model.Price" required />
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+    </div>
+</form>

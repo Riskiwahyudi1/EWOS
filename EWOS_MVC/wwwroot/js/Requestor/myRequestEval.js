@@ -1,21 +1,19 @@
-﻿
-document.addEventListener('DOMContentLoaded', () => {
-
+﻿document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.querySelector('table.table tbody');
     const searchBox = document.getElementById('searchBox');
+    const loadingText = document.getElementById('loadingText');
     const categoryFilter = document.querySelector('select[name="MachineCategoryId"]');
     const tabs = document.querySelectorAll('#statusTabs .nav-link');
     const paginationClient = document.getElementById("pagination-client");
     const paginationNumber = document.getElementById("pagination-js");
     const paginationServer = document.getElementById("pagination-server");
 
-    let currentPage = 1;
-    let totalPages = 1;
-    const pageSize = 1;
-
-    let currentStatusList = ['Maspro'];
+    let currentStatusList = ['WaitingApproval', 'FabricationApproval'];
     let debounceTimer = null;
     let loadingTimer = null;
+    let currentPage = 1;
+    let totalPages = 1;
+    const pageSize = 20;
 
     const initialHTML = tableBody.innerHTML;
 
@@ -26,45 +24,57 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!data || data.length === 0) {
             tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted">Tidak ada data Request.</td>
+                        <td colspan="7" class="text-center text-muted">Tidak ada data.</td>
                     </tr>`;
             return;
         }
 
         let html = "";
-        const canEdit = window.canEdit === true;
 
         data.forEach((rq, idx) => {
             const id = rq.id ?? '';
-            let buttons = "";
+            let buttons = '';
 
-            if (rq.status == "Maspro") {
-                buttons += `<button class="btn btn-success btn-sm open-modal"
-                                    data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Request">Request</button>`;
-            }
+            if (rq.status === "WaitingBuyoff") {
+                buttons += `
+                        <button class="btn btn-success btn-sm open-modal"
+                                data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Pass">
+                            <i class="bi bi-check"></i> Pass
+                        </button>
 
-            if (canEdit) {
-                buttons += `<button class="btn btn-warning btn-sm open-modal"
-                                    data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Edit">Edit</button>`;
+                        <button class="btn btn-danger btn-sm open-modal"
+                                data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Fail">
+                            <i class="bi bi-x-lg"></i> Fail
+                        </button>
+                    `;
             }
 
             buttons += `
-                    <button class="btn btn-secondary btn-sm open-modal"
-                        data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Detail">Detail</button>
+                    <button class="btn btn-warning btn-sm open-modal"
+                            data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Detail">
+                        <i class="bi bi-info-circle"></i> Detail
+                    </button>
+
                     <button class="btn btn-info btn-sm open-modal"
-                        data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Status">Status</button>
+                            data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Status">
+                        <i class="bi bi-ticket-detailed"></i> Status
+                    </button>
+                     <button class="btn btn-secondary btn-sm open-modal"
+                                    data-url="/RequestHistory/LoadDataFab?id=${rq.id}&type=Status">
+                               <i class="bi bi-ui-checks-grid"></i> Progress
+                    </button>
                 `;
 
+
             html += `
-                <tr>
-                    <td class="text-center">${idx + 1}</td>
-                    <td>${rq.id ?? '-'}</td>
-                    <td>${rq.requestor ?? '-'}</td>
-                    <td style=" max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ">${rq.partName ?? '-'}</td>
-                    <td>${rq.categoryName ?? '-'}</td>
-                    <td>${rq.createdAt ? new Date(rq.createdAt).toLocaleDateString('en-GB').replace(/\//g, '-') : '-'}</td>
-                    <td class="text-center">${buttons}</td>
-                </tr>`;
+              <tr>
+                <td class="text-center">${idx + 1}</td>
+                <td>${rq.id ?? '-'}</td>
+                <td style=" max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ">${rq.partName ?? '-'}</td>
+                <td>${rq.categoryName ?? '-'}</td>
+                <td>${rq.createdAt ? new Date(rq.createdAt).toLocaleDateString('en-GB').replace(/\//g, '-') : '-'}</td>
+                <td class="text-center">${buttons}</td>
+              </tr>`;
         });
 
         tableBody.innerHTML = html;
@@ -74,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper: Render Pagination
     // -------------------------------
     function renderPagination() {
-        let maxPagesToShow = 5;
+        let maxPagesToShow = 3;
         let startPage = currentPage - 2;
         let endPage = currentPage + 2;
 
@@ -125,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Jika tidak berakhir pada lastPage → tampilkan "..." dan lastPage
+
         if (endPage < totalPages) {
             html += `
                 <li class="page-item disabled">
@@ -134,14 +145,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <a class="page-link" data-page="${totalPages}">${totalPages}</a>
                 </li>
             `;
-        }
+                    }
 
-        html += `
-            <li class="page-item ${currentPage == totalPages ? "disabled" : ""}">
-                <a class="page-link" data-page="next">Next</a>
-            </li>
-        </ul>
-    `;
+            html += `
+                <li class="page-item ${currentPage == totalPages ? "disabled" : ""}">
+                    <a class="page-link" data-page="next">Next</a>
+                </li>
+            </ul>
+        `;
 
         paginationNumber.innerHTML = html;
 
@@ -156,20 +167,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 performSearch();
             });
+            console.log(totalPages, currentPage);
+
         });
     }
-
 
     // -------------------------------
     // MAIN FUNCTION: performSearch
     // -------------------------------
-    async function performSearch() {
 
+    async function performSearch() {
         const keyword = searchBox.value.trim();
         const categoryId = categoryFilter ? categoryFilter.value : "";
 
-        // No filters → kembali initial
-        if (!keyword && !categoryId && currentStatusList.length === 0) {
+        // Jika tidak ada filter apapun, kembalikan tampilan awal
+        if (keyword.length === 0 && !categoryId && (!currentStatusList || currentStatusList.length === 0)) {
             tableBody.innerHTML = initialHTML;
             return;
         }
@@ -182,15 +194,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 350);
 
         try {
-            // Create URL
-            const url = new URL("/Requestor/ListProduct/Search", window.location.origin);
+            const url = new URL("/Requestor/MyRequest/SearchNew", window.location.origin);
             if (keyword) url.searchParams.append("keyword", keyword);
             if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
+
+            // kirim semua status (bisa 1 atau banyak)
             currentStatusList.forEach(s => url.searchParams.append("status", s.trim()));
 
             const res = await fetch(url);
+            if (!res.ok) throw new Error('Network response was not ok');
             const data = await res.json();
-
             clearTimeout(loadingTimer);
 
             paginationServer.style.display = "none";
@@ -210,35 +223,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const start = (currentPage - 1) * pageSize;
             const pageData = data.slice(start, start + pageSize);
-
             renderTable(pageData);
 
         } catch (err) {
-            console.error("Search error:", err);
-            tableBody.innerHTML = `<tr>
-                    <td colspan="7" class="text-center text-danger">Terjadi kesalahan.</td>
-                </tr>`;
+            clearTimeout(loadingTimer);
+            if (loadingText) loadingText.style.display = 'none';
+            console.error('Search error:', err);
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Terjadi kesalahan saat mencari.</td></tr>`;
         }
     }
+
 
     // -------------------------------
     // Event Listeners
     // -------------------------------
+
+    // Search 
     searchBox.addEventListener('input', () => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(performSearch, 350);
     });
 
-    if (categoryFilter)
-        categoryFilter.addEventListener("change", performSearch);
+    // Filter kategori
+    if (categoryFilter) categoryFilter.addEventListener('change', performSearch);
 
+    // Tab change (Bootstrap event)
     tabs.forEach(tab => {
-        tab.addEventListener("shown.bs.tab", e => {
-            const s = e.target.getAttribute("data-status");
-            currentStatusList = s ? s.split(',').map(x => x.trim()) : [];
-            currentPage = 1;
+        tab.addEventListener('shown.bs.tab', event => {
+            const statusAttr = event.target.getAttribute('data-status');
+            currentStatusList = statusAttr ? statusAttr.split(',').map(s => s.trim()) : [];
             performSearch();
         });
     });
-
 });

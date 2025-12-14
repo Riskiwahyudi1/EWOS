@@ -30,7 +30,6 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
            IFormFile? fileDrawing,
            IFormFile? fileQuotation)
         {
-            Task.Delay(5000);
             //validasi modelstate
             if (!ModelState.IsValid)
             {
@@ -82,7 +81,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     throw new Exception($"Format file {ext} tidak diizinkan untuk {folderName}.");
 
                 if (file.Length > maxSizeBytes)
-                    throw new Exception($"Ukuran file {file.FileName} melebihi batas.");
+                    throw new Exception($"Ukuran file {file.FileName} melebihi batas, Max 1MB.");
 
                 // cek folder upload
                 var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), $"Storage/Uploads/{folderName}");

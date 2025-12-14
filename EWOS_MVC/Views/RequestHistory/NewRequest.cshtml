@@ -1,4 +1,4 @@
-﻿﻿@using EWOS_MVC.Services
+﻿﻿﻿@using EWOS_MVC.Services
 @model PaginatedHelper<EWOS_MVC.Models.ItemRequestModel>
 @{
     ViewData["Title"] = "History request";
@@ -46,12 +46,12 @@
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link "
-            id="waitingapproval-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#waitingapproval"
-            data-status="WaitingApproval,FabricationApproval"
-            type="button"
-            role="tab">
+                    id="waitingapproval-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#waitingapproval"
+                    data-status="WaitingApproval,FabricationApproval"
+                    type="button"
+                    role="tab">
                 Waiting Approval
                 @{
                     var waitingApprovalCount = GetCount("WaitingApproval");
@@ -111,7 +111,7 @@
                 }
             </button>
         </li>
-        
+
         <li class="nav-item" role="presentation">
             <button class="nav-link"
                     id="done-tab"
@@ -164,7 +164,7 @@
                     <td>@rm.PartName</td>
                     <td>@rm.MachineCategories?.CategoryName</td>
                     <td>@rm.CreatedAt</td>
-                       
+
                     <td class="text-center">
 
                         <!-- Detail -->
@@ -267,11 +267,10 @@
         </nav>
     }
 </div>
-
 <!-- Pagination JS (hidden default) -->
 <div id="pagination-client" style="display:none;">
     <nav>
         <ul class="pagination justify-content-end" id="pagination-js"></ul>
     </nav>
 </div>
-<script src="~/js/General/requestHistoryNew.js" ></script>
+<script src="~/js/General/requestHistoryNew.js"></script>

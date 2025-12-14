@@ -17,7 +17,7 @@
 }
 
 <div class="d-flex align-items-center mb-3 gap-2">
-    <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search" style="max-width: 250px;">
+    <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search" style="max-width: 300px;">
 </div>
 
 <table class="table table-sm table-striped table-bordered">
@@ -39,10 +39,6 @@
             int index = 1;
         }
 
-        <div id="loadingText" style="display:none; text-align:center; margin-bottom:10px; font-weight:bold; color:#555;">
-            Memuat...
-        </div>
-
         @if (Model == null || !Model.Users.Any())
         {
             <tr>
@@ -63,9 +59,9 @@
                     <td>@user.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                     <td>@user.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-warning btn-sm"
-                                data-bs-toggle="modal" data-bs-target="#modalEdit-@user.Id">
-                            ✏️ Edit
+                        <button class="btn btn-warning btn-sm open-modal"
+                                data-url="/AdminSystem/UserList/LoadData?Id=@user.Id&amp;type=Edit">
+                            Edit
                         </button>
                     </td>
                 </tr>
@@ -75,151 +71,5 @@
     </tbody>
 </table>
 
-<nav aria-label="Page navigation example">
-    <ul class="pagination justify-content-end">
-        <li class="page-item disabled">
-            <a class="page-link">Previous</a>
-        </li>
-        <li class="page-item"><a class="page-link" href="#">1</a></li>
-        <li class="page-item"><a class="page-link" href="#">2</a></li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item">
-            <a class="page-link" href="#">Next</a>
-        </li>
-    </ul>
-</nav>
 
-<!-- Modals per user -->
-@if (Model.Users != null && Model.Users.Any())
-{
-    foreach (var user in Model.Users)
-    {
-        <div class="modal fade" id="modalEdit-@user.Id" tabindex="-1" aria-labelledby="editLabel-@user.Id" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="post" action="/AdminSystem/UserList/Edit">
-                        @Html.AntiForgeryToken()
-
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="editLabel-@user.Id">Edit User</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                        </div>
-
-                        <div class="modal-body">
-                            <input type="hidden" name="Id" value="@user.Id" />
-
-                            <div class="form-group mb-3">
-                                <label>Roles</label>
-                                @foreach (var role in Model.Roles)
-                                {
-                                    var isChecked = Model.UserRoles.Any(ur => ur.UserId == user.Id && ur.RoleId == role.Id);
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox"
-                                               name="Roles" value="@role.Id" @(isChecked ? "checked" : "")>
-                                        <label class="form-check-label">@role.Name</label>
-                                    </div>
-                                }
-                            </div>
-
-                            <div class="form-group mb-3">
-                                <label for="IsActive-@user.Id">Status</label>
-                                <select id="IsActive-@user.Id" name="IsActive" class="form-select" aria-label="Pilih status">
-                                    <option value="true" @(user.IsActive ? "selected" : "")>Aktif</option>
-                                    <option value="false" @(!user.IsActive ? "selected" : "")>Nonaktif</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-primary">Simpan</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    }
-}
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const tableBody = document.querySelector('table.table tbody');
-      const searchBox = document.getElementById('searchBox');
-      const loadingText = document.getElementById('loadingText');
-
-      if (!tableBody || !searchBox) return;
-
-      const initialHTML = tableBody.innerHTML;
-
-      let debounceTimer = null;
-
-      searchBox.addEventListener('input', function () {
-        const keyword = this.value.trim();
-
-        // Jika kosong kembalikan tampilan awal
-        if (keyword.length === 0) {
-          tableBody.innerHTML = initialHTML;
-          return;
-        }
-
-        // Debounce (tunggu 350ms )
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(async () => {
-          try {
-
-               loadingTimer = setTimeout(() => {
-                    loadingText.style.display = 'block';
-                }, 500);
-
-
-            const res = await fetch(`/AdminSystem/Machine/Search?keyword=${encodeURIComponent(keyword)}`);
-            if (!res.ok) throw new Error('Network response was not ok');
-
-            const data = await res.json();
-
-             clearTimeout(loadingTimer);
-             loadingText.style.display = 'none';
-
-            if (!Array.isArray(data) || data.length === 0) {
-              tableBody.innerHTML = `
-                    <tr>
-                         <td colspan="9" class="text-center text-muted">Tidak ada data Machine.</td>
-                    </tr>`;
-              return;
-            }
-
-                let html = '';
-                data.forEach((m, idx) => {
-                  const id = m.id ?? '';
-                  const machineName = m.machineName ?? '';
-                  const machineCategory = m.categoryName ?? '';
-                  const machinePower = m.machinePower ?? '';
-                  const machineStatus = (m.isActive ? 'Active' : 'Nonactive') ?? '';
-                  const createdAt = m.createdAt ?? '';
-                  const updatedAt = m.updatedAt ?? '';
-
-                  html += `
-                    <tr>
-                        <td class="text-center">${idx + 1}</td>
-                        <td>${machineName}</td>
-                        <td>${machineCategory}</td>
-                        <td>${machinePower}</td>
-                        <td>${machineStatus}</td>
-                        <td>${createdAt}</td>
-                        <td>${updatedAt}</td>
-                        <td class="text-center">
-                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-${id}">✏️ Edit</button>
-                        </td>
-                    </tr>`;
-                });
-
-                tableBody.innerHTML = html;
-
-          } catch (err) {
-            console.error('Search error:', err);
-            tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Terjadi kesalahan saat mencari.</td></tr>`;
-          }
-        }, 350);
-      });
-    });
-</script>
+<script src="~/js/AdminSystem/userList.js" defer></script>

@@ -2,19 +2,20 @@ using EWOS_MVC.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 public class HomeController : BaseController
 {
     private readonly ILogger<HomeController> _logger;
-    private readonly AppDbContext _context;
+    public readonly AppDbContext _context;
+
     public HomeController(ILogger<HomeController> logger, AppDbContext context)
     {
         _logger = logger;
         _context = context;
     }
 
-    public async Task<IActionResult> Index()
+   
+       public async Task<IActionResult> Index()
     {
         var getTotalNewReq = await _context.ItemRequests.CountAsync();
         var getTotalRo = await _context.RepeatOrders.SumAsync(qty => qty.QuantityReq);
@@ -24,7 +25,8 @@ public class HomeController : BaseController
         ViewBag.TotalRO = getTotalRo;
         ViewBag.TotalFab = getTotalFabDone;
 
-        return View(); 
+        return View();
+    
     }
 
     public IActionResult Privacy()

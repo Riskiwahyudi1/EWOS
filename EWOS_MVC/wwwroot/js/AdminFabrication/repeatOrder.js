@@ -113,27 +113,27 @@
             if (loadingText) loadingText.style.display = 'none';
             tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Terjadi kesalahan saat mencari.</td></tr>`;
         }
-   
+
     }
 
-// -------------------------------
-// Event Listeners
-// -------------------------------
+    // -------------------------------
+    // Event Listeners
+    // -------------------------------
 
-// Event search dengan debounce
-searchBox.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(performSearch, 350);
-});
-
-// Event filter kategori
-categoryFilter.addEventListener('change', performSearch);
-
-// event tab
-tabs.forEach(tab => {
-    tab.addEventListener("click", function () {
-        currentStatus = this.getAttribute("data-bs-target");
-        performSearch();
+    // Event search dengan debounce
+    searchBox.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(performSearch, 350);
     });
-});
+
+    // Event filter kategori
+    categoryFilter.addEventListener('change', performSearch);
+
+    // event tab
+    tabs.forEach(tab => {
+        tab.addEventListener("click", function () {
+            currentStatus = this.getAttribute("data-bs-target");
+            performSearch();
+        });
+    });
 });

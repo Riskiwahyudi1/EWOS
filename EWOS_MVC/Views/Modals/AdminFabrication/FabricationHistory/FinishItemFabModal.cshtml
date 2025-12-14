@@ -21,14 +21,11 @@
         <input type="hidden" name="ItemRequestId" value="@Model.ItemRequest?.Id" />
         <input type="hidden" name="RepeatOrderId" value="@Model.RepeatOrder?.Id" />
         <input type="hidden" name="Id" value="@Model.Id" />
-        @if(Model.ItemRequest?.MachineCategoryId == 1)
-        {
+
         <div class="mb-3">
             <label class="form-label">Upload COC (Format .pdf, max 1MB)</label>
             <input type="file" name="fileCOC" id="fileCOC" class="form-control" accept=".pdf" />
         </div>
-            
-        }
     </div>
 
     <div class="modal-footer">

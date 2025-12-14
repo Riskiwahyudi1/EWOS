@@ -2,7 +2,7 @@
 using EWOS_MVC.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Net;
 
 namespace EWOS_MVC.Controllers
 {
@@ -24,6 +24,7 @@ namespace EWOS_MVC.Controllers
                 .Where(rq => rq.Status == "Maspro"
                           || rq.Status == "Fail")
                 .OrderBy(x => x.Id)
+                 .OrderByDescending(r => r.CreatedAt)
                 .AsQueryable();
 
 
@@ -40,17 +41,26 @@ namespace EWOS_MVC.Controllers
             ViewBag.CurrentStatus = "WaitingApproval";
             return View(paginatedData);
         }
-        public async Task<IActionResult> RepeatOrder()
-        {
 
-            var Ro = await _context.RepeatOrders
-                               .Include(ir => ir.ItemRequests)
-                                    .ThenInclude(mc => mc.MachineCategories)
-                               .Include(u => u.Users)
-                               .Where(rq => rq.Status == "WaitingApproval" || rq.Status == "FabricationApproval")
-                               .Include(rs => rs.RequestStatus)
-                                   .ThenInclude(u => u.Users)
-                               .ToListAsync();
+        public async Task<IActionResult> RepeatOrder(int page = 1)
+        {
+            int pageSize = 20;
+
+            var Ro = _context.RepeatOrders
+                .Include(ir => ir.ItemRequests)
+                    .ThenInclude(mc => mc.MachineCategories)
+                .Include(u => u.Users)
+                .Where(rq => rq.Status == "Done" || rq.Status == "Close")
+                .Include(rs => rs.RequestStatus)
+                    .ThenInclude(u => u.Users)
+                .OrderBy(x => x.Id)
+                 .OrderByDescending(r => r.CreatedAt)
+                .AsQueryable();
+
+
+            // PAGINATION
+            var paginatedData = await PaginatedHelper<RepeatOrderModel>
+                .CreateAsync(Ro, page, pageSize);
 
             // --- Summary semua status new request---
             var statusSummaryRo = await _context.RepeatOrders
@@ -59,7 +69,7 @@ namespace EWOS_MVC.Controllers
 
             ViewBag.StatusSummaryRo = statusSummaryRo;
 
-            return View(Ro);
+            return View(paginatedData);
         }
 
         //load modal new request
@@ -159,6 +169,7 @@ namespace EWOS_MVC.Controllers
             var query = _context.ItemRequests
                 .Include(m => m.MachineCategories)
                 .Include(u => u.Users)
+                 .OrderByDescending(r => r.CreatedAt)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(keyword))
@@ -189,6 +200,7 @@ namespace EWOS_MVC.Controllers
 
             return Json(result);
         }
+
         //search Ro
         [HttpGet]
         public IActionResult SearchRo(string keyword, int? categoryId, List<string> status)
@@ -197,6 +209,7 @@ namespace EWOS_MVC.Controllers
                 .Include(i => i.ItemRequests)
                     .ThenInclude(mc => mc.MachineCategories)
                 .Include(u => u.Users)
+                 .OrderByDescending(r => r.CreatedAt)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(keyword))

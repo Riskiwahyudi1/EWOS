@@ -53,7 +53,7 @@
             <th>ID Request</th>
             <th>Requestor</th>
             <th>Item Name</th>
-            <th>Machine Category</th>
+            <th>Category</th>
             <th>Request Date</th>
             <th class="text-center">Action</th>
         </tr>
@@ -77,7 +77,7 @@
                     <td class="text-center">@index</td>
                     <td>@rm.Id</td>
                     <td>@rm.Users.Name</td>
-                    <td>@rm.PartName</td>
+                    <td style=" max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; "> @rm.PartName</td>
                     <td>@rm.MachineCategories?.CategoryName</td>
                     <td>@rm.CreatedAt</td>
                     <td class="text-center">
@@ -194,13 +194,13 @@
                     <li class="page-item disabled">
                         <span class="page-link">...</span>
                     </li>
-                    <li class="page-item">
+                    <li class="page-item @(Model.PageIndex == Model.TotalPages ? "active" : "")">
                         <a class="page-link" href="?page=@Model.TotalPages">@Model.TotalPages</a>
                     </li>
                 }
 
                 <!-- Next -->
-                <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                <li class="page-item @(Model.PageIndex == Model.TotalPages ? "disabled" : "")">
                     <a class="page-link" href="?page=@(Model.PageIndex + 1)">Next</a>
                 </li>
 
@@ -208,14 +208,13 @@
         </nav>
     }
 </div>
-
 <!-- Pagination JS (hidden default) -->
 <div id="pagination-client" style="display:none;">
     <nav>
         <ul class="pagination justify-content-end" id="pagination-js"></ul>
     </nav>
 </div>
-<input type="hidden" id="currentStatus" value="@ViewBag.CurrentStatus" />
+
 
 
 <script src="~/js/Requestor/listProduct.js" defer></script>

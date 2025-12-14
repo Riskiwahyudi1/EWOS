@@ -1,4 +1,5 @@
-﻿@model List<EWOS_MVC.Models.ItemRequestModel>
+﻿﻿@using EWOS_MVC.Services
+@model PaginatedHelper<EWOS_MVC.Models.ItemRequestModel>
 @{
     ViewData["Title"] = "Dashboard";
 }
@@ -21,6 +22,8 @@
 }
 
 <ul class="nav nav-tabs justify-content-center" id="statusTabs" role="tablist">
+
+   
     <li class="nav-item" role="presentation">
         @{
             int waitingAppCount = GetCount("WaitingApproval") + GetCount("FabricationApproval");
@@ -87,16 +90,15 @@
             }
         </button>
     </li>
-
     <li class="nav-item" role="presentation">
-        <button class="nav-link"
+        <button class="nav-link "
                 id="history-tab"
                 data-bs-toggle="tab"
                 data-bs-target="#history"
                 data-status="Maspro,Fail"
                 type="button"
                 role="tab">
-            History
+            Finish
             @{
                 int historyCount = GetCount("Maspro") + GetCount("Fail");
             }
@@ -106,8 +108,6 @@
             }
         </button>
     </li>
-
-
     <li class="nav-item" role="presentation">
         <button class="nav-link"
                 id="reject-tab"
@@ -123,6 +123,7 @@
             }
         </button>
     </li>
+
 </ul>
 
 <table class="table table-sm mt-3 table-striped table-bordered">
@@ -130,10 +131,9 @@
         <tr>
             <th class="text-center">No</th>
             <th>ID Request</th>
-            <th>Item Name</th>
-            <th>Machine Category</th>
+            <th style="width : 400px;">Item Name</th>
+            <th>Category</th>
             <th>Request Date</th>
-
             <th class="text-center">Action</th>
         </tr>
     </thead>
@@ -155,7 +155,7 @@
                 <tr>
                     <td class="text-center">@index</td>
                     <td>@ir.Id</td>
-                    <td>@ir.PartName</td>
+                    <td style=" max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ">@ir.PartName</td>
                     <td>@ir.MachineCategories?.CategoryName</td>
                     <td>@ir.CreatedAt</td>
                     <td class="text-center">
@@ -193,128 +193,89 @@
     </tbody>
 </table>
 
+<!-- Pagination Razor (default) -->
+<div id="pagination-server">
+    @if (Model.TotalPages > 1)
+    {
+        int maxPagesToShow = 3;
+        int startPage = Model.PageIndex - 2;
+        int endPage = Model.PageIndex + 2;
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const tableBody = document.querySelector('table.table tbody');
-      const searchBox = document.getElementById('searchBox');
-      const loadingText = document.getElementById('loadingText');
-      const categoryFilter = document.querySelector('select[name="MachineCategoryId"]');
-      const tabs = document.querySelectorAll('#statusTabs .nav-link');
-
-      let currentStatusList = ['@ViewBag.CurrentStatus']; 
-      let debounceTimer = null;
-      let loadingTimer = null;
-
-      if (!tableBody || !searchBox) return;
-      const initialHTML = tableBody.innerHTML;
-
-      async function performSearch() {
-        const keyword = searchBox.value.trim();
-        const categoryId = categoryFilter ? categoryFilter.value : "";
-
-        // Jika tidak ada filter apapun, kembalikan tampilan awal
-        if (keyword.length === 0 && !categoryId && (!currentStatusList || currentStatusList.length === 0)) {
-          tableBody.innerHTML = initialHTML;
-          return;
+        // Koreksi awal jika startPage < 1
+        if (startPage < 1)
+        {
+            endPage += (1 - startPage);
+            startPage = 1;
         }
 
-        clearTimeout(loadingTimer);
-        loadingTimer = setTimeout(() => {
-          if (loadingText) loadingText.style.display = 'block';
-        }, 400);
+        // Koreksi akhir jika endPage > TotalPages
+        if (endPage > Model.TotalPages)
+        {
+            startPage -= (endPage - Model.TotalPages);
+            endPage = Model.TotalPages;
+        }
 
-        try {
-          const url = new URL("/Requestor/MyRequest/SearchNew", window.location.origin);
-          if (keyword) url.searchParams.append("keyword", keyword);
-          if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
+        // Pastikan jumlah tombol maksimum 5
+        if (endPage - startPage + 1 > maxPagesToShow)
+        {
+            endPage = startPage + maxPagesToShow - 1;
+        }
+        if (startPage < 1)
+        {
+            startPage = 1;
+        }
 
-          // kirim semua status (bisa 1 atau banyak)
-          currentStatusList.forEach(s => url.searchParams.append("status", s.trim()));
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-end">
 
-          const res = await fetch(url);
-          if (!res.ok) throw new Error('Network response was not ok');
-          const data = await res.json();
-          clearTimeout(loadingTimer);
-          if (loadingText) loadingText.style.display = 'none';
+                <!-- Previous -->
+                <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                    <a class="page-link" href="?page=@(Model.PageIndex - 1)">Previous</a>
+                </li>
 
-          if (!Array.isArray(data) || data.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Tidak ada data Request.</td></tr>`;
-            return;
-          }
-
-          let html = '';
-          data.forEach((rq, idx) => {
-            const id = rq.id ?? '';
-            let buttons = '';
-
-                if (rq.status === "WaitingBuyoff") {
-                    buttons += `
-                        <button class="btn btn-success btn-sm open-modal"
-                                data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Pass">
-                            <i class="bi bi-check"></i> Pass
-                        </button>
-
-                        <button class="btn btn-danger btn-sm open-modal"
-                                data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Fail">
-                            <i class="bi bi-x-lg"></i> Fail
-                        </button>
-                    `;
+                <!-- Jika page di awal -> tampil "1" lalu ... -->
+                @if (startPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">1</a>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
                 }
 
-                buttons += `
-                    <button class="btn btn-warning btn-sm open-modal"
-                            data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Detail">
-                        <i class="bi bi-info-circle"></i> Detail
-                    </button>
+                <!-- Page number utama -->
+                @for (int i = startPage; i <= endPage; i++)
+                {
+                    <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                        <a class="page-link" href="?page=@i">@i</a>
+                    </li>
+                }
 
-                    <button class="btn btn-info btn-sm open-modal"
-                            data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Status">
-                        <i class="bi bi-ticket-detailed"></i> Status
-                    </button>
-                     <button class="btn btn-secondary btn-sm open-modal"
-                                    data-url="/RequestHistory/LoadDataFab?id=${rq.id}&type=Status">
-                               <i class="bi bi-ui-checks-grid"></i> Progress
-                    </button>
-                `;
+                <!-- Jika page di akhir -> tampil ... lalu lastPage -->
+                @if (endPage < Model.TotalPages)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    <li class="page-item @(Model.PageIndex == Model.TotalPages ? "active" : "")">
+                        <a class="page-link" href="?page=@Model.TotalPages">@Model.TotalPages</a>
+                    </li>
+                }
 
+                <!-- Next -->
+                <li class="page-item @(Model.PageIndex == Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" href="?page=@(Model.PageIndex + 1)">Next</a>
+                </li>
 
-            html += `
-              <tr>
-                <td class="text-center">${idx + 1}</td>
-                <td>${rq.id ?? '-'}</td>
-                <td>${rq.partName ?? '-'}</td>
-                <td>${rq.categoryName ?? '-'}</td>
-                <td>${rq.createdAt ? new Date(rq.createdAt).toLocaleDateString('en-GB').replace(/\//g, '-') : '-'}</td>
-                <td class="text-center">${buttons}</td>
-              </tr>`;
-          });
-
-          tableBody.innerHTML = html;
-        } catch (err) {
-          clearTimeout(loadingTimer);
-          if (loadingText) loadingText.style.display = 'none';
-          console.error('Search error:', err);
-          tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Terjadi kesalahan saat mencari.</td></tr>`;
-        }
-      }
-
-      // Debounce input
-      searchBox.addEventListener('input', () => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(performSearch, 350);
-      });
-
-      // Filter kategori
-      if (categoryFilter) categoryFilter.addEventListener('change', performSearch);
-
-      // Tab change (Bootstrap event)
-      tabs.forEach(tab => {
-        tab.addEventListener('shown.bs.tab', event => {
-          const statusAttr = event.target.getAttribute('data-status');
-          currentStatusList = statusAttr ? statusAttr.split(',').map(s => s.trim()) : [];
-          performSearch();
-        });
-      });
-    });
-</script>
+            </ul>
+        </nav>
+    }
+</div>
+<!-- Pagination JS (hidden default) -->
+<div id="pagination-client" style="display:none;">
+    <nav>
+        <ul class="pagination justify-content-end" id="pagination-js"></ul>
+    </nav>
+</div>
+<script src="~/js/Requestor/myRequestEval.js" defer></script>

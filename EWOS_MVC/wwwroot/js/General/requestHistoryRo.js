@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.querySelector('table.table tbody');
     const searchBox = document.getElementById('searchBox');
     const categoryFilter = document.querySelector('select[name="MachineCategoryId"]');
-    let currentStatusList = ['Maspro', 'Fail'];
+    let currentStatusList = ['Done', 'Close'];
     const loadingText = document.getElementById('loadingText');
     const tabs = document.querySelectorAll('#statusTabs .nav-link');
     const paginationClient = document.getElementById("pagination-client");
@@ -36,13 +36,13 @@ document.addEventListener('DOMContentLoaded', () => {
             let buttons = "";
             buttons += `
     <button class="btn btn-warning btn-sm open-modal"
-        data-url="/RequestHistory/LoadData?id=${rq.id}&type=Detail">
+        data-url="/RequestHistory/LoadRoData?id=${rq.id}&type=Detail">
         Detail
     </button>
 
 
     <button class="btn btn-info btn-sm open-modal"
-        data-url="/RequestHistory/LoadDataFab?id=${rq.id}&type=Status">
+        data-url="/RequestHistory/LoadDataRoFab?id=${rq.id}&type=Status">
         Progress
     </button>
     `;
@@ -136,8 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </ul>
     `;
 
-
-
         paginationNumber.innerHTML = html;
 
         // Event listener
@@ -181,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 350);
 
                 // Buat URL dan query
-                const url = new URL("/RequestHistory/SearchNew", window.location.origin);
+                const url = new URL("/RequestHistory/SearchRo", window.location.origin);
                 if (keyword) url.searchParams.append("keyword", keyword);
                 if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
 

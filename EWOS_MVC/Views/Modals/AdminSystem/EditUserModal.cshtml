@@ -1,0 +1,67 @@
+﻿@model EWOS_MVC.Models.ViewModels.UserRolesViewModel
+
+<form method="post" action="/AdminSystem/UserList/Edit">
+    @Html.AntiForgeryToken()
+
+    <div class="modal-header">
+        <h5 class="modal-title">Edit User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+    </div>
+
+    <div class="modal-body">
+
+        <!-- ID USER -->
+        <input type="hidden" name="Id" value="@Model.SelectedUser.Id" />
+
+        <!-- INFO USER (OPSIONAL) -->
+        <div class="mb-3">
+            <strong>@Model.SelectedUser.Name</strong><br />
+            <small class="text-muted">@Model.SelectedUser.Email</small>
+        </div>
+
+        <!-- ROLES -->
+        <div class="form-group mb-3">
+            <label>Roles</label>
+
+            @foreach (var role in Model.Roles)
+            {
+                var isChecked = Model.UserRoles.Any(ur =>
+                ur.UserId == Model.SelectedUser.Id &&
+                ur.RoleId == role.Id);
+
+                <div class="form-check">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           name="Roles"
+                           value="@role.Id"
+                           checked="@(isChecked)" />
+
+                    <label class="form-check-label">
+                        @role.Name
+                    </label>
+                </div>
+            }
+        </div>
+
+
+        <!-- STATUS -->
+        <div class="form-group mb-3">
+            <label>Status</label>
+
+            <select asp-for="SelectedUser.IsActive"
+                    name="IsActive"
+                    class="form-select">
+
+                <option value="true">Aktif</option>
+                <option value="false">Nonaktif</option>
+
+            </select>
+        </div>
+
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+    </div>
+</form>

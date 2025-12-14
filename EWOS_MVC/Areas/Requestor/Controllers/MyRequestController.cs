@@ -1,7 +1,9 @@
 ﻿using EWOS_MVC.Models;
+using EWOS_MVC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace EWOS_MVC.Areas.Requestor.Controllers
 {
@@ -16,21 +18,24 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         }
         //new order
         [HttpGet]
-        public async Task<IActionResult> Evaluation(string status)
+        public async Task<IActionResult> Evaluation(int page = 1)
         {
-            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+            int userId = CurrentUser.Id;
+            int pageSize = 20;
 
             // --- Data tabel hanya untuk status awal ---
-            var tableData = await _context.ItemRequests
+            var tableData = _context.ItemRequests
                 .Include(mc => mc.MachineCategories)
                 .Include(u => u.Users)
                 .Include(rs => rs.RequestStatus)
                     .ThenInclude(u => u.Users)
                 .Where(u => u.UserId == userId)
                 .Where(s => s.Status == "WaitingApproval" || s.Status == "FabricationApproval")
-                .ToListAsync();
+                .OrderByDescending(r => r.CreatedAt);
 
-           
+            var paginatedData = await PaginatedHelper<ItemRequestModel>
+                .CreateAsync(tableData, page, pageSize);
+
             // --- Summary semua status ---
             var statusSummaryRepeat = await _context.RepeatOrders
                 .Where(u => u.UsersId == userId)
@@ -45,26 +50,29 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
 
             ViewBag.StatusSummaryRepeat = statusSummaryRepeat;
             ViewBag.StatusSummaryEval = statusSummaryEval;
-            ViewBag.CurrentStatus = "WaitingApproval";
 
-            return View(tableData);
+            return View(paginatedData);
         }
 
         //RepeatOrder 
         [HttpGet]
-        public async Task<IActionResult> RepeatOrder(string status)
+        public async Task<IActionResult> RepeatOrder(int page = 1)
         {
-            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+            int userId = CurrentUser.Id;
+            int pageSize = 20;
 
             // --- Data tabel hanya untuk status awal ---
-            var tableData = await _context.RepeatOrders
+            var tableData = _context.RepeatOrders
                 .Include(ir => ir.ItemRequests)
                     .ThenInclude(mc => mc.MachineCategories)
                 .Where(u => u.UsersId == userId)
                 .Where(s => s.Status == "WaitingApproval" || s.Status == "FabricationApproval")
-                .ToListAsync();
+                .OrderByDescending(r => r.CreatedAt);
 
-           
+            var paginatedData = await PaginatedHelper<RepeatOrderModel>
+                .CreateAsync(tableData, page, pageSize);
+
+
             // --- Summary semua status ---
             var statusSummaryRepeat = await _context.RepeatOrders
                 .Where(u => u.UsersId == userId)
@@ -79,10 +87,9 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
 
             ViewBag.StatusSummaryRepeat = statusSummaryRepeat;
             ViewBag.StatusSummaryEval = statusSummaryEval;
-            ViewBag.CurrentStatus = "WaitingApproval";
 
 
-            return View(tableData);
+            return View(paginatedData);
         }
 
         //load modal new request
@@ -108,6 +115,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
 
             ;
         }
+
         //load modal Ro
         [HttpGet]
         public IActionResult LoadDataRo(long id, string type)
@@ -139,9 +147,12 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [HttpGet]
         public async Task<IActionResult> SearchNew(string keyword, int? categoryId, List<string> status)
         {
+            int userId = CurrentUser.Id;
             // Base query
             var query = _context.ItemRequests
                 .Include(m => m.MachineCategories)
+                .Where(u => u.UserId == userId)
+                .OrderByDescending(r => r.CreatedAt)
                 .AsQueryable();
 
             // Filter by keyword
@@ -186,10 +197,13 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [HttpGet]
         public async Task<IActionResult> SearchRo(string keyword, int? categoryId, List<string> status)
         {
+            int userId = CurrentUser.Id;
             // Base query
             var query = _context.RepeatOrders
                 .Include(ir => ir.ItemRequests)
                     .ThenInclude(m => m.MachineCategories)
+                .Where(u => u.UsersId == userId)
+                .OrderByDescending(r => r.CreatedAt)
                 .AsQueryable();
 
             // Filter by keyword
@@ -237,7 +251,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Pass(long ItemRequestId, string Reason)
         {
-            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+            int userId = CurrentUser.Id;
 
             if (ItemRequestId == null)
             {
@@ -288,7 +302,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Close(long ItemRequestId, long RepeatOrderId, string Reason)
         {
-            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+            int userId = CurrentUser.Id;
 
             if (RepeatOrderId <= 0)
             {
@@ -345,7 +359,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Fail(long ItemRequestId, string Reason)
         {
-            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+            int userId = CurrentUser.Id;
             if (ItemRequestId == null)
             {
                 TempData["Error"] = "ItemRequestId tidak boleh kosong.";
@@ -395,7 +409,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Revisi(long? ItemRequestId, string Reason)
         {
-            int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
+            int userId = CurrentUser.Id;
 
             if (ItemRequestId == null)
             {

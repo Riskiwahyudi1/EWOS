@@ -1,18 +1,16 @@
-﻿
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.querySelector('table.table tbody');
     const searchBox = document.getElementById('searchBox');
-    const categoryFilter = document.querySelector('select[name="MachineCategoryId"]');
-    let currentStatusList = ['Maspro', 'Fail'];
-    const loadingText = document.getElementById('loadingText');
-    const tabs = document.querySelectorAll('#statusTabs .nav-link');
+    const YearsFilter = document.querySelector('select[name="YearSettingId"]');
+    const generateBtn = document.getElementById('btn-generate-week');
+    const idYear = document.getElementById('YearSettingId');
     const paginationClient = document.getElementById("pagination-client");
     const paginationNumber = document.getElementById("pagination-js");
     const paginationServer = document.getElementById("pagination-server");
 
     let currentPage = 1;
     let totalPages = 1;
-    const pageSize = 20;
+    const pageSize = 10;
 
     let debounceTimer = null;
     let loadingTimer = null;
@@ -26,48 +24,39 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!data || data.length === 0) {
             tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted">Tidak ada data Request.</td>
+                        <td colspan="7" class="text-center text-muted">Tidak ada data.</td>
                     </tr>`;
             return;
         }
 
-        let html = '';
-        data.forEach((rq, idx) => {
-            let buttons = "";
-            buttons += `
-    <button class="btn btn-warning btn-sm open-modal"
-        data-url="/RequestHistory/LoadData?id=${rq.id}&type=Detail">
-        Detail
-    </button>
+        let html = "";
 
-
-    <button class="btn btn-info btn-sm open-modal"
-        data-url="/RequestHistory/LoadDataFab?id=${rq.id}&type=Status">
-        Progress
-    </button>
-    `;
-
+        data.forEach((w, idx) => {
             html += `
-    <tr>
-        <td class="text-center">${idx + 1}</td>
-        <td>${rq.id ?? ''}</td>
-        <td>${rq.users ?? ''}</td>
-        <td>${rq.partName ?? rq.PartName ?? ''}</td>
-        <td>${rq.categoryName ?? '-'}</td>
-        <td>${rq.createdAt ? new Date(rq.createdAt).toLocaleDateString('id-ID') : ''}</td>
-        <td class="text-center">${buttons}</td>
-    </tr>
-    `;
+              <tr>
+                <td class="text-center">${idx + 1}</td>
+                <td>${w.week}</td>
+                <td>${w.dayCount}</td>
+                <td>${w.startDate}</td>
+                <td>${w.endDate}</td>
+                <td class="text-center">
+                  <button class="btn btn-warning btn-sm open-modal"
+                            data-url="/AdminSystem/WeekFabrication/LoadData?Id=${w.id}&type=Edit">
+                        Edit
+                    </button>
+                </td>
+              </tr>`;
         });
 
         tableBody.innerHTML = html;
+
     }
 
     // -------------------------------
     // Helper: Render Pagination
     // -------------------------------
     function renderPagination() {
-        let maxPagesToShow = 3;
+        let maxPagesToShow = 5;
         let startPage = currentPage - 2;
         let endPage = currentPage + 2;
 
@@ -136,8 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </ul>
     `;
 
-
-
         paginationNumber.innerHTML = html;
 
         // Event listener
@@ -161,87 +148,82 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function performSearch() {
         const keyword = searchBox.value.trim();
-        const categoryId = categoryFilter.value;
+        const YearSettingId = YearsFilter ? YearsFilter.value : "";
 
-        if (keyword.length === 0 && !categoryId && (!currentStatusList || currentStatusList.length === 0)) {
-            tableBody.innerHTML = initialHTML;
-            return;
-        }
+        if (!tableBody || !searchBox) return;
 
-        // Hapus timer sebelumnya
-        clearTimeout(debounceTimer);
+        clearTimeout(loadingTimer);
+        loadingTimer = setTimeout(() => {
+            tableBody.innerHTML = `
+                    <tr><td colspan="7" class="text-center text-primary">Memuat data...</td></tr>
+                `;
+        }, 350);
 
-        // Set delay
-        debounceTimer = setTimeout(async () => {
-            try {
-                // tampilkan indikator loading
-                clearTimeout(loadingTimer);
-                loadingTimer = setTimeout(() => {
-                    if (loadingText) loadingText.style.display = 'block';
-                }, 350);
+        try {
 
-                // Buat URL dan query
-                const url = new URL("/RequestHistory/SearchNew", window.location.origin);
-                if (keyword) url.searchParams.append("keyword", keyword);
-                if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
+            const url = new URL("/AdminSystem/WeekFabrication/Search", window.location.origin);
+            if (keyword) url.searchParams.append("keyword", keyword);
+            if (YearSettingId && YearSettingId !== "0") url.searchParams.append("YearSettingId", YearSettingId);
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('Network response was not ok');
 
-                // kirim semua status (bisa 1 atau banyak)
-                currentStatusList.forEach(s => url.searchParams.append("status", s.trim()));
+            const data = await res.json();
 
-                const res = await fetch(url);
-                const data = await res.json();
-
-                clearTimeout(loadingTimer);
-
-                paginationServer.style.display = "none";
-                paginationClient.style.display = "block";
-
-                // Paging Calculation
-                totalPages = Math.max(1, Math.ceil(data.length / pageSize));
-                if (currentPage > totalPages) currentPage = 1;
-
-                // HIDE pagination if data < pageSize
-                if (data.length <= pageSize) {
-                    paginationClient.style.display = "none";
-                } else {
-                    paginationClient.style.display = "block";
-                    renderPagination();
-                }
-
-                const start = (currentPage - 1) * pageSize;
-                const pageData = data.slice(start, start + pageSize);
-
-                renderTable(pageData);
-
-            } catch (err) {
-                console.error('Search error:', err);
-                if (loadingText) loadingText.style.display = 'none';
-                tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Terjadi kesalahan saat mencari.</td></tr>`;
+            if (Array.isArray(data) && data.length > 0) {
+                generateBtn.disabled = true;
+            } else {
+                generateBtn.disabled = false;
             }
-        }, 200);
+
+            clearTimeout(loadingTimer);
+
+            paginationServer.style.display = "none";
+            paginationClient.style.display = "block";
+
+            // Paging Calculation
+            totalPages = Math.max(1, Math.ceil(data.length / pageSize));
+            if (currentPage > totalPages) currentPage = 1;
+
+            // HIDE pagination if data < pageSize
+            if (data.length <= pageSize) {
+                paginationClient.style.display = "none";
+            } else {
+                paginationClient.style.display = "block";
+                renderPagination();
+            }
+
+            const start = (currentPage - 1) * pageSize;
+            const pageData = data.slice(start, start + pageSize);
+
+            renderTable(pageData);
+
+        } catch (err) {
+            console.error('Search error:', err);
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Terjadi kesalahan saat mencari.</td></tr>`;
+        }
     }
 
     // -------------------------------
     // Event Listeners
     // -------------------------------
 
-    // Event search dengan debounce
-    searchBox.addEventListener('input', () => {
+    //  Event ketika mengetik di search box
+    searchBox.addEventListener('input', function () {
+        const keyword = this.value.trim();
+        if (keyword.length === 0 && (!YearsFilter || YearsFilter.value === "0")) {
+            tableBody.innerHTML = initialHTML;
+            return;
+        }
+
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(performSearch, 350);
     });
 
-    // Tab change (Bootstrap event)
-    tabs.forEach(tab => {
-        tab.addEventListener('shown.bs.tab', event => {
-            const statusAttr = event.target.getAttribute('data-status');
-            currentStatusList = statusAttr ? statusAttr.split(',').map(s => s.trim()) : [];
+    // Event ketika mengubah dropdown 
+    if (YearsFilter) {
+        YearsFilter.addEventListener('change', function () {
+            idYear.value = YearsFilter.value
             performSearch();
         });
-    });
-
-    // Event filter kategori
-    categoryFilter.addEventListener('change', performSearch);
-
-
+    }
 });

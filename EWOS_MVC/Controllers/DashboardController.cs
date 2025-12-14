@@ -34,19 +34,20 @@ namespace EWOS_MVC.Controllers
             // -------------------------------------------------------
             // New Req
             var totalPotentialSavingCost = allDataItemnewReq
-                .Where(r => r.CreatedAt.Year == currentYear)
+                .Where(r => r.CreatedAt.Year == currentYear && r.IsCalculateSaving == true)
                 .Sum(r => r.ExternalFabCost ?? 0);
             //Ro
             var totalPotentialSavingCostRo = allDataItemRO
                .Where(r => r.CreatedAt.Year == currentYear && r.ItemRequests.IsCalculateSaving == true)
                .Sum(r => r.QuantityReq * r.ItemRequests.ExternalFabCost);
-            //sudah di fabrikasi
-            var totalFabrikasiDone = allItemFabrication
-                .Where(r => r.CreatedAt.Year == currentYear)
-                .Sum(r => r.TotalSaving ?? 0);
+
+            ////sudah di fabrikasi
+            //var totalFabrikasiDone = allItemFabrication
+            //    .Where(r => r.CreatedAt.Year == currentYear)
+            //    .Sum(r => r.TotalSaving ?? 0);
 
             //jumlahkan
-            var potentialSaving = totalPotentialSavingCost + totalPotentialSavingCostRo + totalFabrikasiDone;
+            var potentialSaving = totalPotentialSavingCost + totalPotentialSavingCostRo;
 
 
 
@@ -122,7 +123,8 @@ namespace EWOS_MVC.Controllers
             // TOTAL REQUEST DONE
             // -------------------------------------------------------
             //totalRo request 
-            var totalNewReq = allDataItemnewReq.Where(s => s.Status != "Reject").Count();
+            var totalNewReq = allDataItemnewReq.Count();
+            var totalRejectReq = allDataItemnewReq.Where(s => s.Status == "Reject").Count();
             var totalRo = allDataItemRO.Sum(q => q.QuantityReq);
             var calculatenewNRo = totalNewReq + totalRo;
 
@@ -244,6 +246,7 @@ namespace EWOS_MVC.Controllers
                 savingByCategory,
                 cumulative,
                 TotalRequest = calculatenewNRo,
+                TotalReqReject = totalRejectReq,
                 TotalRequestDone = calculatFabDone,
 
 
@@ -343,6 +346,7 @@ namespace EWOS_MVC.Controllers
             // TOTAL REQUEST DONE
             // -------------------------------------------------------
             var totalNewReq = allDataItemnewReq.Count();
+            var totalRejectReq = allDataItemnewReq.Where(s => s.Status == "Reject").Count();
             var totalRo = allDataItemRO.Sum(q => q.QuantityReq);
             var calculatenewNRo = totalNewReq + totalRo;
 
@@ -450,6 +454,7 @@ namespace EWOS_MVC.Controllers
                 cumulative,
                 TotalRequest = calculatenewNRo,
                 TotalRequestDone = calculatFabDone,
+                TotalReqReject = totalRejectReq,
             });
         }
 

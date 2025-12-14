@@ -61,8 +61,9 @@
                     <td>@rm.CreatedAt</td>
                     <td>@rm.UpdatedAt</td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit-@rm.Id">
-                            ✏️ Edit
+                        <button class="btn btn-warning btn-sm open-modal"
+                                data-url="/AdminSystem/RawMaterial/LoadData?Id=@rm.Id&amp;type=Edit">
+                            Edit
                         </button>
                     </td>
                 </tr>
@@ -72,19 +73,7 @@
     </tbody>
 </table>
 
-<nav aria-label="Page navigation example">
-    <ul class="pagination justify-content-end">
-        <li class="page-item disabled">
-            <a class="page-link">Previous</a>
-        </li>
-        <li class="page-item"><a class="page-link" href="#">1</a></li>
-        <li class="page-item"><a class="page-link" href="#">2</a></li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item">
-            <a class="page-link" href="#">Next</a>
-        </li>
-    </ul>
-</nav>
+
 
 
 <!-- Modal tambah -->
@@ -130,47 +119,6 @@
     </div>
 </div>
 
-@if (Model != null && Model.Any())
-{
-    foreach (var rm in Model)
-    {
-        <!-- Modal Edit data -->
-        <div class="modal fade" id="modalEdit-@rm.Id" tabindex="-1" aria-labelledby="editLabel-@rm.Id" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="post" action="/AdminSystem/rawMaterial/Edit">
-                        @Html.AntiForgeryToken()
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="editLabel-@rm.Id">Edit Data</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                        </div>
-                        <div class="modal-body">
-                            <input type="hidden" name="Id" value="@rm.Id" />
-                            <div class="form-group mb-3">
-                                <label>SAP ID</label>
-                                <input name="SAPID" class="form-control" type="number" value="@rm.SAPID" required />
-                            </div>
-                            <div class="form-group mb-3">
-                                <label>Name</label>
-                                <input name="Name" class="form-control" value="@rm.Name" required />
-                            </div>
-                            <div class="form-group mb-3">
-                                <label asp-for="MachineCategories">Machine Categories</label>
-                                @await Component.InvokeAsync("MachineCategories", new { selectedId = rm.MachineCategoryId })
-                                <span asp-validation-for="MachineCategories" class="text-danger"></span>
-                            </div>
-                            <div class="form-group mb-3">
-                                <label>Price</label>
-                                <input type="number" name="Price" class="form-control" step="0.01" placeholder="0,00" value="@rm.Price" required />
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-primary">Simpan</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    }
-}
+
+
+<script src="~/js/AdminSystem/rawMaterial.js" defer></script>

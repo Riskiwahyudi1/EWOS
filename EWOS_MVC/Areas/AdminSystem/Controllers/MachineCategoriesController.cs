@@ -1,6 +1,7 @@
 ﻿using EWOS_MVC.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace EWOS_MVC.Areas.AdminSystem.Controllers
@@ -43,6 +44,25 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
             return Json(hasil);
         }
 
+        // load data modal
+        [HttpGet]
+        public async Task<IActionResult> LoadData(long id, string type)
+        {
+            var data = await _context.MachineCategories
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Edit" => PartialView("~/Views/modals/AdminSystem/EditMcCategoryModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        }
+
+        //tambah data
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(MachineCategoriesModel category)

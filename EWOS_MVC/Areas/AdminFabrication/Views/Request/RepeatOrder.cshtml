@@ -105,7 +105,7 @@
         @if (Model == null || !Model.Any())
         {
             <tr>
-                <td colspan="7" class="text-center text-muted">Tidak ada data Requeast.</td>
+                <td colspan="7" class="text-center text-muted">Tidak ada data.</td>
             </tr>
         }
         else
@@ -114,8 +114,8 @@
             {
                 <tr>
                     <td class="text-center">@index</td>
-                    <td>@rq.Users.Name</td>
-                    <td>@rq.ItemRequests.PartName</td>
+                    <td>@rq.Users?.Name</td>
+                    <td>@rq.ItemRequests?.PartName</td>
                     <td>@rq.ItemRequests?.MachineCategories?.CategoryName</td>
                     <td>@rq.CRD.ToString("dd/MM/yyyy")</td>
                     <td>@rq.CreatedAt</td>
@@ -152,4 +152,5 @@
         }
     </tbody>
 </table>
+
 <script src="~/js/AdminFabrication/repeatOrder.js" defer></script>

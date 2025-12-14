@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using EWOS_MVC.Models.ViewModels; 
-using EWOS_MVC.Models; 
+using EWOS_MVC.Models.ViewModels;
+using EWOS_MVC.Models;
 
 namespace EWOS_MVC.Areas.AdminSystem.Controllers
 {
@@ -38,6 +38,77 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
 
             return View(model);
         }
+
+        // load data modal
+        [HttpGet]
+        public async Task<IActionResult> LoadData(long id, string type)
+        {
+            // Ambil user (WAJIB await)
+            var user = await _context.Users
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (user == null)
+                return NotFound();
+
+            // Ambil semua roles
+            var roles = await _context.Roles.ToListAsync();
+
+            // Ambil role user terkait saja
+            var userRoles = await _context.UserRoles
+                .Where(ur => ur.UserId == id)
+                .ToListAsync();
+
+            // Gabungkan ke ViewModel
+            var model = new UserRolesViewModel
+            {
+                SelectedUser = user,
+                Roles = roles,
+                UserRoles = userRoles
+            };
+
+            return type switch
+            {
+                "Edit" => PartialView("~/Views/modals/AdminSystem/EditUserModal.cshtml", model),
+                _ => BadRequest("Unknown modal type")
+            };
+        }
+
+        //Seaching
+        [HttpGet]
+        public IActionResult Search(string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return Json(Array.Empty<object>());
+
+            keyword = keyword.Trim();
+
+            var query = _context.Users
+                .Include(u => u.UserRoles)
+                .Where(u =>
+                    (u.UserName != null && EF.Functions.Like(u.UserName, $"%{keyword}%")) ||
+                    (u.Name != null && EF.Functions.Like(u.Name, $"%{keyword}%")) ||
+                    (u.Badge != null && EF.Functions.Like(u.Badge, $"%{keyword}%"))
+                );
+
+            var result = query
+                .Select(u => new
+                {
+                    u.Id,
+                    u.UserName,
+                    u.Name,
+                    u.Badge,
+                    u.Email,
+                    u.IsActive,
+                    CreatedAt = u.CreatedAt.ToString("dd/MM/yyyy HH:mm"),
+                    UpdatedAt = u.UpdatedAt.ToString("dd/MM/yyyy HH:mm")
+                })
+                .ToList();
+
+            return Json(result);
+        }
+
+
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

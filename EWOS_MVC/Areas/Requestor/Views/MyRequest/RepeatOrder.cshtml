@@ -1,4 +1,5 @@
-﻿@model List<EWOS_MVC.Models.RepeatOrderModel>
+﻿﻿@using EWOS_MVC.Services
+@model PaginatedHelper<EWOS_MVC.Models.RepeatOrderModel>
 @{
     ViewData["Title"] = "Dashboard";
 }
@@ -101,10 +102,10 @@
         <tr>
             <th class="text-center">No</th>
             <th>ID Request</th>
-            <th>Item Name</th>
-            <th>Machine Category</th>
+            <th style=" width : 300px;">Item Name</th>
+            <th>Category</th>
             <th>Request Qty</th>
-            <th>Fabrication Done</th>
+            <th>Done Qty</th>
             <th>Request Date</th>
 
             <th class="text-center">Action</th>
@@ -151,124 +152,90 @@
     </tbody>
 </table>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const tableBody = document.querySelector('table.table tbody');
-      const searchBox = document.getElementById('searchBox');
-      const loadingText = document.getElementById('loadingText');
-      const categoryFilter = document.querySelector('select[name="MachineCategoryId"]');
-      const tabs = document.querySelectorAll('#statusTabs .nav-link');
+<!-- Pagination Razor (default) -->
+<div id="pagination-server">
+    @if (Model.TotalPages > 1)
+    {
+        int maxPagesToShow = 3;
+        int startPage = Model.PageIndex - 2;
+        int endPage = Model.PageIndex + 2;
 
-      let currentStatusList = ['@ViewBag.CurrentStatus']; // ubah jadi array
-      let debounceTimer = null;
-      let loadingTimer = null;
-
-      if (!tableBody || !searchBox) return;
-      const initialHTML = tableBody.innerHTML;
-
-      async function performSearch() {
-        const keyword = searchBox.value.trim();
-        const categoryId = categoryFilter ? categoryFilter.value : "";
-
-        // Jika tidak ada filter apapun, kembalikan tampilan awal
-        if (keyword.length === 0 && !categoryId && (!currentStatusList || currentStatusList.length === 0)) {
-          tableBody.innerHTML = initialHTML;
-          return;
+        // Koreksi awal jika startPage < 1
+        if (startPage < 1)
+        {
+            endPage += (1 - startPage);
+            startPage = 1;
         }
 
-        clearTimeout(loadingTimer);
-        loadingTimer = setTimeout(() => {
-          if (loadingText) loadingText.style.display = 'block';
-        }, 400);
-
-        try {
-          const url = new URL("/Requestor/MyRequest/SearchRo", window.location.origin);
-          if (keyword) url.searchParams.append("keyword", keyword);
-          if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
-
-          // kirim semua status (bisa 1 atau banyak)
-          currentStatusList.forEach(s => url.searchParams.append("status", s.trim()));
-
-          const res = await fetch(url);
-          if (!res.ok) throw new Error('Network response was not ok');
-          const data = await res.json();
-          console.log(data)
-          clearTimeout(loadingTimer);
-          if (loadingText) loadingText.style.display = 'none';
-
-          if (!Array.isArray(data) || data.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Tidak ada data Request.</td></tr>`;
-            return;
-          }
-
-          let html = '';
-          data.forEach((rq, idx) => {
-            const id = rq.id ?? '';
-            let buttons = '';
-
-            if(rq.status == "Done"){
-                buttons += `
-
-                <button class="btn btn-success btn-sm open-modal"
-                        data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Recived">
-                    <i class="bi bi-circular-check"></i> Recive
-                </button>
-                `;
-            }
-              buttons += `
-                <button class="btn btn-warning btn-sm open-modal"
-                        data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Detail">
-                    <i class="bi bi-info-circle"></i> Detail
-                </button>
-
-                <button class="btn btn-info btn-sm open-modal"
-                        data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Status">
-                    <i class="bi bi-ticket-detailed"></i> Status
-                </button>
-                <button class="btn btn-secondary btn-sm open-modal"
-                        data-url="/RequestHistory/LoadDataRoFab?id=${id}&type=Status">
-                    <i class="bi bi-ui-checks-grid"></i> Progress
-                </button>
-                `;
-
-            html += `
-              <tr>
-                <td class="text-center">${idx + 1}</td>
-                <td>${rq.id ?? '-'}</td>
-                <td>${rq.partName ?? '-'}</td>
-                <td>${rq.categoryName ?? '-'}</td>
-                <td>${rq.quantityReq ?? '0'}</td>
-                <td>${rq.quantityDone ?? '0'}</td>
-                <td>${rq.createdAt ? new Date(rq.createdAt).toLocaleDateString('en-GB').replace(/\//g, '-') : '-'}</td>
-                <td class="text-center">${buttons}</td>
-              </tr>`;
-          });
-
-          tableBody.innerHTML = html;
-        } catch (err) {
-          clearTimeout(loadingTimer);
-          if (loadingText) loadingText.style.display = 'none';
-          console.error('Search error:', err);
-          tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Terjadi kesalahan saat mencari.</td></tr>`;
+        // Koreksi akhir jika endPage > TotalPages
+        if (endPage > Model.TotalPages)
+        {
+            startPage -= (endPage - Model.TotalPages);
+            endPage = Model.TotalPages;
         }
-      }
 
-      // Debounce input
-      searchBox.addEventListener('input', () => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(performSearch, 350);
-      });
+        // Pastikan jumlah tombol maksimum 5
+        if (endPage - startPage + 1 > maxPagesToShow)
+        {
+            endPage = startPage + maxPagesToShow - 1;
+        }
+        if (startPage < 1)
+        {
+            startPage = 1;
+        }
 
-      // Filter kategori
-      if (categoryFilter) categoryFilter.addEventListener('change', performSearch);
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-end">
 
-      // Tab change (Bootstrap event)
-      tabs.forEach(tab => {
-        tab.addEventListener('shown.bs.tab', event => {
-          const statusAttr = event.target.getAttribute('data-status');
-          currentStatusList = statusAttr ? statusAttr.split(',').map(s => s.trim()) : [];
-          performSearch();
-        });
-      });
-    });
-</script>
+                <!-- Previous -->
+                <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                    <a class="page-link" href="?page=@(Model.PageIndex - 1)">Previous</a>
+                </li>
+
+                <!-- Jika page di awal -> tampil "1" lalu ... -->
+                @if (startPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">1</a>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                }
+
+                <!-- Page number utama -->
+                @for (int i = startPage; i <= endPage; i++)
+                {
+                    <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                        <a class="page-link" href="?page=@i">@i</a>
+                    </li>
+                }
+
+                <!-- Jika page di akhir -> tampil ... lalu lastPage -->
+                @if (endPage < Model.TotalPages)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    <li class="page-item @(Model.PageIndex == Model.TotalPages ? "active" : "")">
+                        <a class="page-link" href="?page=@Model.TotalPages">@Model.TotalPages</a>
+                    </li>
+                }
+
+                <!-- Next -->
+                <li class="page-item @(Model.PageIndex == Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" href="?page=@(Model.PageIndex + 1)">Next</a>
+                </li>
+
+
+            </ul>
+        </nav>
+    }
+</div>
+<!-- Pagination JS (hidden default) -->
+<div id="pagination-client" style="display:none;">
+    <nav>
+        <ul class="pagination justify-content-end" id="pagination-js"></ul>
+    </nav>
+</div>
+<script src="~/js/Requestor/myRequestRo.js" defer></script>

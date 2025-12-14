@@ -180,58 +180,17 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/toast.js"></script>
 
-    <!-- Load Modal globall-->
     <script>
+        function initFinishModalValidation() {
+            const modalContent = document.getElementById("globalModalContent");
+            if (!modalContent) return;
 
-         // validasi file disabled modal
-           function initFinishModalValidation() {
-            const modal = document.getElementById("globalModalContent");
-            const fileInput = modal.querySelector("#fileCOC");
-            const form = modal.querySelector("form");
+            const form = modalContent.querySelector("form");
+            if (!form) return;
+        }
 
-            if (!fileInput || !form) return;
-
-            fileInput.addEventListener("change", function (e) {
-
-            // Pastikan event berasal dari input file #fileCOC
-            if (e.target.id !== "fileCOC") return;
-
-            const fileInput = e.target;
-            const file = fileInput.files[0];
-
-            if (!file) return;
-
-            // Validasi ekstensi
-            const ext = file.name.split('.').pop().toLowerCase();
-            if (ext !== "pdf") {
-                alert("File harus .pdf");
-                fileInput.value = "";
-                return;
-            }
-
-            // Validasi ukuran (5MB)
-            if (file.size > 1 * 1024 * 1024) {
-                alert("Ukuran file maksimal 1MB.");
-                fileInput.value = "";
-                return;
-            }
-
-            // Jika valid
-            console.log("File valid:", file.name);
-
-            });
-
-            // Reset ketika modal ditampilkan
-
-                modal.addEventListener("shown.bs.modal", () => {
-                    fileInput.value = "";
-                    fileInput.classList.remove("is-invalid", "is-valid");
-                });
-            }
-
-
-            // tampilkan modal
-            document.addEventListener("click", function (e) {
+        // tampilkan modal
+        document.addEventListener("click", function (e) {
             if (!e.target.classList.contains("open-modal")) return;
 
             const url = e.target.dataset.url;
@@ -253,8 +212,8 @@
                         "<div class='p-5 text-danger'>Failed to load content</div>";
                 });
         });
-
     </script>
+
     <!-- Apex chart -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 

@@ -10,13 +10,13 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
     public class FabricationHistoryController : BaseController
     {
         private readonly AppDbContext _context;
-        private readonly WeekHelper _weekHelper;
         private readonly YearsHelper _yearHelper;
-        public FabricationHistoryController(AppDbContext context, WeekHelper weekHelper, YearsHelper yearHelper)
+        private readonly WeekHelper _weekHelper;
+        public FabricationHistoryController(AppDbContext context, YearsHelper yearsHelper, WeekHelper weekHelper)
         {
             _context = context;
+            _yearHelper = yearsHelper;
             _weekHelper = weekHelper;
-            _yearHelper = yearHelper;
         }
 
         public async Task<IActionResult> Index()
@@ -138,7 +138,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             if (MachineId.HasValue)
             {
                 query = query.Where(r =>
-                    r.MachineId != null && r.MachineId == MachineId.Value
+                     r.MachineId == MachineId.Value
                 );
             }
 
@@ -170,7 +170,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
 
             //ambil week sekarang
             var mingguSekarang = _context.WeeksSetting
-                .Where(y =>y.YearSettingId == yearSettingId )
+                 .Where(y => y.YearSettingId == yearSettingId)
                 .FirstOrDefault(w =>
                     DateTime.Now >= w.StartDate &&
                     DateTime.Now <= w.EndDate);
@@ -185,8 +185,8 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             }
 
             List<int> mesinIds = new List<int>();
-            string machineName = null;
-            string categoryName = null;
+            string? machineName = null;
+            string? categoryName = null;
 
             if (MachineId.HasValue)
             {
@@ -232,6 +232,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 .Sum(m => (decimal?)m.FabricationTime ?? 0);
 
 
+
             int jumlahMesin = mesinIds.Count;
             decimal totalJam = week.WorkingDays * 24 * jumlahMesin;
 
@@ -245,7 +246,6 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 {
                     r.Id,
                     PartName = r.ItemRequest.PartName,
-                    RepeatOrderId = r.RepeatOrderId,
                     r.ItemRequest.CRD,
                     r.Status,
                     machineCategory = r.ItemRequest.MachineCategoryId,
@@ -336,7 +336,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             using var stream = new FileStream(filePath, FileMode.Create);
             await fileCOC.CopyToAsync(stream);
 
-            var finalPath = $"/uploads/COC/{fileName}";
+            var finalPath = $"/Uploads/COC/{fileName}";
 
             // Simpan path ke model yang benar
             if (itemFabrication.RepeatOrderId == null)
@@ -620,43 +620,6 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             }
         }
 
-        //Proses cancel
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelEval(long itemFabId)
-        {
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                // Cari data Evaluasi
-                var fabricationData = await _context.ItemFabrications
-                    .FirstOrDefaultAsync(f => f.Id == itemFabId);
-
-                if (fabricationData != null)
-                {
-                    // Hapus data evaluasi
-                    _context.ItemFabrications.Remove(fabricationData);
-                    await _context.SaveChangesAsync();
-
-                    await transaction.CommitAsync(); 
-
-                    TempData["Success"] = "Evaluasi dibatalkan.";
-                }
-                else
-                {
-                    TempData["Error"] = "Tidak ditemukan data ItemFabrication yang terkait.";
-                }
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync(); 
-                TempData["Error"] = "Terjadi kesalahan saat membatalkan data: " + ex.Message;
-            }
-
-            return RedirectToAction("Index");
-        }
-
-
 
         //Edit quantity
         [HttpPost]
@@ -717,12 +680,12 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             return Redirect("index");
         }
 
-    //tambah fabrikasi request baru
+        // tambah evaluasi
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddEvaluasi(int MachineId, long ItemRequestId, decimal EvaluationTime)
         {
-            int userId = 1;
+            int userId = CurrentUser.Id;
 
             if (!ModelState.IsValid)
             {
@@ -792,6 +755,42 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 return Redirect("/FabricationHistory");
             }
 
+        }
+
+        //Proses cancel evaluasi
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelEval(long itemFabId)
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Cari data Evaluasi
+                var fabricationData = await _context.ItemFabrications
+                    .FirstOrDefaultAsync(f => f.Id == itemFabId);
+
+                if (fabricationData != null)
+                {
+                    // Hapus data evaluasi
+                    _context.ItemFabrications.Remove(fabricationData);
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+
+                    TempData["Success"] = "Evaluasi dibatalkan.";
+                }
+                else
+                {
+                    TempData["Error"] = "Tidak ditemukan data ItemFabrication yang terkait.";
+                }
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                TempData["Error"] = "Terjadi kesalahan saat membatalkan data: " + ex.Message;
+            }
+
+            return RedirectToAction("Index");
         }
 
     }

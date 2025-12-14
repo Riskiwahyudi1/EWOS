@@ -22,6 +22,24 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
             return View(rawmaterials);
         }
 
+        // load data modal
+        [HttpGet]
+        public async Task<IActionResult> LoadData(long id, string type)
+        {
+            var data = await _context.RawMaterials
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Edit" => PartialView("~/Views/modals/AdminSystem/EditRawModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        }
+
         //Searching
         [HttpGet]
         public IActionResult Search(string keyword)

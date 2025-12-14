@@ -1,4 +1,5 @@
-﻿@model List<EWOS_MVC.Models.WeeksSettingModel>
+﻿﻿@using EWOS_MVC.Services
+@model PaginatedHelper<EWOS_MVC.Models.WeeksSettingModel>
 
 @{
     Layout = "~/Views/Shared/_LayoutAdminSystem.cshtml";
@@ -23,7 +24,7 @@
         class="btn btn-success my-4"
         data-bs-toggle="modal"
         data-bs-target="#modalConfirmGenerate"
-@(Model != null && Model.Any() ? "disabled" : "")>
+        @(Model != null && Model.Any() ? "disabled" : "")>
     ➕ Generate Week
 </button>
 
@@ -60,9 +61,8 @@
                     <td>@week.StartDate</td>
                     <td>@week.EndDate</td>
                     <td class="text-center">
-
                         <button class="btn btn-warning btn-sm open-modal"
-                                data-url="/AdminSystem/WeekFabrication/LoadData?id=@week.Id&amp;type=Edit">
+                                data-url="/AdminSystem/WeekFabrication/LoadData?Id=@week.Id&type=Edit">
                             Edit
                         </button>
                     </td>
@@ -73,124 +73,7 @@
     </tbody>
 </table>
 
-<nav aria-label="Page navigation example">
-    <ul class="pagination justify-content-end">
-        <!-- Tombol Previous -->
-        <li class="page-item @(ViewBag.CurrentPage <= 1 ? "disabled" : "")">
-            <a class="page-link" href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1, search = ViewBag.Search })">Previous</a>
-        </li>
 
-        @{
-            int totalPages = ViewBag.TotalPages as int? ?? 1;
-            int currentPage = ViewBag.CurrentPage as int? ?? 1;
-            int maxVisiblePages = 5;
-
-            int startPage = Math.Max(1, currentPage - 2);
-            int endPage = Math.Min(totalPages, startPage + maxVisiblePages - 1);
-
-            // Jika endPage sudah di akhir, pastikan startPage tetap dalam range
-            if (endPage - startPage < maxVisiblePages - 1)
-            {
-                startPage = Math.Max(1, endPage - maxVisiblePages + 1);
-            }
-
-            // Jika halaman awal lebih dari 1, tampilkan 1 dan "..."
-            if (startPage > 1)
-            {
-                <li class="page-item">
-                    <a class="page-link" href="@Url.Action("Index", new { page = 1, search = ViewBag.Search })">1</a>
-                </li>
-                if (startPage > 2)
-                {
-                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                }
-            }
-
-            // Loop halaman yang terlihat
-            for (int i = startPage; i <= endPage; i++)
-            {
-                <li class="page-item @(i == currentPage ? "active" : "")">
-                    <a class="page-link" href="@Url.Action("Index", new { page = i, search = ViewBag.Search })">@i</a>
-                </li>
-            }
-
-            // Jika masih ada halaman setelah endPage
-            if (endPage < totalPages)
-            {
-                if (endPage < totalPages - 1)
-                {
-                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                }
-                <li class="page-item">
-                    <a class="page-link" href="@Url.Action("Index", new { page = totalPages, search = ViewBag.Search })">@totalPages</a>
-                </li>
-            }
-        }
-
-        <!-- Tombol Next -->
-        <li class="page-item @(ViewBag.CurrentPage >= ViewBag.TotalPages ? "disabled" : "")">
-            <a class="page-link" href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1, search = ViewBag.Search })">Next</a>
-        </li>
-    </ul>
-</nav>
-
-@if (Model != null && Model.Any())
-{
-
-
-    <!-- Modal Edit -->
-    @foreach (var week in Model)
-    {
-        <div class="modal fade" id="modalEdit-@week.Id" tabindex="-1" aria-labelledby="modalEditLabel-@week.Id" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="post" action="/AdminSystem/WeekFabrication/Edit">
-                        @Html.AntiForgeryToken()
-
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalEditLabel-@week.Id">Edit Week</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                        </div>
-
-                        <div class="modal-body">
-                            <input type="hidden" name="Id" value="@week.Id" />
-
-                            <div class="form-group mb-2">
-                                <label>Week No</label>
-                                <input name="Week" class="form-control" value="@week.Week" readonly />
-                            </div>
-
-                            <div class="form-group mb-2">
-                                <label>Work Days</label>
-                                <input type="number" step="0.01" name="WorkingDays" class="form-control" value="@week.WorkingDays" required />
-                            </div>
-
-                            <div class="form-group mb-2">
-                                <label>Month</label>
-                                <input name="Month" type="number" class="form-control" value="@week.Month" required />
-                            </div>
-
-                            <div class="form-group mb-2">
-                                <label>Week Start</label>
-                                <input name="StartDate" type="datetime-local" class="form-control" value="@week.StartDate.ToString("yyyy-MM-ddTHH:mm")" required />
-                            </div>
-
-                            <div class="form-group mb-2">
-                                <label>Week End</label>
-                                <input name="EndDate" type="datetime-local" class="form-control" value="@week.EndDate.ToString("yyyy-MM-ddTHH:mm")" required />
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    }
-}
 <!-- Modal Konfirmasi + Form -->
 <div class="modal fade" id="modalConfirmGenerate" tabindex="-1" aria-labelledby="modalConfirmGenerateLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -234,94 +117,91 @@
     </div>
 </div>
 
+<!-- Pagination Razor (default) -->
+<div id="pagination-server">
+    @if (Model.TotalPages > 1)
+    {
+        int maxPagesToShow = 5;
+        int startPage = Model.PageIndex - 2;
+        int endPage = Model.PageIndex + 2;
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const tableBody = document.querySelector('table.table tbody');
-      const searchBox = document.getElementById('searchBox');
-      const YearsFilter = document.querySelector('select[name="YearSettingId"]');
-      const generateBtn = document.getElementById('btn-generate-week');
-      const idYear = document.getElementById('YearSettingId');
-
-      if (!tableBody || !searchBox) return;
-
-      const initialHTML = tableBody.innerHTML;
-      let debounceTimer = null;
-
-      async function fetchAndRender() {
-        const keyword = searchBox.value.trim();
-        const YearSettingId = YearsFilter ? YearsFilter.value : "";
-
-
-        const url = new URL("/AdminSystem/WeekFabrication/Search", window.location.origin);
-        if (keyword) url.searchParams.append("keyword", keyword);
-        if (YearSettingId && YearSettingId !== "0") url.searchParams.append("YearSettingId", YearSettingId);
-
-        try {
-          const res = await fetch(url);
-          if (!res.ok) throw new Error('Network response was not ok');
-
-          const data = await res.json();
-
-            if (Array.isArray(data) && data.length > 0) {
-                generateBtn.disabled = true;
-            } else {
-                generateBtn.disabled = false;
-            }
-          if (data.error) {
-            tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">${data.message}</td></tr>`;
-            return;
-          }
-
-          if (!Array.isArray(data) || data.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Belum ada data untuk tahun ini.</td></tr>`;
-            return;
-          }
-
-          let html = '';
-          data.forEach((w, idx) => {
-            html += `
-              <tr>
-                <td class="text-center">${idx + 1}</td>
-                <td>${w.week}</td>
-                <td>${w.dayCount}</td>
-                <td>${w.startDate}</td>
-                <td>${w.endDate}</td>
-                    <td class="text-center">
-                          <button class="btn btn-warning btn-sm open-modal"
-            data-url="/AdminSystem/WeekFabrication/LoadData?id=${w.id}&type=Edit">
-        Edit
-    </button>
-                    </td>
-
-              </tr>`;
-          });
-
-          tableBody.innerHTML = html;
-        } catch (err) {
-          console.error('Search error:', err);
-          tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Terjadi kesalahan saat mencari.</td></tr>`;
-        }
-      }
-
-      //  Event ketika mengetik di search box
-      searchBox.addEventListener('input', function () {
-        const keyword = this.value.trim();
-        if (keyword.length === 0 && (!YearsFilter || YearsFilter.value === "0")) {
-          tableBody.innerHTML = initialHTML;
-          return;
+        // Koreksi awal jika startPage < 1
+        if (startPage < 1)
+        {
+            endPage += (1 - startPage);
+            startPage = 1;
         }
 
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(fetchAndRender, 350);
-      });
+        // Koreksi akhir jika endPage > TotalPages
+        if (endPage > Model.TotalPages)
+        {
+            startPage -= (endPage - Model.TotalPages);
+            endPage = Model.TotalPages;
+        }
 
-      // Event ketika mengubah dropdown
-      if (YearsFilter) {
-        YearsFilter.addEventListener('change', function () {
-            idYear.value = YearsFilter.value
-          fetchAndRender();
-        });
-      }
-    });
-</script>
+        // Pastikan jumlah tombol maksimum 5
+        if (endPage - startPage + 1 > maxPagesToShow)
+        {
+            endPage = startPage + maxPagesToShow - 1;
+        }
+        if (startPage < 1)
+        {
+            startPage = 1;
+        }
+
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-end">
+
+                <!-- Previous -->
+                <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                    <a class="page-link" href="?page=@(Model.PageIndex - 1)">Previous</a>
+                </li>
+
+                <!-- Jika page di awal -> tampil "1" lalu ... -->
+                @if (startPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">1</a>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                }
+
+                <!-- Page number utama -->
+                @for (int i = startPage; i <= endPage; i++)
+                {
+                    <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                        <a class="page-link" href="?page=@i">@i</a>
+                    </li>
+                }
+
+                <!-- Jika page di akhir -> tampil ... lalu lastPage -->
+                @if (endPage < Model.TotalPages)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    <li class="page-item @(Model.PageIndex == Model.TotalPages ? "active" : "")">
+                        <a class="page-link" href="?page=@Model.TotalPages">@Model.TotalPages</a>
+                    </li>
+                }
+
+                <!-- Next -->
+                <li class="page-item @(Model.PageIndex == Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" href="?page=@(Model.PageIndex + 1)">Next</a>
+                </li>
+
+            </ul>
+        </nav>
+    }
+</div>
+<!-- Pagination JS (hidden default) -->
+<div id="pagination-client" style="display:none;">
+    <nav>
+        <ul class="pagination justify-content-end" id="pagination-js"></ul>
+    </nav>
+</div>
+
+
+<script src="~/js/AdminSystem/weekFabrication.js" defer></script>

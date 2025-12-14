@@ -26,7 +26,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 .Include(rs => rs.RequestStatus)
                     .ThenInclude(u => u.Users)
                 .Where(s => s.Status == "Maspro")
-                .OrderBy(x => x.Id); 
+                .OrderByDescending(r => r.CreatedAt);
 
             // PAGINATION
             var paginatedData = await PaginatedHelper<ItemRequestModel>
@@ -80,6 +80,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             // Base query
             var query = _context.ItemRequests
                 .Include(m => m.MachineCategories)
+                .OrderByDescending(r => r.CreatedAt)
                 .AsQueryable();
 
             // Filter by keyword
@@ -125,7 +126,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         //request ulang
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Request(RepeatOrderModel data)
+        public async Task<IActionResult> RepeatOrder(RepeatOrderModel data)
         {
             int userId = ViewBag.Id != null ? Convert.ToInt32(ViewBag.Id) : 0;
 

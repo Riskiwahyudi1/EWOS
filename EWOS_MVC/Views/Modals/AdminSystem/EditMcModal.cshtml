@@ -1,0 +1,45 @@
+﻿@model EWOS_MVC.Models.MachineModel
+
+<form method="post" action="/AdminSystem/Machine/Edit">
+    @Html.AntiForgeryToken()
+    <div class="modal-header">
+        <h5 class="modal-title">Edit Data</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" name="Id" value="@Model.Id" />
+        <div class="form-group mb-3">
+            <label>MachineName</label>
+            <input name="MachineName" class="form-control" value="@Model.MachineName" required />
+        </div>
+        <div class="form-group mb-3">
+            <label>Machine Power</label>
+            <input name="MachinePower" class="form-control" step="0.01" value="@Model.MachinePower" required />
+        </div>
+        <div class="form-group">
+            <label asp-for="MachineCategories">Machine Categories</label>
+            @await Component.InvokeAsync("MachineCategories", new { selectedId = Model.MachineCategoryId })
+            <span asp-validation-for="MachineCategories" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label>Status</label>
+            <select name="IsActive" class="form-select">
+                @if (Model.IsActive)
+                {
+                    <option value="true" selected>Aktif</option>
+                    <option value="false">Nonaktif</option>
+                }
+                else
+                {
+                    <option value="true">Aktif</option>
+                    <option value="false" selected>Nonaktif</option>
+                }
+            </select>
+
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+    </div>
+</form>

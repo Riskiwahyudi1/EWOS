@@ -28,7 +28,7 @@
     </div>
 
 
-  <!-- Tampilan chart -->
+    <!-- Tampilan chart -->
     <!-- Baris 1 -->
     <div style="display: flex; flex-wrap: wrap; gap: 30px; justify-content: space-around; margin-bottom: 30px;">
 
@@ -67,7 +67,7 @@
     <div style="display: flex; flex-wrap: wrap; gap: 30px; justify-content: space-around; margin-bottom: 30px; ">
         <div style="flex: 1; min-width: 300px; " class="bg-white shadow-sm p-3">
             <h6>Machine Utilization</h6>
-            <div id="machineUtilization" ></div>
+            <div id="machineUtilization"></div>
         </div>
     </div>
 
@@ -76,299 +76,326 @@
 @section Scripts {
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('DOMContentLoaded', function () {
 
-         // =============================
-        // 1. TREN REQUEST FABRIKASI/MONTH
-        // ===============================
-         var requestCountOptions = {
-            chart: { type: 'line', height: 250 },
-            series: [
-                {
-                    name: 'Quantity',
-                    type: 'bar',
-                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.qtyReqByMonth))
-                },
-                {
-                    name: 'Kumulatif',
-                    type: 'line',
-                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.cumulativeReqQty))
-                }
-            ],
-            stroke: {
-                width: [0, 3], // 0 untuk bar, 3 untuk line
-                curve: ['straight', 'smooth']
-            },
-            dataLabels: {
-                enabled: true,
-                enabledOnSeries: [0,1]
-            },
-            xaxis: {
-                categories: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.monthReq))
-            },
-            yaxis: [
-                { title: { text: 'Quantity' } },
-                { opposite: true, title: { text: 'Kumulatif' } } // line chart di axis kanan
-            ],
-            tooltip: { shared: true }
-        };
-
-        // Render chart
-        window.barChart = new ApexCharts(document.querySelector("#barChart"), requestCountOptions);
-        window.barChart.render();
-
-
-         // =======================================
-        // 2.RADIAL CHART (fabrikasi count)
-        // =========================================
-        const totalRequest = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TotalRequest));
-        const totalRequestDone = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TotalRequestDone));
-        const totalWaiting = totalRequest - totalRequestDone;
-        const percentWaiting = (totalWaiting / totalRequest) * 100;
-        const percentDone = (totalRequestDone / totalRequest) * 100;
-
-            // fabrikasi count
-            var fabricationCount = {
-            series: [
-                100,
-                percentWaiting,
-                percentDone
-
-            ],
-            chart: {
-                height: 300,
-                type: 'radialBar',
-            },
-            plotOptions: {
-                radialBar: {
-                    offsetY: 0,
-                    startAngle: 0,
-                    endAngle: 270,
-                    hollow: {
-                        margin: 5,
-                        size: '30%',
-                        background: 'transparent',
-                    },
-                    dataLabels: {
-                        name: {
-                            show: false
-                        },
-                        value: {
-                            show: false
-                        }
-                    },
-                    barLabels: {
-                        enabled: true,
-                        useSeriesColors: true,
-                        offsetX: -8,
-                        fontSize: '13px',
-
-                        formatter: function(seriesName, opts) {
-                            const index = opts.seriesIndex;
-
-                            const realValues = [
-                                totalRequest,
-                                totalWaiting,
-                                totalRequestDone
-                            ];
-
-                            return seriesName + ": " + realValues[index];
-                        }
-                    },
-                }
-            },
-            colors: ['#1ab7ea', '#0084ff', '#39539E'],
-            labels: ['Total Request', 'On Progress', 'Done'],
-        };
-                window.fabricationChart = new ApexCharts(
-            document.querySelector("#fabricationCount"),
-            fabricationCount
-        );
-        window.fabricationChart.render();
-
-
-        // =============================
-        // 3. PERSENTASE PROGRESS FABRIKASI CHART
-        // =============================
-        var ProgressFabPie = {
-            series: [totalWaiting, totalRequestDone],
-            chart: {
-                type: 'donut',
-                height: 250
-            },
-            legend: {
-                position: 'bottom'
-                },
-            labels: ['On Progress', 'Done'],
-
-            responsive: [{
-            breakpoint: 480,
-            options: {
-                chart: {
-                width: 50
-                },
-                legend: {
-                position: 'bottom'
-                }
-            }
-            }]
-        };
-
-        window.progressFabChart = new ApexCharts( document.querySelector("#ProgressFabPie"), ProgressFabPie);
-        window.progressFabChart.render();
-
-         // =============================
-        // 4. CALCULATION SAVING/MONTH
-        // =============================
-        const monthSaving = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.monthLabels));
-        const savingByMonth = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.savingByMonth));
-        const savingByCategory = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.savingByCategory));
-        const savingCumulative = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.cumulative));
-        const potentialSaving = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.potentialSaving));
-
-        var savingData = {
+             // =============================
+            // 1. TREN REQUEST FABRIKASI/MONTH
+            // ===============================
+             var requestCountOptions = {
+                chart: { type: 'line', height: 250 },
                 series: [
-                {
-                    name: 'CNC Milling',
-                    type: 'column',
-                    data: savingByCategory["1"]
-                },{
-                    name: '3D Printing',
-                    type: 'column',
-                    data: savingByCategory["2"]
-                },
-                {
-                    name: 'Kumulatif (Line)',
-                    type: 'line',
-                    data: savingCumulative
-
-                }
+                    {
+                        name: 'Quantity',
+                        type: 'bar',
+                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.qtyReqByMonth))
+                    },
+                    {
+                        name: 'Kumulatif',
+                        type: 'line',
+                            data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.cumulativeReqQty))
+                    }
                 ],
-                chart: {
-                height: 350,
-                type: 'line',
-                },
                 stroke: {
-                width: [0, 0, 3],
-                curve: ['straight', 'smooth', 'smooth']
+                    width: [0, 3], // 0 untuk bar, 3 untuk line
+                    curve: ['straight', 'smooth']
                 },
                 dataLabels: {
-                enabled: true,
-                enabledOnSeries: [0, 1, 2],
-                formatter: function (val) {
-                    return val;
-                }
+                    enabled: true,
+                    enabledOnSeries: [0,1]
                 },
-                labels: monthSaving,
+                xaxis: {
+                    categories: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.monthReq))
+                },
                 yaxis: [
-                {
-                    title: {
-                    text: 'Aktual ($USD)',
-                    },
-                },
-                {
-                    opposite: true,
-                    title: {
-                    text: 'Kumulatif ($USD)'
-                    }
-                }
+                    { title: { text: 'Quantity' } },
+                    { opposite: true, title: { text: 'Kumulatif' } } // line chart di axis kanan
                 ],
-                tooltip: {
-                shared: true,
-                intersect: false,
+                tooltip: { shared: true }
+            };
+
+            // Render chart
+            window.barChart = new ApexCharts(document.querySelector("#barChart"), requestCountOptions);
+            window.barChart.render();
+
+
+             // =======================================
+            // 2.RADIAL CHART (fabrikasi count)
+            // =========================================
+            const totalRequest = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TotalRequest));
+            const totalRequestDone = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TotalRequestDone));
+            const totalRequestReject = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TotalReqReject));
+            const totalWaiting = totalRequest - totalRequestDone - totalRequestReject;
+            const percentWaiting = (totalWaiting / totalRequest) * 100;
+            const percentReject = (totalRequestReject / totalRequest) * 100;
+            const percentDone = (totalRequestDone / totalRequest) * 100;
+
+                // fabrikasi count
+                var fabricationCount = {
+                series: [
+                    100,
+                    percentDone,
+                    percentWaiting,
+                    percentReject
+
+                ],
+                chart: {
+                    height: 300,
+                    type: 'radialBar',
+                },
+                plotOptions: {
+                    radialBar: {
+                        offsetY: 0,
+                        startAngle: 0,
+                        endAngle: 290,
+                        hollow: {
+                            margin: 5,
+                            size: '30%',
+                            background: 'transparent',
+                        },
+                        track: {   
+                            background: '#e0e0e0',
+                            strokeWidth: '100%',   // tebal track
+                            margin: 5,             // jarak track dengan bar
+                        },
+                        dataLabels: {
+                            name: {
+                                show: false
+                            },
+                            value: {
+                                show: false
+                            }
+                        },
+                        barLabels: {
+                            enabled: true,
+                            useSeriesColors: true,
+                            offsetX: -8,
+                            fontSize: '13px',
+
+                            formatter: function(seriesName, opts) {
+                                const index = opts.seriesIndex;
+
+                                const realValues = [
+                                    totalRequest,
+                                    totalRequestDone,
+                                    totalWaiting,
+                                    totalRequestReject
+                                ];
+
+                                return seriesName + ": " + realValues[index];
+                            }
+                        },
+                    }
+                },
+                colors: [
+                '#1ab7ea',  // Total
+                '#00e396',   // Done
+                '#feb019',  // Waiting
+                '#ff4560'  // Reject
+                ],
+                labels: [
+                    'Total Request',
+                    'Done',
+                    'Waiting',
+                    'Reject'
+                ],
+            };
+                    window.fabricationChart = new ApexCharts(
+                document.querySelector("#fabricationCount"),
+                fabricationCount
+            );
+            window.fabricationChart.render();
+                    console.log({
+            percentReject,
+            percentWaiting,
+            percentDone,
+            totalRequestReject,
+            totalWaiting,
+            totalRequestDone
+        });
+
+
+            // =============================
+            // 3. PERSENTASE PROGRESS FABRIKASI CHART
+            // =============================
+            var ProgressFabPie = {
+                series: [totalWaiting, totalRequestDone],
+                chart: {
+                    type: 'donut',
+                    height: 250
                 },
                 legend: {
-                position: 'bottom',
-                }
-            };
-            window.savingChart = new ApexCharts(document.querySelector("#savingChart"), savingData);
-            window.savingChart.render();
-
-         // =============================
-        // 5. MACHINE UTILIZATION/WEEK
-       // =============================
-        const machineUtilizationByWeek = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.machineUtilization));
-
-        // Ambil kategori week
-        const chartWeeks = machineUtilizationByWeek.map(x => `Week ${x.Week}`);
-
-        // Ambil persentase
-        const chartPercents = machineUtilizationByWeek.map(x => x.Percent);
-
-        // Chart Apex
-        var machineUtilization = {
-            series: [{
-                name: 'Machine',
-                data: chartPercents
-            }],
-            chart: {
-                height: 350,
-                type: 'bar',
-            },
-            plotOptions: {
-                bar: {
-                    borderRadius: 10,
-                    dataLabels: {
-                        position: 'Top',
+                    position: 'bottom'
                     },
+                labels: ['On Progress', 'Done'],
+
+                responsive: [{
+                breakpoint: 480,
+                options: {
+                    chart: {
+                    width: 50
+                    },
+                    legend: {
+                    position: 'bottom'
+                    }
                 }
-            },
-            dataLabels: {
-                enabled: true,
-                formatter: function (val) {
-                    return val + "%";
-                },
-                offsetY: -20,
-                style: {
-                    fontSize: '12px',
-                    colors: ["#304758"]
-                }
-            },
-            xaxis: {
-                categories: chartWeeks,
-                position: 'Bottom',
-                axisBorder: { show: false },
-                axisTicks: { show: false },
-                crosshairs: {
-                    fill: {
-                        type: 'gradient',
-                        gradient: {
-                            colorFrom: '#D8E3F0',
-                            colorTo: '#BED1E6',
-                            stops: [0, 100],
-                            opacityFrom: 0.4,
-                            opacityTo: 0.5,
+                }]
+            };
+
+            window.progressFabChart = new ApexCharts( document.querySelector("#ProgressFabPie"), ProgressFabPie);
+            window.progressFabChart.render();
+
+             // =============================
+            // 4. CALCULATION SAVING/MONTH
+            // =============================
+            const monthSaving = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.monthLabels));
+            const savingByMonth = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.savingByMonth));
+            const savingByCategory = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.savingByCategory));
+            const savingCumulative = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.cumulative));
+            const potentialSaving = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.potentialSaving));
+
+            var savingData = {
+                    series: [
+                    {
+                        name: 'CNC Milling',
+                        type: 'column',
+                        data: savingByCategory["1"]
+                    },{
+                        name: '3D Printing',
+                        type: 'column',
+                        data: savingByCategory["2"]
+                    },
+                    {
+                        name: 'Kumulatif (Line)',
+                        type: 'line',
+                        data: savingCumulative
+
+                    }
+                    ],
+                    chart: {
+                    height: 350,
+                    type: 'line',
+                    },
+                    stroke: {
+                    width: [0, 0, 3],
+                    curve: ['straight', 'smooth', 'smooth']
+                    },
+                    dataLabels: {
+                    enabled: true,
+                    enabledOnSeries: [0, 1, 2],
+                    formatter: function (val) {
+                        return val;
+                    }
+                    },
+                    labels: monthSaving,
+                    yaxis: [
+                    {
+                        title: {
+                        text: 'Aktual ($USD)',
+                        },
+                    },
+                    {
+                        opposite: true,
+                        title: {
+                        text: 'Kumulatif ($USD)'
                         }
                     }
+                    ],
+                    tooltip: {
+                    shared: true,
+                    intersect: false,
+                    },
+                    legend: {
+                    position: 'bottom',
+                    }
+                };
+                window.savingChart = new ApexCharts(document.querySelector("#savingChart"), savingData);
+                window.savingChart.render();
+
+             // =============================
+            // 5. MACHINE UTILIZATION/WEEK
+           // =============================
+            const machineUtilizationByWeek = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.machineUtilization));
+
+            // Ambil kategori week
+            const chartWeeks = machineUtilizationByWeek.map(x => `Week ${x.Week}`);
+
+            // Ambil persentase
+            const chartPercents = machineUtilizationByWeek.map(x => x.Percent);
+
+            // Chart Apex
+            var machineUtilization = {
+                series: [{
+                    name: 'Machine',
+                    data: chartPercents
+                }],
+                chart: {
+                    height: 350,
+                    type: 'bar',
                 },
-                tooltip: { enabled: true }
-            },
-            yaxis: {
-                axisBorder: { show: false },
-                axisTicks: { show: false },
-                labels: {
-                    show: false,
-                    formatter: val => val + "%"
+                plotOptions: {
+                    bar: {
+                        borderRadius: 10,
+                        dataLabels: {
+                            position: 'Top',
+                        },
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return val + "%";
+                    },
+                    offsetY: -20,
+                    style: {
+                        fontSize: '12px',
+                        colors: ["#304758"]
+                    }
+                },
+                xaxis: {
+                    categories: chartWeeks,
+                    position: 'Bottom',
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
+                    crosshairs: {
+                        fill: {
+                            type: 'gradient',
+                            gradient: {
+                                colorFrom: '#D8E3F0',
+                                colorTo: '#BED1E6',
+                                stops: [0, 100],
+                                opacityFrom: 0.4,
+                                opacityTo: 0.5,
+                            }
+                        }
+                    },
+                    tooltip: { enabled: true }
+                },
+                yaxis: {
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
+                    labels: {
+                        show: false,
+                        formatter: val => val + "%"
+                    }
+                },
+                title: {
+                    floating: true,
+                    offsetY: 330,
+                    align: 'center',
+                    style: {
+                        color: '#444'
+                    }
                 }
-            },
-            title: {
-                floating: true,
-                offsetY: 330,
-                align: 'center',
-                style: {
-                    color: '#444'
-                }
-            }
-        };
+            };
 
-        window.machineUtilChart = new ApexCharts( document.querySelector("#machineUtilization"), machineUtilization );
-        window.machineUtilChart.render();
+            window.machineUtilChart = new ApexCharts( document.querySelector("#machineUtilization"), machineUtilization );
+            window.machineUtilChart.render();
 
-    });
+        });
 
     </script>
 }
- 
+
 <script>
     // UNTUK UPDATE DATA SETELAH FILTER BY TAHUN DAN KATEGORI MESIN
     document.addEventListener("DOMContentLoaded", () => {
@@ -388,7 +415,8 @@
 
             const totalRequest      = data.totalRequest ?? 0;
             const totalRequestDone  = data.totalRequestDone ?? 0;
-            const totalWaiting      = totalRequest - totalRequestDone;
+            const totalReject  = data.totalReqReject ?? 0;
+            const totalWaiting      = totalRequest - totalRequestDone - totalReject;
 
             // Hindari division by zero
             const safeDiv = totalRequest === 0 ? 1 : totalRequest;
@@ -396,8 +424,9 @@
             // =============================
             // 1. Hitung persentase
             // =============================
- 
+
                 const percentWaiting = ((totalWaiting / safeDiv) * 100);
+                const percentReject = ((totalReject / safeDiv) * 100);
                 const percentDone    = ((totalRequestDone / safeDiv) * 100);
 
                 if (window.barChart) {
@@ -411,7 +440,7 @@
                         {
                             name: "Kumulatif",
                             type: 'line',
-                            data: data.cumulativeReqQty   
+                            data: data.cumulativeReqQty
                         }
                     ], {
                         animate: true,
@@ -440,8 +469,9 @@
             if (window.fabricationChart) {
                 window.fabricationChart.updateSeries([
                     100,
+                    Number(percentDone),
                     Number(percentWaiting),
-                    Number(percentDone)
+                    Number(percentReject)
                 ]);
 
                 // update label numbers (Total Request, Waiting, Done)
@@ -454,8 +484,9 @@
                                         const index = opts.seriesIndex;
                                         const realValues = [
                                             totalRequest,
+                                            totalRequestDone,
                                             totalWaiting,
-                                            totalRequestDone
+                                            totalReject
                                         ];
                                         return seriesName + ": " + realValues[index];
                                     }
@@ -504,13 +535,13 @@
                         {
                             name: 'Kumulatif (Line)',
                             type: 'line',
-                            data: cumulative 
+                            data: cumulative
                         }
                     ]);
 
                     window.savingChart.updateOptions({
                         stroke: {
-                            width: [0, 3], 
+                            width: [0, 3],
                             curve: ['straight', 'smooth']
                         },
                         labels: months
@@ -571,4 +602,3 @@
     });
 </script>
 
-         

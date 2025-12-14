@@ -23,6 +23,24 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
 
         }
 
+        // load data modal
+        [HttpGet]
+        public async Task<IActionResult> LoadData(long id, string type)
+        {
+            var data = await _context.Machines
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Edit" => PartialView("~/Views/modals/AdminSystem/EditMcModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
+        }
+
         //Seaching
         [HttpGet]
         public IActionResult Search(string keyword)

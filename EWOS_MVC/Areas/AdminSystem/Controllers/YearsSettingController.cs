@@ -34,14 +34,33 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
                 .Select(y => new
                 {
                     y.Id,
+                    y.ElectricalCost,
                     y.Year,
-                    y.StartDate,
+                    StartDate = y.StartDate.ToString("dd/MM/yyyy HH:mm"),
                     CreatedAt = y.CreatedAt.ToString("dd/MM/yyyy HH:mm"),
                     UpdatedAt = y.UpdatedAt.ToString("dd/MM/yyyy HH:mm")
                 })
                 .ToList();
 
             return Json(hasil);
+        }
+
+        // load data modal
+        [HttpGet]
+        public async Task<IActionResult> LoadData(long id, string type)
+        {
+            var data = await _context.YearsSetting
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (data == null) return NotFound();
+
+            return type switch
+            {
+                "Edit" => PartialView("~/Views/modals/AdminSystem/EditYearModal.cshtml", data),
+                _ => BadRequest("Unknown modal type")
+            };
+
+            ;
         }
 
         //tambah data

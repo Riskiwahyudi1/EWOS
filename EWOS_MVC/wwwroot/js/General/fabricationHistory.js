@@ -80,91 +80,90 @@
 
             // MULAI DROPDOWN
             buttons += `
-                <div class="dropstart">
-                        <button class="btn btn-secondary btn-sm dropdown-toggle"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        data-bs-display="static">
-                    Actions
+    <div class="dropstart">
+            <button class="btn btn-secondary btn-sm dropdown-toggle"
+            type="button"
+            data-bs-toggle="dropdown"
+            data-bs-display="static">
+        Actions
+    </button>
+
+
+        <ul class="dropdown-menu p-2" style="min-width: 150px z-index: 9999;">
+    `;
+
+            if (status === "onprogress" && isAdmin) {
+
+                buttons += `
+            <li>
+                <button class="btn btn-primary btn-sm w-100 text-center open-modal"
+                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Finish">
+                    Done
                 </button>
+            </li>
 
+            <li class="mt-1">
+                <button class="btn btn-danger btn-sm w-100 text-center open-modal"
+                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Cancel">
+                    Cancel
+                </button>
+            </li>
+        `;
 
-                    <ul class="dropdown-menu p-2" style="min-width: 150px z-index: 9999;">
-                `;
+                if (!isEvaluation) {
+                    buttons += `
+                <li class="mt-1">
+                    <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                        data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Edit">
+                        Edit
+                    </button>
+                </li>
+            `;
+                } else {
+                    buttons += `
+                <li class="mt-1">
+                    <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                        data-url="/FabricationHistory/LoadData?id=${rq.id}&type=evaluasi">
+                        Evaluasi
+                    </button>
+                </li>
+            `;
+                }
+            }
+            else if (status === "evaluation" && isAdmin) {
 
-                        if (status === "onprogress" && isAdmin) {
+                buttons += `
+            <li class="mt-1">
+                <button class="btn btn-danger btn-sm w-100 text-center open-modal"
+                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=CancelEval">
+                    Cancel Evaluation
+                </button>
+            </li>
+        `;
+            }
+            else if (status === "fabricationdone" && isAdmin && rq.machineCategory === 1) {
 
-                            buttons += `
-                        <li>
-                            <button class="btn btn-primary btn-sm w-100 text-center open-modal"
-                                data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Finish">
-                                Done
-                            </button>
-                        </li>
+                buttons += `
+            <li class="mt-1">
+                <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=updateCOC">
+                    Edit COC
+                </button>
+            </li>
+        `;
+            }
 
-                        <li class="mt-1">
-                            <button class="btn btn-danger btn-sm w-100 text-center open-modal"
-                                data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Cancel">
-                                Cancel
-                            </button>
-                        </li>
-                    `;
-
-                            if (!isEvaluation) {
-                                buttons += `
-                            <li class="mt-1">
-                                <button class="btn btn-warning btn-sm w-100 text-center open-modal"
-                                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Edit">
-                                    Edit
-                                </button>
-                            </li>
-                        `;
-                            } else {
-                                buttons += `
-                            <li class="mt-1">
-                                <button class="btn btn-warning btn-sm w-100 text-center open-modal"
-                                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=evaluasi">
-                                    Evaluasi
-                                </button>
-                            </li>
-                        `;
-                            }
-                        }
-                        else if (status === "evaluation" && isAdmin) {
-
-                            buttons += `
-                        <li class="mt-1">
-                            <button class="btn btn-danger btn-sm w-100 text-center open-modal"
-                                data-url="/FabricationHistory/LoadData?id=${rq.id}&type=CancelEval">
-                                Cancel Evaluation
-                            </button>
-                        </li>
-                    `;
-                        }
-                        else if (status === "fabricationdone" && isAdmin && rq.machineCategory === 1) {
-
-                            buttons += `
-                        <li class="mt-1">
-                            <button class="btn btn-warning btn-sm w-100 text-center open-modal"
-                                data-url="/FabricationHistory/LoadData?id=${rq.id}&type=updateCOC">
-                                Edit COC
-                            </button>
-                        </li>
-                    `;
-                        }
-
-                        // Tombol detail selalu ada
-                        buttons += `
-                        <li class="mt-1">
-                            <button class="btn btn-info btn-sm w-100 text-center open-modal"
-                                data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Detail">
-                                Detail
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-                `;
-
+            // Tombol detail selalu ada
+            buttons += `
+            <li class="mt-1">
+                <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Detail">
+                    Detail
+                </button>
+            </li>
+        </ul>
+    </div>
+    `;
 
 
             html += `
