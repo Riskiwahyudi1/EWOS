@@ -33,32 +33,68 @@
 
         data.forEach((rq, idx) => {
             const id = rq.id ?? '';
-            let buttons = '';
+            let buttons = `
+                <div class="dropstart d-inline-block">
+                    <button class="btn btn-secondary btn-sm dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown">
+                        Actions
+                    </button>
 
-            if (rq.status == "Done") {
-                buttons += `
-
-                <button class="btn btn-success btn-sm open-modal"
-                        data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Recived">
-                    <i class="bi bi-circular-check"></i> Recive
-                </button>
+                    <ul class="dropdown-menu p-2" style="min-width:180px">
                 `;
-            }
-            buttons += `
-                <button class="btn btn-warning btn-sm open-modal"
-                        data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Detail">
-                    <i class="bi bi-info-circle"></i> Detail
-                </button>
+                        // === Progress (Close, Done, WaitingFabrication)
+                        if (
+                            rq.status === "Close" ||
+                            rq.status === "Done" ||
+                            rq.status === "WaitingFabrication"
+                        ) {
+                            buttons += `
+                                    <li class="mt-1">
+                                        <button class="btn btn-secondary btn-sm w-100 text-center open-modal"
+                                                data-url="/RequestHistory/LoadDataRoFab?id=${id}&type=Status">
+                                            <i class="bi bi-ui-checks-grid"></i> Progress
+                                        </button>
+                                    </li>
+                                `;
+                        }
 
-                <button class="btn btn-info btn-sm open-modal"
-                        data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Status">
-                    <i class="bi bi-ticket-detailed"></i> Status
-                </button>
-                <button class="btn btn-secondary btn-sm open-modal"
-                        data-url="/RequestHistory/LoadDataRoFab?id=${id}&type=Status">
-                    <i class="bi bi-ui-checks-grid"></i> Progress
-                </button>
+                            // === Receive (hanya Done)
+                            if (rq.status === "Done") {
+                                buttons += `
+                        <li>
+                            <button class="btn btn-success btn-sm w-100 text-center open-modal"
+                                    data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Recived">
+                                <i class="bi bi-circular-check"></i> Receive
+                            </button>
+                        </li>
+                    `;
+                            }
+
+                            // === Detail (selalu)
+                            buttons += `
+                        <li class="mt-1">
+                            <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                    data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Detail">
+                                <i class="bi bi-info-circle"></i> Detail
+                            </button>
+                        </li>
+
+                        <li class="mt-1">
+                            <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                                    data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Status">
+                                <i class="bi bi-ticket-detailed"></i> Status
+                            </button>
+                        </li>
                 `;
+
+                            
+
+                            buttons += `
+                    </ul>
+                </div>
+                `;
+
 
             html += `
               <tr>

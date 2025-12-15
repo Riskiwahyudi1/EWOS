@@ -83,41 +83,63 @@
                     <td class="text-center">
                         @{
                             var roles = (ViewBag.Roles as List<string>) ?? new List<string>();
-                            bool canEdit = roles.Contains("AdminFabrication") || roles.Contains("EngineerFabrication") || roles.Contains("AdminSystem");
+                            bool canEdit = roles.Contains("AdminFabrication")
+                            || roles.Contains("EngineerFabrication")
+                            || roles.Contains("AdminSystem");
                         }
 
                         <script>
                             window.canEdit = @canEdit.ToString().ToLower();
                         </script>
 
-                        <!-- Request -->
-                        <button class="btn btn-success btn-sm open-modal"
-                                data-url="/Requestor/ListProduct/LoadData?Id=@rm.Id&amp;type=Request">
-                            Request
-                        </button>
-
-                        <!-- Edit (hanya AdminFabrication atau EngineerFabrication) -->
-                        @if (canEdit)
-                        {
-                            <button class="btn btn-warning btn-sm open-modal"
-                                    data-url="/Requestor/ListProduct/LoadData?Id=@rm.Id&type=Edit">
-                                Edit
+                        <div class="dropstart d-inline-block">
+                            <button class="btn btn-secondary btn-sm dropdown-toggle"
+                                    type="button"
+                                    data-bs-toggle="dropdown">
+                                Actions
                             </button>
-                        }
 
-                        <!-- Detail -->
-                        <button class="btn btn-secondary btn-sm open-modal"
-                                data-url="/Requestor/ListProduct/LoadData?Id=@rm.Id&amp;type=Detail">
-                            Detail
-                        </button>
+                            <ul class="dropdown-menu p-2" style="min-width: 160px">
 
-                        <!-- Status -->
-                        <button class="btn btn-info btn-sm open-modal"
-                                data-url="/Requestor/ListProduct/LoadData?Id=@rm.Id&amp;type=Status">
-                            Status
-                        </button>
+                                <!-- Request -->
+                                <li>
+                                    <button class="btn btn-success btn-sm w-100 text-center open-modal"
+                                            data-url="/Requestor/ListProduct/LoadData?Id=@rm.Id&type=Request">
+                                        Request
+                                    </button>
+                                </li>
 
+                                <!-- Edit (role tertentu) -->
+                                @if (canEdit)
+                                {
+                                    <li class="mt-1">
+                                        <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                                data-url="/Requestor/ListProduct/LoadData?Id=@rm.Id&type=Edit">
+                                            Edit
+                                        </button>
+                                    </li>
+                                }
+
+                                <!-- Detail -->
+                                <li class="mt-1">
+                                    <button class="btn btn-secondary btn-sm w-100 text-center open-modal"
+                                            data-url="/Requestor/ListProduct/LoadData?Id=@rm.Id&type=Detail">
+                                        Detail
+                                    </button>
+                                </li>
+
+                                <!-- Status -->
+                                <li class="mt-1">
+                                    <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                                            data-url="/Requestor/ListProduct/LoadData?Id=@rm.Id&type=Status">
+                                        Status
+                                    </button>
+                                </li>
+
+                            </ul>
+                        </div>
                     </td>
+
 
 
                 </tr>

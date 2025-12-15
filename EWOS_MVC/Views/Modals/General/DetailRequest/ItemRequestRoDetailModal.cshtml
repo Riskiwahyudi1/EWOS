@@ -11,13 +11,13 @@
         <table class="table table-bordered table-striped align-middle w-100">
             <tbody>
                 <tr>
-                    <th class="col-sm-4">Part Id</th>
+                    <th class="col-sm-4">Request Id</th>
                     <td class="col-sm-8" style="word-break: break-word;">
                         @Model.Id
                     </td>
                 </tr>
                 <tr>
-                    <th class="col-sm-4">Part Name</th>
+                    <th class="col-sm-4">Product Name</th>
                     <td class="col-sm-8" style="word-break: break-word;">
                         @Model.ItemRequests.PartName
                     </td>
@@ -36,7 +36,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <th class="col-sm-4">Part Code</th>
+                    <th class="col-sm-4">Product Code</th>
                     <td class="col-sm-8" style="word-break: break-word;">
                         @(Model.ItemRequests.PartCode != null
                             ? Model.ItemRequests.PartCode

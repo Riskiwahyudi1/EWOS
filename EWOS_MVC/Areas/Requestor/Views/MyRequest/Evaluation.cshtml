@@ -23,18 +23,18 @@
 
 <ul class="nav nav-tabs justify-content-center" id="statusTabs" role="tablist">
 
-   
+
     <li class="nav-item" role="presentation">
         @{
             int waitingAppCount = GetCount("WaitingApproval") + GetCount("FabricationApproval");
         }
         <button class="nav-link active"
-                id="waitingapproval-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#waitingapproval"
-                data-status="WaitingApproval,FabricationApproval"
-                type="button"
-                role="tab">
+        id="waitingapproval-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#waitingapproval"
+        data-status="WaitingApproval,FabricationApproval"
+        type="button"
+        role="tab">
             Waiting Approval
             @if (waitingAppCount > 0)
             {
@@ -45,12 +45,12 @@
 
     <li class="nav-item" role="presentation">
         <button class="nav-link"
-                id="waitingfabrication-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#waitingfabrication"
-                data-status="WaitingFabrication"
-                type="button"
-                role="tab">
+        id="waitingfabrication-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#waitingfabrication"
+        data-status="WaitingFabrication"
+        type="button"
+        role="tab">
             Waiting Fabrication
             @if (GetCount("WaitingFabrication") > 0)
             {
@@ -61,12 +61,12 @@
 
     <li class="nav-item" role="presentation">
         <button class="nav-link"
-                id="onfabrication-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#onfabrication"
-                data-status="InFabrication"
-                type="button"
-                role="tab">
+        id="onfabrication-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#onfabrication"
+        data-status="InFabrication"
+        type="button"
+        role="tab">
             In Fabrication
             @if (GetCount("InFabrication") > 0)
             {
@@ -77,12 +77,12 @@
 
     <li class="nav-item" role="presentation">
         <button class="nav-link"
-                id="WaitingBuyoff-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#WaitingBuyoff"
-                data-status="WaitingBuyoff"
-                type="button"
-                role="tab">
+        id="WaitingBuyoff-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#WaitingBuyoff"
+        data-status="WaitingBuyoff"
+        type="button"
+        role="tab">
             Waiting Buyoff
             @if (GetCount("WaitingBuyoff") > 0)
             {
@@ -92,12 +92,12 @@
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link "
-                id="history-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#history"
-                data-status="Maspro,Fail"
-                type="button"
-                role="tab">
+        id="history-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#history"
+        data-status="Maspro,Fail"
+        type="button"
+        role="tab">
             Finish
             @{
                 int historyCount = GetCount("Maspro") + GetCount("Fail");
@@ -110,12 +110,12 @@
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link"
-                id="reject-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#reject"
-                data-status="Reject"
-                type="button"
-                role="tab">
+        id="reject-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#reject"
+        data-status="Reject"
+        type="button"
+        role="tab">
             Reject
             @if (GetCount("Reject") > 0)
             {
@@ -159,32 +159,61 @@
                     <td>@ir.MachineCategories?.CategoryName</td>
                     <td>@ir.CreatedAt</td>
                     <td class="text-center">
-                        @if (ir.Status == "WaitingBuyoff")
-                        
-                        {
-                            <button class="btn btn-success btn-sm open-modal"
-                                    data-url="/Requestor/MyRequest/LoadData?id=@ir.Id&amp;type=Pass">
-                                <i class="bi bi-check"></i> Pass
-                            </button>
-                            <button class="btn btn-danger btn-sm open-modal"
-                                    data-url="/Requestor/MyRequest/LoadData?id=@ir.Id&amp;type=Fail">
-                                <i class="bi bi-x-lg"></i> Fail
+                        <div class="dropstart d-inline-block">
+                            <button class="btn btn-secondary btn-sm dropdown-toggle"
+                                    type="button"
+                                    data-bs-toggle="dropdown">
+                                Actions
                             </button>
 
-                        }
-                        <button class="btn btn-warning btn-sm open-modal"
-                                data-url="/Requestor/MyRequest/LoadData?id=@ir.Id&amp;type=Detail">
-                            <i class="bi bi-info-circle"></i> Detail
-                        </button>
-                        <button class="btn btn-info btn-sm open-modal"
-                                data-url="/Requestor/MyRequest/LoadData?id=@ir.Id&amp;type=Status">
-                            <i class="bi bi-ticket-detailed"></i> Status
-                        </button>
-                        <button class="btn btn-secondary btn-sm open-modal"
-                                data-url="/RequestHistory/LoadDataFab?Id=@ir.Id&amp;type=Status">
-                            Progress
-                        </button>
+                            <ul class="dropdown-menu p-2" style="min-width:170px">
+
+                                @* === WaitingBuyoff: Pass / Fail *@
+                                @if (ir.Status == "WaitingBuyoff")
+                                {
+                                    <li>
+                                        <button class="btn btn-success btn-sm w-100 text-center open-modal"
+                                                data-url="/Requestor/MyRequest/LoadData?id=@ir.Id&type=Pass">
+                                            <i class="bi bi-check"></i> Pass
+                                        </button>
+                                    </li>
+
+                                    <li class="mt-1">
+                                        <button class="btn btn-danger btn-sm w-100 text-center open-modal"
+                                                data-url="/Requestor/MyRequest/LoadData?id=@ir.Id&type=Fail">
+                                            <i class="bi bi-x-lg"></i> Fail
+                                        </button>
+                                    </li>
+                                }
+                                @* === Other Status: Progress *@
+                                else if (ir.Status == "WaitingBuyoff" || ir.Status == "Maspro" || ir.Status == "Fail")
+                                {
+                                    <li>
+                                        <button class="btn btn-secondary btn-sm w-100 text-center open-modal"
+                                                data-url="/RequestHistory/LoadDataFab?Id=@ir.Id&type=Status">
+                                            Progress
+                                        </button>
+                                    </li>
+                                }
+
+                                <li class="mt-1">
+                                    <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                            data-url="/Requestor/MyRequest/LoadData?id=@ir.Id&type=Detail">
+                                        <i class="bi bi-info-circle"></i> Detail
+                                    </button>
+                                </li>
+
+                                <li class="mt-1">
+                                    <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                                            data-url="/Requestor/MyRequest/LoadData?id=@ir.Id&type=Status">
+                                        <i class="bi bi-ticket-detailed"></i> Status
+                                    </button>
+                                </li>
+
+                            </ul>
+                        </div>
                     </td>
+
                 </tr>
                 index++;
             }

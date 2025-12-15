@@ -135,15 +135,33 @@
                     <td>@ir.QuantityDone</td>
                     <td>@ir.CreatedAt</td>
                     <td class="text-center">
-                        <button class="btn btn-warning btn-sm open-modal"
-                                data-url="/Requestor/MyRequest/LoadDataRo?id=@ir.Id&amp;type=Detail">
-                            <i class="bi bi-info-circle"></i> Detail
-                        </button>
-                        <button class="btn btn-info btn-sm open-modal"
-                                data-url="/Requestor/MyRequest/LoadDataRo?id=@ir.Id&amp;type=Status">
-                            <i class="bi bi-ticket-detailed"></i> Status
-                        </button>
+                        <div class="dropstart d-inline-block">
+                            <button class="btn btn-secondary btn-sm dropdown-toggle"
+                                    type="button"
+                                    data-bs-toggle="dropdown">
+                                Actions
+                            </button>
+
+                            <ul class="dropdown-menu p-2" style="min-width:160px">
+
+                                <li>
+                                    <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                            data-url="/Requestor/MyRequest/LoadDataRo?id=@ir.Id&type=Detail">
+                                        <i class="bi bi-info-circle"></i> Detail
+                                    </button>
+                                </li>
+
+                                <li class="mt-1">
+                                    <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                                            data-url="/Requestor/MyRequest/LoadDataRo?id=@ir.Id&type=Status">
+                                        <i class="bi bi-ticket-detailed"></i> Status
+                                    </button>
+                                </li>
+
+                            </ul>
+                        </div>
                     </td>
+
                 </tr>
                 index++;
             }

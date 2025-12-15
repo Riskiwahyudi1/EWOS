@@ -32,7 +32,7 @@
                     data-status="FabricationDone,Close"
                     type="button"
                     role="tab">
-                Done
+                Finish
                 @{
                     var doneFabCount = GetCount("FabricationDone");
                     var FabCloseCount = GetCount("Close");
@@ -140,20 +140,35 @@
                     <td>@rm.CreatedAt</td>
 
                     <td class="text-center">
+                        <div class="dropstart d-inline-block">
+                            <button class="btn btn-secondary btn-sm dropdown-toggle"
+                                    type="button"
+                                    data-bs-toggle="dropdown">
+                                Actions
+                            </button>
 
-                        <!-- Detail -->
-                        <button class="btn btn-warning btn-sm open-modal"
-                                data-url="/RequestHistory/LoadDataRo?Id=@rm.Id&amp;type=Detail">
-                            Detail
-                        </button>
+                            <ul class="dropdown-menu p-2" style="min-width:160px">
 
-                        <!-- Status -->
-                        <button class="btn btn-info btn-sm open-modal"
-                                data-url="/RequestHistory/LoadDataRoFab?Id=@rm.Id&amp;type=Status">
-                            Progress
-                        </button>
+                                <!-- Detail -->
+                                <li>
+                                    <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                            data-url="/RequestHistory/LoadDataRo?Id=@rm.Id&type=Detail">
+                                        Detail
+                                    </button>
+                                </li>
 
+                                <!-- Progress -->
+                                <li class="mt-1">
+                                    <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                                            data-url="/RequestHistory/LoadDataRoFab?Id=@rm.Id&type=Status">
+                                        Progress
+                                    </button>
+                                </li>
+
+                            </ul>
+                        </div>
                     </td>
+
 
                 </tr>
                 index++;

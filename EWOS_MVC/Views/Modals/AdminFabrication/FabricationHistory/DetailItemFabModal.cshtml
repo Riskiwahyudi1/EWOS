@@ -21,7 +21,7 @@
                     
                 }
                 <tr>
-                    <th class="col-sm-4">Part Request Id</th>
+                    <th class="col-sm-4">Product Id</th>
                     <td class="col-sm-8" style="word-break: break-word;">
                         @Model.ItemRequest?.Id
                     </td>
@@ -29,7 +29,8 @@
                 <tr>
                     <th class="col-sm-4">Purchase Id</th>
                     <td class="col-sm-8" style="word-break: break-word;">
-                        @Model.ItemRequest?.Id
+                        @((Model.ItemRequest?.SAPID != null) ? Model.ItemRequest?.SAPID
+                            : "NA")
                     </td>
                 </tr>
                 <tr>
@@ -41,7 +42,10 @@
                 <tr>
                     <th class="col-sm-4">Fab Code</th>
                     <td class="col-sm-8" style="word-break: break-word;">
-                        <small>@Model.FabCode</small>
+                        <small>
+                            @((Model?.FabCode != null) ? Model?.FabCode
+                                : "NA")
+                        </small>
                     </td>
                 </tr>
 

@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentPage = 1;
     let totalPages = 1;
-    const pageSize = 1;
+    const pageSize = 20;
 
     let currentStatusList = ['Maspro'];
     let debounceTimer = null;
@@ -36,24 +36,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
         data.forEach((rq, idx) => {
             const id = rq.id ?? '';
-            let buttons = "";
+            let buttons = `
+                <div class="dropstart d-inline-block">
+                    <button class="btn btn-secondary btn-sm dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown">
+                        Actions
+                    </button>
 
-            if (rq.status == "Maspro") {
-                buttons += `<button class="btn btn-success btn-sm open-modal"
-                                    data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Request">Request</button>`;
-            }
-
-            if (canEdit) {
-                buttons += `<button class="btn btn-warning btn-sm open-modal"
-                                    data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Edit">Edit</button>`;
-            }
-
-            buttons += `
-                    <button class="btn btn-secondary btn-sm open-modal"
-                        data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Detail">Detail</button>
-                    <button class="btn btn-info btn-sm open-modal"
-                        data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Status">Status</button>
+                    <ul class="dropdown-menu p-2" style="min-width:160px">
                 `;
+
+                            // === Request (hanya status Maspro)
+                            if (rq.status === "Maspro") {
+                                buttons += `
+                        <li>
+                            <button class="btn btn-success btn-sm w-100 text-center open-modal"
+                                    data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Request">
+                                Request
+                            </button>
+                        </li>
+                    `;
+                            }
+
+                            // === Edit (role)
+                            if (canEdit) {
+                                buttons += `
+                        <li class="mt-1">
+                            <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                    data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Edit">
+                                Edit
+                            </button>
+                        </li>
+                    `;
+                            }
+
+                            // === Detail (selalu ada)
+                            buttons += `
+                        <li class="mt-1">
+                            <button class="btn btn-secondary btn-sm w-100 text-center open-modal"
+                                    data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Detail">
+                                Detail
+                            </button>
+                        </li>
+
+                        <li class="mt-1">
+                            <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                                    data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Status">
+                                Status
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                `;
+
 
             html += `
                 <tr>

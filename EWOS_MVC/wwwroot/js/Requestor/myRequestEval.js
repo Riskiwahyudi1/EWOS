@@ -33,37 +33,66 @@
 
         data.forEach((rq, idx) => {
             const id = rq.id ?? '';
-            let buttons = '';
-
-            if (rq.status === "WaitingBuyoff") {
-                buttons += `
-                        <button class="btn btn-success btn-sm open-modal"
-                                data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Pass">
-                            <i class="bi bi-check"></i> Pass
-                        </button>
-
-                        <button class="btn btn-danger btn-sm open-modal"
-                                data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Fail">
-                            <i class="bi bi-x-lg"></i> Fail
-                        </button>
-                    `;
-            }
-
-            buttons += `
-                    <button class="btn btn-warning btn-sm open-modal"
-                            data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Detail">
-                        <i class="bi bi-info-circle"></i> Detail
+            let buttons = `
+                <div class="dropstart d-inline-block">
+                    <button class="btn btn-secondary btn-sm dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown">
+                        Actions
                     </button>
 
-                    <button class="btn btn-info btn-sm open-modal"
-                            data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Status">
-                        <i class="bi bi-ticket-detailed"></i> Status
-                    </button>
-                     <button class="btn btn-secondary btn-sm open-modal"
-                                    data-url="/RequestHistory/LoadDataFab?id=${rq.id}&type=Status">
-                               <i class="bi bi-ui-checks-grid"></i> Progress
-                    </button>
+                    <ul class="dropdown-menu p-2" style="min-width:180px">
                 `;
+
+                            // === WaitingBuyoff: Pass / Fail
+                            if (rq.status === "WaitingBuyoff") {
+                                buttons += `
+                                        <li>
+                                            <button class="btn btn-success btn-sm w-100 text-center open-modal"
+                                                    data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Pass">
+                                                <i class="bi bi-check"></i> Pass
+                                            </button>
+                                        </li>
+
+                                        <li class="mt-1">
+                                            <button class="btn btn-danger btn-sm w-100 text-center open-modal"
+                                                    data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Fail">
+                                                <i class="bi bi-x-lg"></i> Fail
+                                            </button>
+                                        </li>
+                                    `;
+                            }
+                            // === Maspro / Fail: Progress
+                            else if (rq.status === "WaitingBuyoff" || rq.status === "Maspro" || rq.status === "Fail") {
+                                buttons += `
+                                    <li>
+                                        <button class="btn btn-secondary btn-sm w-100 text-center open-modal"
+                                                data-url="/RequestHistory/LoadDataFab?id=${rq.id}&type=Status">
+                                            <i class="bi bi-ui-checks-grid"></i> Progress
+                                        </button>
+                                    </li>
+                                `;
+                                        }
+
+                            // === Detail (selalu ada)
+                            buttons += `
+                        <li class="mt-1">
+                            <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                    data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Detail">
+                                <i class="bi bi-info-circle"></i> Detail
+                            </button>
+                        </li>
+
+                        <li class="mt-1">
+                            <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                                    data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Status">
+                                <i class="bi bi-ticket-detailed"></i> Status
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                `;
+
 
 
             html += `

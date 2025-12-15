@@ -35,17 +35,33 @@ document.addEventListener('DOMContentLoaded', () => {
         data.forEach((rq, idx) => {
             let buttons = "";
             buttons += `
-    <button class="btn btn-warning btn-sm open-modal"
-        data-url="/RequestHistory/LoadRoData?id=${rq.id}&type=Detail">
-        Detail
-    </button>
+                <div class="dropstart d-inline-block">
+                    <button class="btn btn-secondary btn-sm dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown">
+                        Actions
+                    </button>
 
+                    <ul class="dropdown-menu p-2" style="min-width:160px">
 
-    <button class="btn btn-info btn-sm open-modal"
-        data-url="/RequestHistory/LoadDataRoFab?id=${rq.id}&type=Status">
-        Progress
-    </button>
-    `;
+                        <li>
+                            <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                    data-url="/RequestHistory/LoadRoData?id=${rq.id}&type=Detail">
+                                Detail
+                            </button>
+                        </li>
+
+                        <li class="mt-1">
+                            <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                                    data-url="/RequestHistory/LoadDataRoFab?id=${rq.id}&type=Status">
+                                Progress
+                            </button>
+                        </li>
+
+                    </ul>
+                </div>
+                `;
+
 
             html += `
     <tr>
