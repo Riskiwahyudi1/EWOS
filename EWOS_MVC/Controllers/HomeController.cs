@@ -14,19 +14,36 @@ public class HomeController : BaseController
         _context = context;
     }
 
-   
-       public async Task<IActionResult> Index()
-    {
-        var getTotalNewReq = await _context.ItemRequests.CountAsync();
-        var getTotalRo = await _context.RepeatOrders.SumAsync(qty => qty.QuantityReq);
-        var getTotalFabDone = await _context.ItemFabrications.SumAsync(qty => qty.Quantity);
 
-        ViewBag.TotalReqNew = getTotalNewReq + getTotalRo;
-        ViewBag.TotalRO = getTotalRo;
-        ViewBag.TotalFab = getTotalFabDone;
+    public async Task<IActionResult> Index()
+    {
+        var summary = await _context.ItemRequests
+    .Select(_ => new
+    {
+        TotalNewReq = _context.ItemRequests.Count(),
+        TotalRoReq = _context.RepeatOrders.Count(),
+        TotalRoQty = _context.RepeatOrders.Sum(x => (int?)x.QuantityReq) ?? 0,
+        TotalFabDone = _context.ItemFabrications.Sum(x => (int?)x.Quantity) ?? 0,
+        TotalSaving = _context.ItemFabrications.Sum(x => (decimal?)x.TotalSaving) ?? 0
+    })
+    .FirstOrDefaultAsync();
+
+        // ---- NULL SAFE MAPPING KE VIEWBAG ----
+        int totalNewReq = summary?.TotalNewReq ?? 0;
+        int totalRoReq = summary?.TotalRoReq ?? 0;
+        int totalRoQty = summary?.TotalRoQty ?? 0;
+        int totalFabDone = summary?.TotalFabDone ?? 0;
+        decimal totalSaving = summary?.TotalSaving ?? 0m;
+
+        ViewBag.TotalReq = totalNewReq + totalRoReq;
+        ViewBag.TotalQty = totalRoQty + totalNewReq;
+        ViewBag.TotalQtyFab = totalFabDone;
+        ViewBag.TotalSavingFab = totalSaving;
+
+
 
         return View();
-    
+
     }
 
     public IActionResult Privacy()
