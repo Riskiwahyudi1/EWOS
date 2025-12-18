@@ -24,6 +24,57 @@
             min-height: 100vh;
         }
 
+   
+
+        /* FULLSCREEN LANDING */
+        .landing-wrapper {
+            min-height: calc(100vh - 70px);
+        }
+
+        /* GRID PEMBAGI RUANG */
+        .landing-inner {
+            height: 100%;
+            display: grid;
+            grid-template-rows: 1.3fr 1fr; /* HERO : SUMMARY */
+            align-items: center;
+        }
+
+        /* HERO */
+        .hero-section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding-top: 30px;
+        }
+
+        /* SUMMARY */
+        .summary-section {
+            padding-bottom: 40px;
+        }
+
+        /* CARD STYLE */
+        .stat-card {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 12px 30px rgba(0,0,0,.08);
+            transition: all .3s ease;
+        }
+
+            .stat-card:hover {
+                transform: translateY(-6px);
+            }
+
+            /* ICON */
+            .stat-card .icon {
+                width: 64px;
+                height: 64px;
+                border-radius: 50%;
+                margin: 0 auto 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 26px;
+            }
+
         .dashboard-title {
             font-weight: 700;
             color: #2a2d3e;
@@ -95,219 +146,116 @@
     </style>
 
 
-
-    <div class="container py-5">
-
-        <!-- =====================================================
-             HERO / INTRO
-        ====================================================== -->
-        <div class="text-center mb-5">
-            <h1 class="fw-bold display-6 mb-2">
-                Inhouse Fabrication System
-            </h1>
-            <p class="text-muted fs-6 mb-0">
-                Sistem terintegrasi untuk pengajuan request, monitoring proses fabrikasi,
-                pengendalian biaya, dan manajemen produksi
-            </p>
-        </div>
-
-
-        <!-- =====================================================
-             SUMMARY METRICS
-        ====================================================== -->
-        <div class="row g-4 justify-content-center mb-5">
-
-            <div class="col-md-3 col-sm-6">
-                <div class="card h-100 border-0 shadow-sm border-top border-4 border-primary">
-                    <div class="card-body text-center">
-                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle mx-auto mb-3
-                         d-flex align-items-center justify-content-center"
-                             style="width:70px; height:70px;">
-                            <i class="bi bi-clipboard-plus fs-3"></i>
-                        </div>
-                        <h6 class="text-muted mb-1">Total Request Fabrikasi</h6>
-                        <h2 class="fw-bold text-primary mb-0">@ViewBag.TotalReq</h2>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-3 col-sm-6">
-                <div class="card h-100 border-0 shadow-sm border-top border-4 border-info">
-                    <div class="card-body text-center">
-                        <div class="bg-info bg-opacity-10 text-info rounded-circle mx-auto mb-3
-                         d-flex align-items-center justify-content-center"
-                             style="width:70px; height:70px;">
-                            <i class="bi bi-box-seam fs-3"></i>
-                        </div>
-                        <h6 class="text-muted mb-1">Total Quantity Request</h6>
-                        <h2 class="fw-bold text-info mb-0">@ViewBag.TotalQty</h2>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-3 col-sm-6">
-                <div class="card h-100 border-0 shadow-sm border-top border-4 border-success">
-                    <div class="card-body text-center">
-                        <div class="bg-success bg-opacity-10 text-success rounded-circle mx-auto mb-3
-                         d-flex align-items-center justify-content-center"
-                             style="width:70px; height:70px;">
-                            <i class="bi bi-check-circle fs-3"></i>
-                        </div>
-                        <h6 class="text-muted mb-1">Fabrikasi Selesai</h6>
-                        <h2 class="fw-bold text-success mb-0">@ViewBag.TotalQtyFab</h2>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-3 col-sm-6">
-                <div class="card h-100 border-0 shadow-sm border-top border-4 border-warning">
-                    <div class="card-body text-center">
-                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle mx-auto mb-3
-                         d-flex align-items-center justify-content-center"
-                             style="width:70px; height:70px;">
-                            <i class="bi bi-cash-stack fs-3"></i>
-                        </div>
-                        <h6 class="text-muted mb-1">Total Saving Cost</h6>
-                        <h2 class="fw-bold text-warning mb-0">
-                            @ViewBag.TotalSavingFab.ToString("C",
-                                     new System.Globalization.CultureInfo("en-US"))
-                        </h2>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-
-        <!-- =====================================================
-             PRIMARY ACTION
-        ====================================================== -->
-        <div class="text-center mb-5">
-            <p class="text-muted mb-3">
-                Kelola dan pantau seluruh proses fabrikasi dalam satu dashboard terpusat
-            </p>
-
-            <a href="/Dashboard"
-               class="btn btn-primary btn-lg px-5 shadow-sm">
-                <i class="bi bi-arrow-right me-2"></i>
-                Go to Dashboard
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                Inhouse Fabrication
             </a>
+
+            <div class="ms-auto">
+                <a href="/Dashboard" class="btn btn-primary">
+                    <i class="bi bi-speedometer2 me-1"></i>
+                    Dashboard
+                </a>
+            </div>
         </div>
+    </nav>
 
+    <!-- LANDING (HERO + SUMMARY = 100vh) -->
+    <section class="landing-wrapper" style="padding-top: 70px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
 
-        <!-- =====================================================
-             PROCESS FLOW
-        ====================================================== -->
-        <div class="mb-5">
+        <div class="landing-inner container">
 
-            <div class="text-center mb-4">
-                <h4 class="fw-bold">
-                    <i class="bi bi-diagram-3 me-2"></i>
-                    Alur Proses Fabrikasi
-                </h4>
-                <p class="text-muted mb-0">
-                    Tahapan proses dari pengajuan hingga konfirmasi hasil fabrikasi
-                </p>
+            <!-- HERO -->
+            <div class="row align-items-center mb-5">
+
+                <!-- Teks Hero (Kiri) -->
+                <div class="col-md-6 text-center text-md-start mb-4 mb-md-0">
+                    <h1 class="fw-bold display-4 mb-3">
+                        Inhouse Fabrication System
+                    </h1>
+                    <p class="text-muted fs-5">
+                        Sistem terintegrasi untuk pengajuan request, monitoring proses fabrikasi,
+                        pengendalian biaya, dan manajemen produksi
+                    </p>
+                    <div class="ms-auto">
+                        <a href="/NewRequest" class="btn btn-primary">
+                            <i class="bi bi-speedometer2 me-1"></i>
+                            Request Fabrikasi
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Gambar SVG (Kanan) -->
+                <div class="col-md-6 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" viewBox="0 0 600 300" fill="none" role="img" aria-label="Illustration">
+                        <!-- Background -->
+                        <rect width="600" height="300" rx="20" fill="#0d6efd" fill-opacity="0.1" />
+                        <!-- Circle / Mesin CNC -->
+                        <circle cx="200" cy="125" r="50" fill="#0d6efd" />
+                        <!-- Rectangle / 3D Printing -->
+                        <rect x="350" y="100" width="150" height="80" rx="15" fill="#0d6efd" />
+                        <!-- Connector Line -->
+                        <path d="M350 100 L500 180" stroke="#0d6efd" stroke-width="8" stroke-linecap="round" />
+                        <!-- Logo Text -->
+                        <text x="200" y="135" fill="white" font-size="36" font-weight="bold" font-family="Arial, sans-serif" text-anchor="middle">FAB</text>
+                    </svg>
+                </div>
+
             </div>
 
-            <div class="container my-5">
+            <!-- SUMMARY -->
+            <div class="summary-section">
+                <div class="row g-4 justify-content-center">
 
-                <div class="d-flex align-items-stretch justify-content-between flex-wrap flex-md-nowrap gap-3 text-center">
-
-                    <!-- STEP 1 -->
-                    <div class="flow-step">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body d-flex flex-column justify-content-center px-4">
-                                <i class="bi bi-file-earmark-plus fs-2 text-primary mb-3"></i>
-                                <h6 class="fw-semibold mb-2">Request Fabrikasi</h6>
-                                <p class="text-muted small mb-0">
-                                    Requestor mengajukan permintaan
-                                </p>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card stat-card border-top border-4 border-primary shadow-sm">
+                            <div class="card-body text-center">
+                                <div class="icon bg-primary bg-opacity-10 text-primary mb-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width:70px; height:70px;">
+                                    <i class="bi bi-clipboard-plus fs-3"></i>
+                                </div>
+                                <h6 class="text-muted">Total Request Fabrikasi</h6>
+                                <h2 class="fw-bold text-primary">@ViewBag.TotalReq</h2>
                             </div>
                         </div>
                     </div>
 
-                    <div class="d-none d-md-flex align-items-center">
-                        <i class="bi bi-arrow-right fs-3 text-secondary"></i>
-                    </div>
-
-                    <!-- STEP 2 -->
-                    <div class="flow-step">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body d-flex flex-column justify-content-center px-4">
-                                <i class="bi bi-person-check fs-2 text-info mb-3"></i>
-                                <h6 class="fw-semibold mb-2">Approval Engineer</h6>
-                                <p class="text-muted small mb-0">
-                                    Engineer melakukan Approval
-                                </p>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card stat-card border-top border-4 border-info shadow-sm">
+                            <div class="card-body text-center">
+                                <div class="icon bg-info bg-opacity-10 text-info mb-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width:70px; height:70px;">
+                                    <i class="bi bi-box-seam fs-3"></i>
+                                </div>
+                                <h6 class="text-muted">Total Quantity Request</h6>
+                                <h2 class="fw-bold text-info">@ViewBag.TotalQty</h2>
                             </div>
                         </div>
                     </div>
 
-                    <div class="d-none d-md-flex align-items-center">
-                        <i class="bi bi-arrow-right fs-3 text-secondary"></i>
-                    </div>
-
-                    <!-- STEP 3 -->
-                    <div class="flow-step">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body d-flex flex-column justify-content-center px-4">
-                                <i class="bi bi-clipboard-data fs-2 text-secondary mb-3"></i>
-                                <h6 class="fw-semibold mb-2">Plan Fabrikasi</h6>
-                                <p class="text-muted small mb-0">
-                                    Membuat plan pengerjaan fabrikasi
-                                </p>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card stat-card border-top border-4 border-success shadow-sm">
+                            <div class="card-body text-center">
+                                <div class="icon bg-success bg-opacity-10 text-success mb-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width:70px; height:70px;">
+                                    <i class="bi bi-check-circle fs-3"></i>
+                                </div>
+                                <h6 class="text-muted">Fabrikasi Selesai</h6>
+                                <h2 class="fw-bold text-success">@ViewBag.TotalQtyFab</h2>
                             </div>
                         </div>
                     </div>
 
-                    <div class="d-none d-md-flex align-items-center">
-                        <i class="bi bi-arrow-right fs-3 text-secondary"></i>
-                    </div>
-
-                    <!-- STEP 4 -->
-                    <div class="flow-step">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body d-flex flex-column justify-content-center px-4">
-                                <i class="bi bi-tools fs-2 text-warning mb-3"></i>
-                                <h6 class="fw-semibold mb-2">Proses Fabrikasi</h6>
-                                <p class="text-muted small mb-0">
-                                    Tim fabrikasi melakukan proses pengerjaan
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-none d-md-flex align-items-center">
-                        <i class="bi bi-arrow-right fs-3 text-secondary"></i>
-                    </div>
-
-                    <!-- STEP 5 -->
-                    <div class="flow-step">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body d-flex flex-column justify-content-center px-4">
-                                <i class="bi bi-bell-fill fs-2 text-success mb-3"></i>
-                                <h6 class="fw-semibold mb-2">Notifikasi Selesai</h6>
-                                <p class="text-muted small mb-0">
-                                    Requestor mendapat notifikasi via Email
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-none d-md-flex align-items-center">
-                        <i class="bi bi-arrow-right fs-3 text-secondary"></i>
-                    </div>
-
-                    <!-- STEP 6 -->
-                    <div class="flow-step">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body d-flex flex-column justify-content-center px-4">
-                                <i class="bi bi-check-circle-fill fs-2 text-primary mb-3"></i>
-                                <h6 class="fw-semibold mb-2">Konfirmasi Hasil</h6>
-                                <p class="text-muted small mb-0">
-                                    Requestor melakukan konfirmasi
-                                </p>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card stat-card border-top border-4 border-warning shadow-sm">
+                            <div class="card-body text-center">
+                                <div class="icon bg-warning bg-opacity-10 text-warning mb-3 rounded-circle d-inline-flex align-items-center justify-content-center" style="width:70px; height:70px;">
+                                    <i class="bi bi-cash-stack fs-3"></i>
+                                </div>
+                                <h6 class="text-muted">Total Saving Cost</h6>
+                                <h2 class="fw-bold text-warning">
+                                    @ViewBag.TotalSavingFab.ToString("C",
+                                             new System.Globalization.CultureInfo("en-US"))
+                                </h2>
                             </div>
                         </div>
                     </div>
@@ -315,13 +263,144 @@
                 </div>
             </div>
 
-
         </div>
 
+    </section>
 
-        <!-- =====================================================
-             FAQ / HELP
-        ====================================================== -->
+
+
+    <!-- =========================================
+         SECTION: PROCESS FLOW
+    ========================================== -->
+    <section class="section process-section">
+        <div class="text-center mb-4">
+            <h4 class="fw-bold">
+                <i class="bi bi-diagram-3 me-2"></i>
+                Alur Proses Fabrikasi
+            </h4>
+            <p class="text-muted mb-0">
+                Tahapan proses dari pengajuan hingga konfirmasi hasil fabrikasi
+            </p>
+        </div>
+
+        <div class="d-flex align-items-stretch justify-content-between flex-wrap flex-md-nowrap gap-3 text-center">
+
+            <!-- STEP 1 -->
+            <div class="flow-step">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column justify-content-center px-4">
+                        <i class="bi bi-file-earmark-plus fs-2 text-primary mb-3"></i>
+                        <h6 class="fw-semibold mb-2">Request Fabrikasi</h6>
+                        <p class="text-muted small mb-0">
+                            Requestor mengajukan permintaan
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-none d-md-flex align-items-center">
+                <i class="bi bi-arrow-right fs-3 text-secondary"></i>
+            </div>
+
+            <!-- STEP 2 -->
+            <div class="flow-step">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column justify-content-center px-4">
+                        <i class="bi bi-person-check fs-2 text-info mb-3"></i>
+                        <h6 class="fw-semibold mb-2">Approval Engineer</h6>
+                        <p class="text-muted small mb-0">
+                            Engineer melakukan Approval
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-none d-md-flex align-items-center">
+                <i class="bi bi-arrow-right fs-3 text-secondary"></i>
+            </div>
+
+            <!-- STEP 3 -->
+            <div class="flow-step">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column justify-content-center px-4">
+                        <i class="bi bi-clipboard-data fs-2 text-secondary mb-3"></i>
+                        <h6 class="fw-semibold mb-2">Plan Fabrikasi</h6>
+                        <p class="text-muted small mb-0">
+                            Membuat plan pengerjaan fabrikasi
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-none d-md-flex align-items-center">
+                <i class="bi bi-arrow-right fs-3 text-secondary"></i>
+            </div>
+
+            <!-- STEP 4 -->
+            <div class="flow-step">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column justify-content-center px-4">
+                        <i class="bi bi-tools fs-2 text-warning mb-3"></i>
+                        <h6 class="fw-semibold mb-2">Proses Fabrikasi</h6>
+                        <p class="text-muted small mb-0">
+                            Tim fabrikasi melakukan proses pengerjaan
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-none d-md-flex align-items-center">
+                <i class="bi bi-arrow-right fs-3 text-secondary"></i>
+            </div>
+
+            <!-- STEP 5 -->
+            <div class="flow-step">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column justify-content-center px-4">
+                        <i class="bi bi-bell-fill fs-2 text-success mb-3"></i>
+                        <h6 class="fw-semibold mb-2">Notifikasi Selesai</h6>
+                        <p class="text-muted small mb-0">
+                            Requestor mendapat notifikasi via Email
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-none d-md-flex align-items-center">
+                <i class="bi bi-arrow-right fs-3 text-secondary"></i>
+            </div>
+
+            <!-- STEP 6 -->
+            <div class="flow-step">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column justify-content-center px-4">
+                        <i class="bi bi-check-circle-fill fs-2 text-primary mb-3"></i>
+                        <h6 class="fw-semibold mb-2">Konfirmasi Hasil</h6>
+                        <p class="text-muted small mb-0">
+                            Requestor melakukan konfirmasi
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- =========================================
+         SECTION: INFORMATION / ANNOUNCEMENT
+    ========================================== -->
+    <section class="section info-section">
+        <div class="row">
+            <!-- isi informasi tambahan -->
+        </div>
+    </section>
+
+
+    <!-- =========================================
+         SECTION: FAQ / HELP
+    ========================================== -->
+    <section class="section faq-section">
         <div class="card shadow-sm border-0 guide-card mt-5 p-4">
             <h4 class="text-center"><i class="bi bi-question-circle"></i> FAQ – Panduan Penggunaan System</h4>
             <hr>
@@ -331,11 +410,11 @@
                 <!-- FAQ 1 -->
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="faqOneHeading">
-                        <button class="accordion-button " type="button" data-bs-toggle="collapse" data-bs-target="#faqOne" aria-expanded="true">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqOne" aria-expanded="false">
                             Bagaimana cara membuat request baru?
                         </button>
                     </h2>
-                    <div id="faqOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                    <div id="faqOne" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                         <div class="accordion-body">
                             <ol class="text-start mb-0">
                                 <li>Buka menu <strong>Form Request</strong> untuk membuat request fabrikasi baru.</li>
@@ -345,6 +424,7 @@
                         </div>
                     </div>
                 </div>
+
 
                 <!-- FAQ 2 -->
                 <div class="accordion-item">
@@ -386,6 +466,7 @@
 
             </div>
         </div>
+    </section>
 
     </div>
 
