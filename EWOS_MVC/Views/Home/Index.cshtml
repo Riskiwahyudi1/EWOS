@@ -1,6 +1,6 @@
-﻿@{
+﻿﻿@{
     Layout = null;
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home Page - Inhouse Fabrication";
 }
 
 <!DOCTYPE html>
@@ -13,18 +13,19 @@
     <!-- Bootstrap CSS -->
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="~/lib/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
-
+    <!-- Favicon -->
+    @* <link rel="icon" type="image/png" sizes="32x32" href="~/images/EXL-Logo_Flash-Green.png" /> *@
+    @* <link rel="shortcut icon" href="~/images/EXL-Logo_Flash-Green.png" /> *@
     <!-- Bootstrap Icon -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
 
     <style>
+        /* GLOBAL */
         body {
             background: linear-gradient(135deg, #e9eef7 0%, #ffffff 100%);
             min-height: 100vh;
         }
-
-   
 
         /* FULLSCREEN LANDING */
         .landing-wrapper {
@@ -51,19 +52,28 @@
             padding-bottom: 40px;
         }
 
-        /* CARD STYLE */
+        /* JUDUL DASHBOARD */
+        .dashboard-title {
+            font-weight: 700;
+            color: #2a2d3e;
+            margin-top: 20px;
+            letter-spacing: 1px;
+        }
+
+        /* CARD UTAMA */
         .stat-card {
-            border-radius: 16px;
             border: none;
-            box-shadow: 0 12px 30px rgba(0,0,0,.08);
-            transition: all .3s ease;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
         }
 
             .stat-card:hover {
-                transform: translateY(-6px);
+                transform: translateY(-8px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
             }
 
-            /* ICON */
+            /* ICON DALAM CARD */
             .stat-card .icon {
                 width: 64px;
                 height: 64px;
@@ -75,53 +85,7 @@
                 font-size: 26px;
             }
 
-        .dashboard-title {
-            font-weight: 700;
-            color: #2a2d3e;
-            margin-top: 20px;
-            letter-spacing: 1px;
-        }
-
-        .hover-shadow:hover {
-            transform: translateY(-5px);
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
-        }
-
-        .guide-card {
-            border-radius: 15px;
-        }
-    </style>
-</head>
-
-<body>
-
-
-    <style>
-        body {
-            background: linear-gradient(135deg, #e9eef7 0%, #ffffff 100%);
-            min-height: 100vh;
-        }
-
-        .dashboard-title {
-            font-weight: 700;
-            color: #2a2d3e;
-            margin-top: 20px;
-            letter-spacing: 1px;
-        }
-
-        /* Card Modern */
-        .stat-card {
-            transition: 0.3s ease-in-out;
-            border: none;
-            border-radius: 15px;
-        }
-
-            .stat-card:hover {
-                transform: translateY(-8px);
-                box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
-            }
-
+        /* ICON WRAPPER (ALTERNATIF) */
         .icon-wrapper {
             width: 60px;
             height: 60px;
@@ -133,25 +97,59 @@
             margin-bottom: 10px;
         }
 
-        /* Panduan */
+        /* GUIDE CARD */
         .guide-card {
             border-radius: 15px;
         }
 
+        /* HOVER SHADOW UMUM */
         .hover-shadow:hover {
             transform: translateY(-5px);
             transition: all 0.3s ease;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        /* FLOATING IMAGE */
+        .floating-image {
+            animation: floating 4s ease-in-out infinite;
+            will-change: transform;
+        }
+
+        /* VARIASI KECEPATAN (OPSIONAL) */
+        .floating-slow {
+            animation-duration: 6s;
+        }
+
+        .floating-fast {
+            animation-duration: 2.5s;
+        }
+
+        /* KEYFRAMES */
+        @@keyframes floating {
+            0%
+
+        {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-15px);
+        }
+
+        100% {
+            transform: translateY(0);
+        }
+
         }
     </style>
 
+</head>
+
+<body>
 
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/">
-                Inhouse Fabrication
-            </a>
+            <img src="~/images/EXL-logo-black.png" alt="Fabrikasi Illustration" class="img-fluid" style="max-height: 50px;">
 
             <div class="ms-auto">
                 <a href="/Dashboard" class="btn btn-primary">
@@ -168,7 +166,7 @@
         <div class="landing-inner container">
 
             <!-- HERO -->
-            <div class="row align-items-center mb-5">
+            <div class="row align-items-center ">
 
                 <!-- Teks Hero (Kiri) -->
                 <div class="col-md-6 text-center text-md-start mb-4 mb-md-0">
@@ -176,31 +174,20 @@
                         Inhouse Fabrication System
                     </h1>
                     <p class="text-muted fs-5">
-                        Sistem terintegrasi untuk pengajuan request, monitoring proses fabrikasi,
-                        pengendalian biaya, dan manajemen produksi
+                        Sistem terintegrasi untuk request, monitoring proses,
+                        monitoring saving cost, dan manajemen proses inhouse fabrikasi
                     </p>
                     <div class="ms-auto">
-                        <a href="/NewRequest" class="btn btn-primary">
-                            <i class="bi bi-speedometer2 me-1"></i>
+                        <a href="/Requestor/NewRequest" class="btn btn-primary">
+                            <i class="bi bi-pencil-square"></i>
                             Request Fabrikasi
                         </a>
                     </div>
                 </div>
-                
+
                 <!-- Gambar SVG (Kanan) -->
                 <div class="col-md-6 text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" viewBox="0 0 600 300" fill="none" role="img" aria-label="Illustration">
-                        <!-- Background -->
-                        <rect width="600" height="300" rx="20" fill="#0d6efd" fill-opacity="0.1" />
-                        <!-- Circle / Mesin CNC -->
-                        <circle cx="200" cy="125" r="50" fill="#0d6efd" />
-                        <!-- Rectangle / 3D Printing -->
-                        <rect x="350" y="100" width="150" height="80" rx="15" fill="#0d6efd" />
-                        <!-- Connector Line -->
-                        <path d="M350 100 L500 180" stroke="#0d6efd" stroke-width="8" stroke-linecap="round" />
-                        <!-- Logo Text -->
-                        <text x="200" y="135" fill="white" font-size="36" font-weight="bold" font-family="Arial, sans-serif" text-anchor="middle">FAB</text>
-                    </svg>
+                    <img src="~/images/fabrikasi-hero.png" alt="Fabrikasi Illustration" class="img-fluid floating-image" style="max-height: 350px;">
                 </div>
 
             </div>
@@ -272,12 +259,12 @@
     <!-- =========================================
          SECTION: PROCESS FLOW
     ========================================== -->
-    <section class="section process-section">
-        <div class="text-center mb-4">
-            <h4 class="fw-bold">
+    <section class="section process-section container mt-5 mb-5">
+        <div class="text-center  mb-5">
+            <h1 class="fw-bold">
                 <i class="bi bi-diagram-3 me-2"></i>
                 Alur Proses Fabrikasi
-            </h4>
+            </h1>
             <p class="text-muted mb-0">
                 Tahapan proses dari pengajuan hingga konfirmasi hasil fabrikasi
             </p>
@@ -326,7 +313,7 @@
                         <i class="bi bi-clipboard-data fs-2 text-secondary mb-3"></i>
                         <h6 class="fw-semibold mb-2">Plan Fabrikasi</h6>
                         <p class="text-muted small mb-0">
-                            Membuat plan pengerjaan fabrikasi
+                            Tim fabriksi memasukan ke plan pengerjaan
                         </p>
                     </div>
                 </div>
@@ -377,7 +364,7 @@
                         <i class="bi bi-check-circle-fill fs-2 text-primary mb-3"></i>
                         <h6 class="fw-semibold mb-2">Konfirmasi Hasil</h6>
                         <p class="text-muted small mb-0">
-                            Requestor melakukan konfirmasi
+                            Requestor konfirmasi hasil fabrikasi
                         </p>
                     </div>
                 </div>
@@ -400,9 +387,9 @@
     <!-- =========================================
          SECTION: FAQ / HELP
     ========================================== -->
-    <section class="section faq-section">
+    <section class="section faq-section container">
         <div class="card shadow-sm border-0 guide-card mt-5 p-4">
-            <h4 class="text-center"><i class="bi bi-question-circle"></i> FAQ – Panduan Penggunaan System</h4>
+            <h1 class="text-center"><i class="bi bi-question-circle"></i> FAQ – Panduan Penggunaan System</h1>
             <hr>
 
             <div class="accordion" id="faqAccordion">
