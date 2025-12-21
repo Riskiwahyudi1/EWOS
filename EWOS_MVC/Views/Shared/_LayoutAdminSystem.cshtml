@@ -8,89 +8,15 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/EWOS_MVC.styles.css" asp-append-version="true" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="~/images/EXL-Logo_Flash-Green.png" />
+    <link rel="shortcut icon" href="~/images/EXL-Logo_Flash-Green.png" />
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <!-- CSS global -->
     <link href="~/css/site.css" rel="stylesheet" />
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .wrapper {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .sidebar {
-            width: 250px;
-            min-height: 100vh;
-            padding: 20px 10px;
-            color: white;
-        }
-
-            .sidebar h5 {
-                font-size: 18px;
-                margin-bottom: 30px;
-                text-align: center;
-            }
-
-            .sidebar a {
-                color: #f8f9fa;
-                padding: 12px 15px;
-                margin-bottom: 10px;
-                display: flex;
-                align-items: center;
-                border-radius: 5px;
-                text-decoration: none;
-                transition: all 0.2s ease;
-            }
-
-                .sidebar a i {
-                    margin-right: 10px;
-                }
-
-                .sidebar a:hover,
-                .sidebar a.active {
-                    background-color: #495057;
-                    color: white;
-                }
-
-        .btn-logout {
-            width: 100%;
-        }
-
-        .main-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            background: #f8f9fa;
-            padding: 15px 20px;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .content {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background-color: #f1f3f5;
-        }
-
-        .footer {
-            background: #f8f9fa;
-            padding: 10px;
-            text-align: center;
-            border-top: 1px solid #dee2e6;
-            font-size: 14px;
-        }
-    </style>
+   
   
 </head>
 <body>
@@ -134,8 +60,8 @@
                  <a href="/AdminSystem/YearsSetting" class="@(Context.Request.Path == "/AdminSystem/YearsSetting" ? "active" : "")">
                     <i class="bi bi-calendar"></i> Years Setting
                 </a>
-                <a href="/" >
-                    <i class="bi bi-power"></i> Admin System OFF
+                <a href="/Dashboard" class="bg-danger">
+                <i class="bi bi-arrow-left-square"></i> Main Panel
                 </a>
         </div>
 
@@ -176,78 +102,16 @@
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Sweetalert Toast -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="/js/toast.js"></script>
-
-    <script>
-        function initFinishModalValidation() {
-            const modalContent = document.getElementById("globalModalContent");
-            if (!modalContent) return;
-
-            const form = modalContent.querySelector("form");
-            if (!form) return;
-        }
-
-        // tampilkan modal
-        document.addEventListener("click", function (e) {
-            if (!e.target.classList.contains("open-modal")) return;
-
-            const url = e.target.dataset.url;
-            const modal = new bootstrap.Modal(document.getElementById("globalModal"));
-
-            document.getElementById("globalModalContent").innerHTML =
-                "<div class='p-5 text-center'>Loading...</div>";
-
-            modal.show();
-
-            fetch(url)
-                .then(res => res.text())
-                .then(html => {
-                    document.getElementById("globalModalContent").innerHTML = html;
-                    initFinishModalValidation();
-                })
-                .catch(() => {
-                    document.getElementById("globalModalContent").innerHTML =
-                        "<div class='p-5 text-danger'>Failed to load content</div>";
-                });
-        });
-    </script>
-
-    <!-- Apex chart -->
+    <!-- chart apex.js-->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-    <!-- loading efek -->
-    <script>
-                document.addEventListener("DOMContentLoaded", function () {
-            const forms = document.querySelectorAll("form");
+    <!-- Sweetalert Toast -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-            forms.forEach(function(form) {
-                form.addEventListener("submit", function (e) {
-                    e.preventDefault();
+    <!-- lokal js-->
+    <script src="/js/toast.js"></script>
+    <script src="/js/site.js"></script>
 
-                    // Nonaktifkan semua tombol submit
-                    const submitButtons = form.querySelectorAll('[type="submit"]');
-                    submitButtons.forEach(btn => {
-                        btn.disabled = true;
-                        btn.classList.add("disabled");
-                        btn.style.opacity = "0.7";
-                    });
-
-                    // Timer untuk delay sebelum menampilkan spinner
-                    let spinnerTimeout = setTimeout(() => {
-                        const overlay = document.getElementById("globalLoadingOverlay");
-                        if (overlay) overlay.style.display = "flex";
-                    }, 1000);
-
-                    // Kirim form setelah submit
-                    form.submit();
-                });
-            });
-        });
-    </script>
-  @*   @RenderBody()
-    <partial name="_NotificationPartial" /> *@
     @RenderSection("Scripts", required: false)
 </body>
 </html>

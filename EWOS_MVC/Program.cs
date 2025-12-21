@@ -1,7 +1,9 @@
 using EWOS_MVC.Services;
+using EWOS_MVC.Models;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +18,18 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Config Windows authentication
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
     .AddNegotiate();
+// Bind EmailSettings dari appsettings.json
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
+// Daftarkan EmailService sebagai scope
+builder.Services.AddScoped<EmailService>(sp =>
+{
+    var emailSettings = sp.GetRequiredService<IOptions<EmailSettings>>().Value;
+    var emailContextHelper = sp.GetRequiredService<EmailContextHelper>();
+    var adUserService = sp.GetRequiredService<AdUserService>();
+
+    return new EmailService(emailSettings, emailContextHelper, adUserService);
+});
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = options.DefaultPolicy;
@@ -25,6 +38,8 @@ builder.Services.AddScoped<AdUserService>();
 builder.Services.AddScoped<WeekHelper>();
 builder.Services.AddScoped<YearsHelper>();
 builder.Services.AddScoped<CalculateSavingHelper>();
+
+builder.Services.AddScoped<EmailContextHelper>();
 // Tambahkan memory cache 
 builder.Services.AddMemoryCache();
 

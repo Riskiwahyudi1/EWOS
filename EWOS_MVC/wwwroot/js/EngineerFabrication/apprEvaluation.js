@@ -23,23 +23,51 @@
         let html = "";
 
         data.forEach((rq, idx) => {
-            let buttons = "";
-            buttons += `
-                             <button class="btn btn-success btn-sm open-modal"
-                                    data-url="/EngineerFabrication/Approval/LoadData?id=${rq.id}&type=Approve">
-                                Approve
-                            </button>
+            let buttons = `
+                <div class="dropstart d-inline-block">
+                    <button class="btn btn-info btn-sm dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown">
+                        Actions
+                    </button>
 
-                            <button class="btn btn-danger btn-sm open-modal"
-                                    data-url="/EngineerFabrication/Approval/LoadData?id=${rq.id}&type=Reject">
-                                Reject
-                            </button>
+                    <ul class="dropdown-menu p-2" style="min-width:170px">
+            `;
 
-                            <button class="btn btn-warning btn-sm open-modal"
-                                    data-url="/EngineerFabrication/Approval/LoadData?id=${rq.id}&type=Detail">
-                                Detail
-                            </button>
-                        `;
+      
+                        buttons += `
+                <li>
+                    <button type="button"
+                            class="btn btn-success btn-sm w-100 text-center open-modal"
+                            data-url="/EngineerFabrication/Approval/LoadData?id=${rq.id}&type=Approve">
+                        Approve
+                    </button>
+                </li>
+            `;
+
+
+                        buttons += `
+                <li class="mt-1">
+                    <button type="button"
+                            class="btn btn-danger btn-sm w-100 text-center open-modal"
+                            data-url="/EngineerFabrication/Approval/LoadData?id=${rq.id}&type=Reject">
+                        Reject
+                    </button>
+                </li>
+            `;
+
+                        buttons += `
+                <li class="mt-1">
+                    <button type="button"
+                            class="btn btn-warning btn-sm w-100 text-center open-modal"
+                            data-url="/EngineerFabrication/Approval/LoadData?id=${rq.id}&type=Detail">
+                        Detail
+                    </button>
+                </li>
+            </ul>
+            </div>
+            `;
+
 
             html += `
                         <tr>

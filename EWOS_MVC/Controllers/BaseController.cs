@@ -5,6 +5,7 @@ public class BaseController : Controller
 {
     protected UserModel? CurrentUser => HttpContext.Items["CurrentUser"] as UserModel;
 
+
     public override void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
     {
         var user = CurrentUser;

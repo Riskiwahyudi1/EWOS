@@ -80,35 +80,35 @@
 
             // MULAI DROPDOWN
             buttons += `
-    <div class="dropstart">
-            <button class="btn btn-secondary btn-sm dropdown-toggle"
-            type="button"
-            data-bs-toggle="dropdown"
-            data-bs-display="static">
-        Actions
-    </button>
-
-
-        <ul class="dropdown-menu p-2" style="min-width: 150px z-index: 9999;">
-    `;
-
-            if (status === "onprogress" && isAdmin) {
-
-                buttons += `
-            <li>
-                <button class="btn btn-primary btn-sm w-100 text-center open-modal"
-                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Finish">
-                    Done
+                <div class="dropstart">
+                        <button class="btn btn-info btn-sm dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        data-bs-display="static">
+                    Actions
                 </button>
-            </li>
 
-            <li class="mt-1">
-                <button class="btn btn-danger btn-sm w-100 text-center open-modal"
-                    data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Cancel">
-                    Cancel
-                </button>
-            </li>
-        `;
+
+                    <ul class="dropdown-menu p-2" style="min-width: 150px z-index: 9999;">
+                `;
+
+                        if (status === "onprogress" && isAdmin) {
+
+                            buttons += `
+                        <li>
+                            <button class="btn btn-primary btn-sm w-100 text-center open-modal"
+                                data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Finish">
+                                Done
+                            </button>
+                        </li>
+
+                        <li class="mt-1">
+                            <button class="btn btn-danger btn-sm w-100 text-center open-modal"
+                                data-url="/FabricationHistory/LoadData?id=${rq.id}&type=Cancel">
+                                Cancel
+                            </button>
+                        </li>
+                    `;
 
                 if (!isEvaluation) {
                     buttons += `

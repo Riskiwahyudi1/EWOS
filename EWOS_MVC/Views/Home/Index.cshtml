@@ -1,6 +1,6 @@
 ﻿﻿@{
-    Layout = null;
-    ViewData["Title"] = "Home Page - Inhouse Fabrication";
+Layout = null;
+ViewData["Title"] = "Home Page - Inhouse Fabrication";
 }
 
 <!DOCTYPE html>
@@ -12,10 +12,9 @@
 
     <!-- Bootstrap CSS -->
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="~/lib/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
     <!-- Favicon -->
-    @* <link rel="icon" type="image/png" sizes="32x32" href="~/images/EXL-Logo_Flash-Green.png" /> *@
-    @* <link rel="shortcut icon" href="~/images/EXL-Logo_Flash-Green.png" /> *@
+    <link rel="icon" type="image/png" sizes="32x32" href="~/images/EXL-Logo_Flash-Green.png" />
+    <link rel="shortcut icon" href="~/images/EXL-Logo_Flash-Green.png" />
     <!-- Bootstrap Icon -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -36,7 +35,7 @@
         .landing-inner {
             height: 100%;
             display: grid;
-            grid-template-rows: 1.3fr 1fr; /* HERO : SUMMARY */
+            grid-template-rows: 1.3fr 1fr; 
             align-items: center;
         }
 
@@ -125,20 +124,17 @@
 
         /* KEYFRAMES */
         @@keyframes floating {
-            0%
+            0% {
+                transform: translateY(0);
+            }
 
-        {
-            transform: translateY(0);
-        }
+            50% {
+                transform: translateY(-15px);
+            }
 
-        50% {
-            transform: translateY(-15px);
-        }
-
-        100% {
-            transform: translateY(0);
-        }
-
+            100% {
+                transform: translateY(0);
+            }
         }
     </style>
 
@@ -241,7 +237,7 @@
                                 <h6 class="text-muted">Total Saving Cost</h6>
                                 <h2 class="fw-bold text-warning">
                                     @ViewBag.TotalSavingFab.ToString("C",
-                                             new System.Globalization.CultureInfo("en-US"))
+                                                                        new System.Globalization.CultureInfo("en-US"))
                                 </h2>
                             </div>
                         </div>

@@ -1,7 +1,7 @@
 ﻿﻿﻿@using EWOS_MVC.Services
 @model PaginatedHelper<EWOS_MVC.Models.RepeatOrderModel>
 @{
-    ViewData["Title"] = "History request";
+    ViewData["Title"] = "History Request";
 }
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -32,7 +32,7 @@
                     data-status="FabricationDone,Close"
                     type="button"
                     role="tab">
-                Finish
+                Done
                 @{
                     var doneFabCount = GetCount("FabricationDone");
                     var FabCloseCount = GetCount("Close");
@@ -93,7 +93,7 @@
                     data-status="Done"
                     type="button"
                     role="tab">
-                Waiting Buyoff
+                Waiting Confirmation
                 @if (GetCount("Done") > 0)
                 {
                     <span class="badge bg-danger rounded-pill">@GetCount("Done")</span>
@@ -111,6 +111,7 @@
             <th>ID Request</th>
             <th>Requestor</th>
             <th>Item Name</th>
+            <th>Quantity</th>
             <th>Machine Category</th>
             <th>Request Date</th>
             <th class="text-center">Action</th>
@@ -118,7 +119,7 @@
     </thead>
     <tbody>
         @{
-            int index = 1;
+            int index = (Model.PageIndex - 1) * ViewBag.PageSize + 1;
         }
 
         @if (Model == null || !Model.Any())
@@ -134,14 +135,15 @@
                 <tr>
                     <td class="text-center">@index</td>
                     <td>@rm.Id</td>
-                    <td>@rm.Users.Name</td>
+                    <td>@rm.Users?.Name</td>
                     <td>@rm.ItemRequests.PartName</td>
+                    <td>@rm.QuantityReq @rm.ItemRequests.Unit</td>
                     <td>@rm.ItemRequests.MachineCategories?.CategoryName</td>
                     <td>@rm.CreatedAt</td>
 
                     <td class="text-center">
                         <div class="dropstart d-inline-block">
-                            <button class="btn btn-secondary btn-sm dropdown-toggle"
+                            <button class="btn btn-info btn-sm dropdown-toggle"
                                     type="button"
                                     data-bs-toggle="dropdown">
                                 Actions
@@ -168,7 +170,6 @@
                             </ul>
                         </div>
                     </td>
-
 
                 </tr>
                 index++;

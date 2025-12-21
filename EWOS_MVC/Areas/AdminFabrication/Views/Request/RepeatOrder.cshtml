@@ -1,12 +1,12 @@
 ﻿@model List<EWOS_MVC.Models.RepeatOrderModel>
 @{
-    ViewData["Title"] = "Request List";
+    ViewData["Title"] = "Repeat Order";
 }
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h5 class="my-3">Request List</h5>
+<h5 class="">Request List</h5>
 @if (TempData["Error"] != null || TempData["ErrorMessage"] != null)
 {
     <div class="alert alert-danger">
@@ -18,7 +18,7 @@
         @await Component.InvokeAsync("MachineCategories")
     </div>
     <div class="col-4 col-sm-4">
-        <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search">
+        <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search" style="max-width: 300px;">
     </div>
 </div>
 
@@ -122,29 +122,49 @@
                     <td>@rq.CRD.ToString("dd/MM/yyyy")</td>
                     <td>@rq.CreatedAt</td>
                     <td class="text-center">
-                        @if (rq.Status == "ApprovalFabrication")
-                        {
-
-                            <button class="btn btn-success btn-sm open-modal"
-                                    data-url="/AdminFabrication/Request/LoadDataRo?id=@rq.Id&amp;type=Approve">
-                                Approve
+                        <div class="dropstart d-inline-block">
+                            <button class="btn btn-info btn-sm dropdown-toggle"
+                                    type="button"
+                                    data-bs-toggle="dropdown">
+                                Actions
                             </button>
-                        }
-                        else if (rq.Status == "WaitingFabrication")
-                        {
 
-                            <button class="btn btn-primary btn-sm open-modal"
-                                    data-url="/AdminFabrication/Request/LoadDataRo?id=@rq.Id&amp;type=Fabrikasi">
-                                Fabrikasi
-                            </button>
-                        }
+                            <ul class="dropdown-menu p-2" style="min-width:170px">
 
-                        <button class="btn btn-info btn-sm open-modal"
-                                data-url="/AdminFabrication/Request/LoadDataRo?id=@rq.Id&amp;type=Detail">
-                            Detail
-                        </button>
+                        
+                                @if (rq.Status == "ApprovalFabrication")
+                                {
+                                    <li>
+                                        <button class="btn btn-success btn-sm w-100 text-center open-modal"
+                                                data-url="/AdminFabrication/Request/LoadDataRo?id=@rq.Id&type=Approve">
+                                            Approve
+                                        </button>
+                                    </li>
+                                }
 
+                           
+                                else if (rq.Status == "WaitingFabrication")
+                                {
+                                    <li>
+                                        <button class="btn btn-primary btn-sm w-100 text-center open-modal"
+                                                data-url="/AdminFabrication/Request/LoadDataRo?id=@rq.Id&type=Fabrikasi">
+                                            Fabrikasi
+                                        </button>
+                                    </li>
+                                }
+
+                               
+                                <li class="mt-1">
+                                    <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                                            data-url="/AdminFabrication/Request/LoadDataRo?id=@rq.Id&type=Detail">
+                                        Detail
+                                    </button>
+                                </li>
+
+                            </ul>
+                        </div>
                     </td>
+
 
                 </tr>
                 index++;

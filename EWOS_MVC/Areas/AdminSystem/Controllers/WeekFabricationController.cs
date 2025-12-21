@@ -1,12 +1,11 @@
-﻿using EWOS_MVC.Controllers;
-using EWOS_MVC.Models;
+﻿using EWOS_MVC.Models;
 using EWOS_MVC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // defauld YearsSettingId di bagian generate week masih belum ada, bisa generate jika filternya di klik
+
 namespace EWOS_MVC.Areas.AdminSystem.Controllers
 {
     [Authorize(Roles = "AdminSystem")]
@@ -23,7 +22,7 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
         }
         public async Task<IActionResult> Index(int page = 1)
         {
-            int pageSize = 20;
+            int pageSize = 10;
 
             var query = _context.WeeksSetting
                 .Where(y =>y.YearsSetting.Year == DateTime.Now.Year)
@@ -32,10 +31,10 @@ namespace EWOS_MVC.Areas.AdminSystem.Controllers
             var paginatedData = await PaginatedHelper<WeeksSettingModel>
                 .CreateAsync(query, page, pageSize);
 
+            ViewBag.PageSize = pageSize;
+
             return View(paginatedData);
         }
-
-
 
         [HttpGet]
         public IActionResult Search(string keyword, int? YearSettingId)

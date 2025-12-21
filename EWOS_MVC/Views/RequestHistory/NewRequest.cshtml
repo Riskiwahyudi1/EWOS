@@ -1,7 +1,7 @@
 ﻿﻿﻿@using EWOS_MVC.Services
 @model PaginatedHelper<EWOS_MVC.Models.ItemRequestModel>
 @{
-    ViewData["Title"] = "History request";
+    ViewData["Title"] = "History Request";
 }
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -29,10 +29,10 @@
                     id="done-tab"
                     data-bs-toggle="tab"
                     data-bs-target="#WaitingBuyOff"
-                    data-status="Maspro,Fail"
+                    data-status="Fail,Maspro"
                     type="button"
                     role="tab">
-                Finish
+                Done
                 @{
                     var masproCount = GetCount("Maspro");
                     var failCount = GetCount("Fail");
@@ -101,13 +101,13 @@
                     id="waitingbuyoff-tab"
                     data-bs-toggle="tab"
                     data-bs-target="#WaitingBuyOff"
-                    data-status="WaitingBuyOff"
+                    data-status="WaitingBuyoff"
                     type="button"
                     role="tab">
                 Waiting Buyoff
-                @if (GetCount("WaitingBuyOff") > 0)
+                @if (GetCount("WaitingBuyoff") > 0)
                 {
-                    <span class="badge bg-danger rounded-pill">@GetCount("WaitingBuyOff")</span>
+                    <span class="badge bg-danger rounded-pill">@GetCount("WaitingBuyoff")</span>
                 }
             </button>
         </li>
@@ -137,6 +137,7 @@
             <th>ID Request</th>
             <th>Requestor</th>
             <th>Item Name</th>
+            <th>Quantity</th>
             <th>Machine Category</th>
             <th>Request Date</th>
             <th class="text-center">Action</th>
@@ -144,7 +145,7 @@
     </thead>
     <tbody>
         @{
-            int index = 1;
+            int index = (Model.PageIndex - 1) * ViewBag.PageSize + 1;
         }
 
         @if (Model == null || !Model.Any())
@@ -162,12 +163,18 @@
                     <td>@rm.Id</td>
                     <td>@rm.Users.Name</td>
                     <td>@rm.PartName</td>
+                    <td>1 @rm.Unit</td>
                     <td>@rm.MachineCategories?.CategoryName</td>
                     <td>@rm.CreatedAt</td>
 
                     <td class="text-center">
+                        @{
+
+                            var statusEva = rm.Status?.Trim().ToLower();
+
+                        }
                         <div class="dropstart d-inline-block">
-                            <button class="btn btn-secondary btn-sm dropdown-toggle"
+                            <button class="btn btn-info btn-sm dropdown-toggle"
                                     type="button"
                                     data-bs-toggle="dropdown">
                                 Actions
@@ -175,26 +182,27 @@
 
                             <ul class="dropdown-menu p-2" style="min-width:160px">
 
+                                @if (statusEva == "waitingbuyoff" || statusEva == "maspro" || statusEva == "fail" || statusEva == "infabrication")
+                                {
+                                    <!-- Progress -->
+                                    <li >
+                                        <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                                                data-url="/RequestHistory/LoadDataFab?Id=@rm.Id&type=Status">
+                                            Progress
+                                        </button>
+                                    </li>
+                                }
                                 <!-- Detail -->
-                                <li>
+                                <li class="mt-1">
                                     <button class="btn btn-warning btn-sm w-100 text-center open-modal"
                                             data-url="/RequestHistory/LoadData?Id=@rm.Id&type=Detail">
                                         Detail
                                     </button>
                                 </li>
 
-                                <!-- Progress -->
-                                <li class="mt-1">
-                                    <button class="btn btn-info btn-sm w-100 text-center open-modal"
-                                            data-url="/RequestHistory/LoadDataFab?Id=@rm.Id&type=Status">
-                                        Progress
-                                    </button>
-                                </li>
-
                             </ul>
                         </div>
                     </td>
-
 
                 </tr>
                 index++;
@@ -205,9 +213,9 @@
 </table>
 <!-- Pagination Razor (default) -->
 <div id="pagination-server">
-    @if (Model.TotalPages > 1)
+    @if (Model?.TotalPages > 1)
     {
-        int maxPagesToShow = 3;
+        int maxPagesToShow = 5;
         int startPage = Model.PageIndex - 2;
         int endPage = Model.PageIndex + 2;
 

@@ -20,8 +20,9 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [HttpGet]
         public async Task<IActionResult> Evaluation(int page = 1)
         {
-            int userId = CurrentUser.Id;
-            int pageSize = 20;
+            int userId = CurrentUser?.Id ?? 0;
+
+            int pageSize = 10;
 
             // --- Data tabel hanya untuk status awal ---
             var tableData = _context.ItemRequests
@@ -49,6 +50,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
 
             ViewBag.StatusSummaryRepeat = statusSummaryRepeat;
+            ViewBag.PageSize = pageSize;
             ViewBag.StatusSummaryEval = statusSummaryEval;
 
             return View(paginatedData);
@@ -58,8 +60,8 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [HttpGet]
         public async Task<IActionResult> RepeatOrder(int page = 1)
         {
-            int userId = CurrentUser.Id;
-            int pageSize = 20;
+            int userId = CurrentUser?.Id ?? 0;
+            int pageSize = 10;
 
             // --- Data tabel hanya untuk status awal ---
             var tableData = _context.RepeatOrders
@@ -86,6 +88,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
 
             ViewBag.StatusSummaryRepeat = statusSummaryRepeat;
+            ViewBag.PageSize = pageSize;
             ViewBag.StatusSummaryEval = statusSummaryEval;
 
 
@@ -147,7 +150,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [HttpGet]
         public async Task<IActionResult> SearchNew(string keyword, int? categoryId, List<string> status)
         {
-            int userId = CurrentUser.Id;
+            int userId = CurrentUser?.Id ?? 0;
             // Base query
             var query = _context.ItemRequests
                 .Include(m => m.MachineCategories)
@@ -186,6 +189,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     r.MachineCategoryId,
                     CategoryName = r.MachineCategories.CategoryName,
                     r.CRD,
+                    r.Unit,
                     r.Status,
                     r.CreatedAt
                 })
@@ -197,7 +201,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [HttpGet]
         public async Task<IActionResult> SearchRo(string keyword, int? categoryId, List<string> status)
         {
-            int userId = CurrentUser.Id;
+            int userId = CurrentUser?.Id ?? 0;
             // Base query
             var query = _context.RepeatOrders
                 .Include(ir => ir.ItemRequests)
@@ -251,18 +255,9 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Pass(long ItemRequestId, string Reason)
         {
-            int userId = CurrentUser.Id;
+            int userId = CurrentUser?.Id ?? 0;
 
-            if (ItemRequestId == null)
-            {
-                TempData["Error"] = "ItemRequestId tidak boleh kosong.";
-                return RedirectToAction("Evaluation");
-            }
-            if (Reason == null)
-            {
-                TempData["Error"] = "Reason tidak boleh kosong.";
-                return RedirectToAction("Evaluation");
-            }
+     
 
             if (!ModelState.IsValid)
             {
@@ -302,7 +297,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Close(long ItemRequestId, long RepeatOrderId, string Reason)
         {
-            int userId = CurrentUser.Id;
+            int userId = CurrentUser?.Id ?? 0;
 
             if (RepeatOrderId <= 0)
             {
@@ -359,12 +354,9 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Fail(long ItemRequestId, string Reason)
         {
-            int userId = CurrentUser.Id;
-            if (ItemRequestId == null)
-            {
-                TempData["Error"] = "ItemRequestId tidak boleh kosong.";
-                return RedirectToAction("Evaluation");
-            }
+            int userId = CurrentUser?.Id ?? 0;
+
+            
             if (Reason == null)
             {
                 TempData["Error"] = "Reason tidak boleh kosong.";
@@ -409,7 +401,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Revisi(long? ItemRequestId, string Reason)
         {
-            int userId = CurrentUser.Id;
+            int userId = CurrentUser?.Id ?? 0;
 
             if (ItemRequestId == null)
             {

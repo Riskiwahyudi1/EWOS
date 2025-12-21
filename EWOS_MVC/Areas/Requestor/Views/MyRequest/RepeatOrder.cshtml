@@ -1,13 +1,13 @@
 ﻿﻿@using EWOS_MVC.Services
 @model PaginatedHelper<EWOS_MVC.Models.RepeatOrderModel>
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "My Request";
 }
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h5 class="my-3">Riwayat Request</h5>
+<h5 class="">Riwayat Request</h5>
 
 <div class="d-flex align-items-center mb-3 gap-2">
     <div class="col-2 col-sm-2">
@@ -113,7 +113,7 @@
     </thead>
     <tbody>
         @{
-            int index = 1;
+            int index = (Model.PageIndex - 1) * ViewBag.PageSize + 1;
         }
 
         @if (Model == null || !Model.Any())
@@ -132,11 +132,11 @@
                     <td>@ir.ItemRequests.PartName</td>
                     <td>@ir.ItemRequests.MachineCategories?.CategoryName</td>
                     <td>@ir.QuantityReq</td>
-                    <td>@ir.QuantityDone</td>
+                    <td>@(ir.QuantityDone ?? 0)</td>
                     <td>@ir.CreatedAt</td>
                     <td class="text-center">
                         <div class="dropstart d-inline-block">
-                            <button class="btn btn-secondary btn-sm dropdown-toggle"
+                            <button class="btn btn-info btn-sm dropdown-toggle"
                                     type="button"
                                     data-bs-toggle="dropdown">
                                 Actions
@@ -161,7 +161,6 @@
                             </ul>
                         </div>
                     </td>
-
                 </tr>
                 index++;
             }
@@ -172,9 +171,9 @@
 
 <!-- Pagination Razor (default) -->
 <div id="pagination-server">
-    @if (Model.TotalPages > 1)
+    @if (Model?.TotalPages > 1)
     {
-        int maxPagesToShow = 3;
+        int maxPagesToShow = 5;
         int startPage = Model.PageIndex - 2;
         int endPage = Model.PageIndex + 2;
 

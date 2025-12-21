@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentPage = 1;
     let totalPages = 1;
-    const pageSize = 20;
+    const pageSize = 10;
 
     let debounceTimer = null;
     let loadingTimer = null;
@@ -34,9 +34,17 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = '';
         data.forEach((rq, idx) => {
             let buttons = "";
+            const rowNumber = (currentPage - 1) * pageSize + idx + 1;
+
+            // normalisasi status
+            const statusEva = rq.status?.trim().toLowerCase();
+
+            // status yang boleh menampilkan Progress
+            const allowedStatus = ["close", "done", "waitingfabrication"];
+
             buttons += `
                 <div class="dropstart d-inline-block">
-                    <button class="btn btn-secondary btn-sm dropdown-toggle"
+                    <button class="btn btn-info btn-sm dropdown-toggle"
                             type="button"
                             data-bs-toggle="dropdown">
                         Actions
@@ -50,14 +58,21 @@ document.addEventListener('DOMContentLoaded', () => {
                                 Detail
                             </button>
                         </li>
+                `;
 
+                            // Progress hanya muncul jika status sesuai
+                            if (allowedStatus.includes(statusEva)) {
+                                buttons += `
                         <li class="mt-1">
                             <button class="btn btn-info btn-sm w-100 text-center open-modal"
                                     data-url="/RequestHistory/LoadDataRoFab?id=${rq.id}&type=Status">
                                 Progress
                             </button>
                         </li>
+                    `;
+                            }
 
+                            buttons += `
                     </ul>
                 </div>
                 `;
@@ -65,10 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             html += `
     <tr>
-        <td class="text-center">${idx + 1}</td>
+        <td class="text-center">${rowNumber}</td>
         <td>${rq.id ?? ''}</td>
         <td>${rq.users ?? ''}</td>
         <td>${rq.partName ?? rq.PartName ?? ''}</td>
+        <td>${rq.quantityReq ?? rq.QuantityReq ?? ''} ${rq.unit ?? rq.Unit ?? ''} </td>
         <td>${rq.categoryName ?? '-'}</td>
         <td>${rq.createdAt ? new Date(rq.createdAt).toLocaleDateString('id-ID') : ''}</td>
         <td class="text-center">${buttons}</td>
@@ -83,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper: Render Pagination
     // -------------------------------
     function renderPagination() {
-        let maxPagesToShow = 3;
+        let maxPagesToShow = 5;
         let startPage = currentPage - 2;
         let endPage = currentPage + 2;
 

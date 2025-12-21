@@ -25,71 +25,105 @@
 
         let html = "";
         data.forEach((rq, idx) => {
-            let buttons = "";
+            let buttons = `
+                    <div class="dropstart d-inline-block">
+                        <button class="btn btn-info btn-sm dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown">
+                            Actions
+                        </button>
+                        <ul class="dropdown-menu p-2" style="min-width:170px">
+                `;
 
-            if (rq.status === "FabricationApproval") {
-                buttons += `
-                            <button type="button" class="btn btn-success btn-sm open-modal"
+                            // ==========================
+                            // FABRICATION APPROVAL
+                            // ==========================
+                            if (rq.status === "FabricationApproval") {
+
+                                buttons += `
+                        <li>
+                            <button type="button"
+                                    class="btn btn-success btn-sm w-100 text-center open-modal"
                                     data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Approve">
                                 Approve
                             </button>
+                        </li>
 
-                            <button type="button" class="btn btn-danger btn-sm open-modal"
+                        <li class="mt-1">
+                            <button type="button"
+                                    class="btn btn-danger btn-sm w-100 text-center open-modal"
                                     data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Reject">
                                 Reject
                             </button>
-                        `;
-            } else if (rq.status === "WaitingFabrication") {
+                        </li>
+                    `;
+                            }
 
-                const externalCostIsNull = rq.externalFabCost === null;
-                const fabTimeIsNull = rq.fabricationTime === null;
-                const rawMaterialIsNull = rq.rawMaterialId === null;
-                const weightIsNull = rq.weight === null;
+                            // ==========================
+                            // WAITING FABRICATION
+                            // ==========================
+                            else if (rq.status === "WaitingFabrication") {
 
-                if (rq.machineCategoryId === 1) {
-                    const isDisabled = externalCostIsNull || fabTimeIsNull || rawMaterialIsNull;
-                    buttons += `
-                            <button type="button"
-                                    class="btn btn-primary btn-sm open-modal ${isDisabled ? "disabled" : ""}"
-                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Fabrikasi">
-                                Fabrikasi
-                            </button>
+                                const externalCostIsNull = rq.externalFabCost === null;
+                                const fabTimeIsNull = rq.fabricationTime === null;
+                                const rawMaterialIsNull = rq.rawMaterialId === null;
+                                const weightIsNull = rq.weight === null;
 
-                            <button type="button" class="btn btn-warning btn-sm open-modal"
-                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Edit">
-                                Edit
-                            </button>
-                        `;
-                } else if (rq.machineCategoryId === 2) {
-                    const isDisabled = externalCostIsNull || fabTimeIsNull || rawMaterialIsNull || weightIsNull;
-                    buttons += `
-                            <button type="button"
-                                    class="btn btn-primary btn-sm open-modal ${isDisabled ? "disabled" : ""}"
-                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Fabrikasi">
-                                Fabrikasi
-                            </button>
+                                if (rq.machineCategoryId === 1 || rq.machineCategoryId === 2) {
 
-                            <button type="button" class="btn btn-warning btn-sm open-modal"
-                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Edit">
-                                Edit
-                            </button>
-                        `;
-                } else if (rq.machineCategoryId === 3) {
-                    buttons += `
-                            <button type="button"
-                                    class="btn btn-primary btn-sm open-modal"
-                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Fabrikasi">
-                                Drawing
-                            </button>
-                        `;
-                }
-            }
-            buttons += `
-                                <button type="button" class="btn btn-info btn-sm open-modal"
-                                        data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Detail">
-                                    Detail
+                                    const isDisabled =
+                                        rq.machineCategoryId === 1
+                                            ? (externalCostIsNull || fabTimeIsNull || rawMaterialIsNull)
+                                            : (externalCostIsNull || fabTimeIsNull || rawMaterialIsNull || weightIsNull);
+
+                                    buttons += `
+                            <li>
+                                <button type="button"
+                                        class="btn btn-primary btn-sm w-100 text-center open-modal ${isDisabled ? "disabled" : ""}"
+                                        data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Fabrikasi">
+                                    Fabrikasi
                                 </button>
-                            `;
+                            </li>
+
+                            <li class="mt-1">
+                                <button type="button"
+                                        class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                        data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Edit">
+                                    Edit
+                                </button>
+                            </li>
+                        `;
+                                }
+
+                                else if (rq.machineCategoryId === 3) {
+
+                                    buttons += `
+                            <li>
+                                <button type="button"
+                                        class="btn btn-primary btn-sm w-100 text-center open-modal"
+                                        data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Fabrikasi">
+                                    Drawing
+                                </button>
+                            </li>
+                        `;
+                                }
+                            }
+
+                            // ==========================
+                            // DETAIL (ALWAYS AVAILABLE)
+                            // ==========================
+                            buttons += `
+                        <li class="mt-1">
+                            <button type="button"
+                                    class="btn btn-info btn-sm w-100 text-center open-modal"
+                                    data-url="/AdminFabrication/Request/LoadData?id=${rq.id}&type=Detail">
+                                Detail
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                `;
+
 
             html += `
                         <tr>

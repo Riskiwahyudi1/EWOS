@@ -13,7 +13,7 @@
     let loadingTimer = null;
     let currentPage = 1;
     let totalPages = 1;
-    const pageSize = 20;
+    const pageSize = 10;
 
     const initialHTML = tableBody.innerHTML;
 
@@ -33,9 +33,10 @@
 
         data.forEach((rq, idx) => {
             const id = rq.id ?? '';
+            const rowNumber = (currentPage - 1) * pageSize + idx + 1;
             let buttons = `
                 <div class="dropstart d-inline-block">
-                    <button class="btn btn-secondary btn-sm dropdown-toggle"
+                    <button class="btn btn-info btn-sm dropdown-toggle"
                             type="button"
                             data-bs-toggle="dropdown">
                         Actions
@@ -43,13 +44,26 @@
 
                     <ul class="dropdown-menu p-2" style="min-width:180px">
                 `;
-                        // === Progress (Close, Done, WaitingFabrication)
-                        if (
-                            rq.status === "Close" ||
-                            rq.status === "Done" ||
-                            rq.status === "WaitingFabrication"
-                        ) {
-                            buttons += `
+
+            // === Receive (hanya Done)
+            if (rq.status === "Done") {
+                buttons += `
+                        <li class="mt-1">
+                            <button class="btn btn-success btn-sm w-100 text-center open-modal"
+                                    data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Recived">
+                                <i class="bi bi-circular-check"></i> Receive
+                            </button>
+                        </li>
+                    `;
+            }
+
+            // === Progress (Close, Done, WaitingFabrication)
+            if (
+                rq.status === "Close" ||
+                rq.status === "Done" ||
+                rq.status === "WaitingFabrication"
+            ) {
+                buttons += `
                                     <li class="mt-1">
                                         <button class="btn btn-secondary btn-sm w-100 text-center open-modal"
                                                 data-url="/RequestHistory/LoadDataRoFab?id=${id}&type=Status">
@@ -57,22 +71,9 @@
                                         </button>
                                     </li>
                                 `;
-                        }
-
-                            // === Receive (hanya Done)
-                            if (rq.status === "Done") {
-                                buttons += `
-                        <li>
-                            <button class="btn btn-success btn-sm w-100 text-center open-modal"
-                                    data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Recived">
-                                <i class="bi bi-circular-check"></i> Receive
-                            </button>
-                        </li>
-                    `;
-                            }
-
-                            // === Detail (selalu)
-                            buttons += `
+            }
+            // === Detail (selalu)
+            buttons += `
                         <li class="mt-1">
                             <button class="btn btn-warning btn-sm w-100 text-center open-modal"
                                     data-url="/Requestor/MyRequest/LoadDataRo?id=${id}&type=Detail">
@@ -88,17 +89,16 @@
                         </li>
                 `;
 
-                            
 
-                            buttons += `
+
+            buttons += `
                     </ul>
                 </div>
                 `;
 
-
             html += `
               <tr>
-                <td class="text-center">${idx + 1}</td>
+                <td class="text-center">${rowNumber}</td>
                 <td>${rq.id ?? '-'}</td>
                 <td>${rq.partName ?? '-'}</td>
                 <td>${rq.categoryName ?? '-'}</td>
@@ -116,7 +116,7 @@
     // Helper: Render Pagination
     // -------------------------------
     function renderPagination() {
-        let maxPagesToShow = 3;
+        let maxPagesToShow = 5;
         let startPage = currentPage - 2;
         let endPage = currentPage + 2;
 

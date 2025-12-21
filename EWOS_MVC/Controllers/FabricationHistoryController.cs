@@ -12,11 +12,13 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         private readonly AppDbContext _context;
         private readonly YearsHelper _yearHelper;
         private readonly WeekHelper _weekHelper;
-        public FabricationHistoryController(AppDbContext context, YearsHelper yearsHelper, WeekHelper weekHelper)
+        private readonly EmailService _emailService;
+        public FabricationHistoryController(AppDbContext context, YearsHelper yearsHelper, WeekHelper weekHelper, EmailService emailService)
         {
             _context = context;
             _yearHelper = yearsHelper;
             _weekHelper = weekHelper;
+            _emailService = emailService;
         }
 
         public async Task<IActionResult> Index()
@@ -50,9 +52,9 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     .Include(ir => ir.ItemRequest)
                         .ThenInclude(u => u.Users)
                     .Include(ro => ro.RepeatOrder)
-                        .ThenInclude(u => u.Users)
+                        .ThenInclude(u => u!.Users)
                     .Include(m => m.Machine)
-                        .ThenInclude(m => m.MachineCategories)
+                        .ThenInclude(m => m!.MachineCategories)
                     .Where(wk => wk.WeeksSettingId == mingguSekarang.Id)
                     .ToListAsync();
 
@@ -281,7 +283,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
 
             // Sanitasi nama file
             var invalidChars = Path.GetInvalidFileNameChars();
-            var safeName = new string(rawName
+            var safeName = new string(rawName?
                 .Where(c => !invalidChars.Contains(c))
                 .ToArray());
 
@@ -310,7 +312,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 Directory.CreateDirectory(uploadFolder);
 
             // Tentukan target path dan hapus file lama
-            if (itemFabrication.ItemRequestId == null)  
+            if (itemFabrication?.ItemRequestId == null)  
             {
                 if (!string.IsNullOrEmpty(repeatOrder?.COCPath))
                 {
@@ -339,13 +341,14 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             var finalPath = $"/Uploads/COC/{fileName}";
 
             // Simpan path ke model yang benar
-            if (itemFabrication.RepeatOrderId == null)
+
+            if (itemFabrication?.RepeatOrderId == null)
             {
-                itemRequest.COCPath = finalPath;
+                itemRequest!.COCPath = finalPath;
             }
             else
             {
-                repeatOrder.COCPath = finalPath;
+                repeatOrder!.COCPath = finalPath;
             }
 
             return finalPath;
@@ -407,9 +410,9 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 if (RepeatOrderId.HasValue)
                 {
                     // Upload file dan simpan path
-                    await UpdateCOCFileAsync(fileCOC, requestDataRo, requestData, fabricationData, requestDataRo.ItemRequests.PartName);
+                    await UpdateCOCFileAsync(fileCOC, requestDataRo, requestData, fabricationData, requestDataRo?.ItemRequests.PartName);
 
-                    _context.RepeatOrders.Update(requestDataRo);
+                    _context.RepeatOrders.Update(requestDataRo!);
                 }
                 else
                 {
@@ -456,7 +459,10 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             }
 
             // Ambil data new ItemRequest
-            var requestData = await _context.ItemRequests.FindAsync(ItemRequestId);
+            var requestData = await _context.ItemRequests
+                .Include(r => r.Users)
+                .FirstOrDefaultAsync(r => r.Id == ItemRequestId);
+
             if (requestData == null)
             {
                 TempData["Error"] = "Data ItemRequest tidak ditemukan.";
@@ -494,11 +500,11 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 if (RepeatOrderId.HasValue)
                 {
                     // Upload file dan simpan path
-                    await UpdateCOCFileAsync(fileCOC, requestDataRo, requestData, fabricationData, requestDataRo.ItemRequests.PartName);
+                    await UpdateCOCFileAsync(fileCOC, requestDataRo, requestData, fabricationData, requestDataRo?.ItemRequests.PartName);
                     //hitung apakah sudah di fabrikasi semua?
-                    var calculateFabrication = (requestDataRo.QuantityDone ?? 0) + fabricationData.Quantity;
+                    var calculateFabrication = (requestDataRo?.QuantityDone ?? 0) + fabricationData.Quantity;
 
-                    requestDataRo.QuantityDone = calculateFabrication;
+                    requestDataRo!.QuantityDone = calculateFabrication;
                     requestDataRo.QtyOnFab = Math.Max(0, (requestDataRo.QtyOnFab ?? 0) - fabricationData.Quantity);
 
 
@@ -506,8 +512,11 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     if (requestDataRo.QuantityReq == calculateFabrication)
                     {
                         requestDataRo.Status = "Done";
+                        await _emailService.SendConfirmationDoneEmail(requestDataRo.ItemRequests, requestDataRo.QuantityReq, requestDataRo.Id);
                     }
                     _context.RepeatOrders.Update(requestDataRo);
+
+                    //kirim email finish fabrikasi
                 }
                 else
                 {
@@ -518,6 +527,10 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     requestData.UpdatedAt = DateTime.Now;
 
                     _context.ItemRequests.Update(requestData);
+
+                    
+                    // kirim email konfirmasi finish
+                    await _emailService.SendConfirmationDoneEmail(requestData, 1, requestData.Id);
                 }
 
                 // Update data fabrikasi
@@ -592,7 +605,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     }
                     else
                     {
-                        repeatOrderData.UpdatedAt = DateTime.Now;
+                        repeatOrderData!.UpdatedAt = DateTime.Now;
                         repeatOrderData.Status = "WaitingFabrication";
                         repeatOrderData.QtyOnFab = Math.Max(0, (repeatOrderData.QtyOnFab ?? 0) - fabricationData.Quantity);
 
@@ -685,7 +698,8 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddEvaluasi(int MachineId, long ItemRequestId, decimal EvaluationTime)
         {
-            int userId = CurrentUser.Id;
+            int userId = CurrentUser?.Id ?? 0;
+
 
             if (!ModelState.IsValid)
             {

@@ -11,19 +11,19 @@
         <table class="table table-bordered table-striped align-middle w-100">
             <tbody>
                 <tr>
-                    <th class="col-sm-4">Request Id</th>
+                    <th class="col-sm-4">Part Id</th>
                     <td class="col-sm-8" style="word-break: break-word;">
                         @Model.Id 
                     </td>
                 </tr>
                 <tr>
-                    <th class="col-sm-4">Product Name</th>
+                    <th class="col-sm-4">Part Name</th>
                     <td class="col-sm-8" style="word-break: break-word;">
                         @Model.PartName
                     </td>
                 </tr>
                 <tr>
-                    <th class="col-sm-4">Product Code</th>
+                    <th class="col-sm-4">Part Code</th>
                     <td class="col-sm-8" style="word-break: break-word;">
                         @( Model.PartCode != null
                             ? Model.PartCode
@@ -42,9 +42,9 @@
                 <tr>
                     <th class="col-sm-4">Raw Material</th>
                     <td class="col-sm-8" style="word-break: break-word;">
-                        @(Model.RawMaterials != null
-                            ? Model.RawMaterials.Name
-                            : Html.Raw("<span class='badge bg-danger'>Belum di set</span>"))
+                        @(string.IsNullOrWhiteSpace(Model.RawMaterials?.Name)
+                            ? Html.Raw("<span class='badge bg-danger'>Belum di set</span>")
+                            : Html.Raw(Model.RawMaterials.Name))
 
                     </td>
                 </tr>

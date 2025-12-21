@@ -11,9 +11,11 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
     public class ApprovalController : BaseController
     {
         private readonly AppDbContext _context;
-        public ApprovalController(AppDbContext contex)
+        private readonly EmailService _emailService;
+        public ApprovalController(AppDbContext contex, EmailService emailService)
         {
             _context = contex;
+            _emailService = emailService;
         }
         //show new order
         [HttpGet]
@@ -174,7 +176,7 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
                     r.Id,
                     r.ItemRequests.PartName,
                     CategoryName = r.ItemRequests.MachineCategories.CategoryName,
-                    Users = r.Users.Name,
+                    Users = r.Users!.Name,
                     r.ItemRequests.MachineCategoryId,
                     r.CreatedAt
                 })
@@ -274,22 +276,33 @@ namespace EWOS_MVC.Areas.Supervisor.Controllers
             //menerima data dari file Supervisor/Approval/RepeatOrder.cshtml
             if (repeatOrderId.HasValue)
             {
-                var repeatOrder = await _context.RepeatOrders.FindAsync(repeatOrderId.Value);
+                var repeatOrder = await _context.RepeatOrders
+                        .Include(ro => ro.ItemRequests)
+                        .ThenInclude(ir => ir.Users)
+                        .FirstOrDefaultAsync(ro => ro.Id == repeatOrderId.Value);
+
                 if (repeatOrder == null) return NotFound();
 
                 repeatOrder.Status = "Reject";
                 repeatOrder.UpdatedAt = DateTime.Now;
+
+                await _emailService.SendConfirmationRejectEmail(repeatOrder.ItemRequests, reason, repeatOrder.Id);
 
                 redirectUrl = "/EngineerFabrication/Approval/RepeatOrder";
             }
             //menerima data dari file Supervisor/Approval/Evaluation.cshtml
             else
             {
-                var itemRequest = await _context.ItemRequests.FindAsync(itemRequestId);
+                var itemRequest = await _context.ItemRequests
+                    .Include(u => u.Users)
+                    .FirstOrDefaultAsync(r => r.Id == itemRequestId);
+
                 if (itemRequest == null) return NotFound();
 
                 itemRequest.Status = "Reject";
                 itemRequest.UpdatedAt = DateTime.Now;
+
+                await _emailService.SendConfirmationRejectEmail(itemRequest, reason, itemRequest.Id);
             }
 
             // Catat status reject di RequestStatusModel

@@ -15,7 +15,7 @@ namespace EWOS_MVC.Controllers
         }
         public async Task<IActionResult> NewRequest(int page = 1)
         {
-            int pageSize = 20;
+            int pageSize = 10;
             var newRequest = _context.ItemRequests
                 .Include(mc => mc.MachineCategories)
                 .Include(u => u.Users)
@@ -38,19 +38,20 @@ namespace EWOS_MVC.Controllers
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
 
             ViewBag.StatusSummaryNew = statusSummaryNew;
+            ViewBag.PageSize = pageSize;
             ViewBag.CurrentStatus = "WaitingApproval";
             return View(paginatedData);
         }
 
         public async Task<IActionResult> RepeatOrder(int page = 1)
         {
-            int pageSize = 20;
+            int pageSize = 10;
 
             var Ro = _context.RepeatOrders
                 .Include(ir => ir.ItemRequests)
                     .ThenInclude(mc => mc.MachineCategories)
                 .Include(u => u.Users)
-                .Where(rq => rq.Status == "Done" || rq.Status == "Close")
+                .Where(rq => rq.Status == "Close")
                 .Include(rs => rs.RequestStatus)
                     .ThenInclude(u => u.Users)
                 .OrderBy(x => x.Id)
@@ -68,6 +69,7 @@ namespace EWOS_MVC.Controllers
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
 
             ViewBag.StatusSummaryRo = statusSummaryRo;
+            ViewBag.PageSize = pageSize;
 
             return View(paginatedData);
         }
@@ -193,6 +195,8 @@ namespace EWOS_MVC.Controllers
                     r.PartName,
                     CategoryName = r.MachineCategories.CategoryName,
                     Users = r.Users.Name,
+                    r.Unit,
+                    r.Status,
                     r.MachineCategoryId,
                     r.CreatedAt
                 })
@@ -234,8 +238,11 @@ namespace EWOS_MVC.Controllers
                     r.ItemRequests.PartName,
                     CategoryName = r.ItemRequests.MachineCategories.CategoryName,
                     Users = r.Users.Name,
+                    r.QuantityReq,
+                    Unit = r.ItemRequests.Unit,
                     r.ItemRequests.MachineCategoryId,
-                    r.CreatedAt
+                    r.CreatedAt,
+                    r.Status
                 })
                 .ToList();
 

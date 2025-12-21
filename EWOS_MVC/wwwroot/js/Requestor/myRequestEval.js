@@ -13,7 +13,7 @@
     let loadingTimer = null;
     let currentPage = 1;
     let totalPages = 1;
-    const pageSize = 20;
+    const pageSize = 10;
 
     const initialHTML = tableBody.innerHTML;
 
@@ -33,9 +33,10 @@
 
         data.forEach((rq, idx) => {
             const id = rq.id ?? '';
+            const rowNumber = (currentPage - 1) * pageSize + idx + 1;
             let buttons = `
                 <div class="dropstart d-inline-block">
-                    <button class="btn btn-secondary btn-sm dropdown-toggle"
+                    <button class="btn btn-info btn-sm dropdown-toggle"
                             type="button"
                             data-bs-toggle="dropdown">
                         Actions
@@ -44,9 +45,9 @@
                     <ul class="dropdown-menu p-2" style="min-width:180px">
                 `;
 
-                            // === WaitingBuyoff: Pass / Fail
-                            if (rq.status === "WaitingBuyoff") {
-                                buttons += `
+            // === WaitingBuyoff: Pass / Fail
+            if (rq.status === "WaitingBuyoff") {
+                buttons += `
                                         <li>
                                             <button class="btn btn-success btn-sm w-100 text-center open-modal"
                                                     data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Pass">
@@ -61,10 +62,10 @@
                                             </button>
                                         </li>
                                     `;
-                            }
-                            // === Maspro / Fail: Progress
-                            else if (rq.status === "WaitingBuyoff" || rq.status === "Maspro" || rq.status === "Fail") {
-                                buttons += `
+            }
+            // === Maspro / Fail: Progress
+            else if (rq.status === "WaitingBuyoff" || rq.status === "Maspro" || rq.status === "Fail") {
+                buttons += `
                                     <li>
                                         <button class="btn btn-secondary btn-sm w-100 text-center open-modal"
                                                 data-url="/RequestHistory/LoadDataFab?id=${rq.id}&type=Status">
@@ -72,10 +73,10 @@
                                         </button>
                                     </li>
                                 `;
-                                        }
+            }
 
-                            // === Detail (selalu ada)
-                            buttons += `
+            // === Detail (selalu ada)
+            buttons += `
                         <li class="mt-1">
                             <button class="btn btn-warning btn-sm w-100 text-center open-modal"
                                     data-url="/Requestor/MyRequest/LoadData?id=${id}&type=Detail">
@@ -94,12 +95,12 @@
                 `;
 
 
-
             html += `
               <tr>
-                <td class="text-center">${idx + 1}</td>
+                <td class="text-center">${rowNumber}</td>
                 <td>${rq.id ?? '-'}</td>
                 <td style=" max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ">${rq.partName ?? '-'}</td>
+                <td>1 ${rq.unit ?? '-'}</td>
                 <td>${rq.categoryName ?? '-'}</td>
                 <td>${rq.createdAt ? new Date(rq.createdAt).toLocaleDateString('en-GB').replace(/\//g, '-') : '-'}</td>
                 <td class="text-center">${buttons}</td>
@@ -113,7 +114,7 @@
     // Helper: Render Pagination
     // -------------------------------
     function renderPagination() {
-        let maxPagesToShow = 3;
+        let maxPagesToShow = 5;
         let startPage = currentPage - 2;
         let endPage = currentPage + 2;
 

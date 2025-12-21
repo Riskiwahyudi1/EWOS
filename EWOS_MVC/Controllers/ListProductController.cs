@@ -4,21 +4,22 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace EWOS_MVC.Areas.Requestor.Controllers
+namespace EWOS_MVC.Controllers
 {
     [Authorize(Roles = "Requestor,AdminFabrication,AdminSystem,EngineerFabrication")]
-    [Area("Requestor")]
 
     public class ListProductController : BaseController
     {
         private readonly AppDbContext _context;
-        public ListProductController(AppDbContext context)
+        private readonly EmailService _emailService;
+        public ListProductController(AppDbContext context, EmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
         public async Task<IActionResult> Index(int page = 1)
         {
-            int pageSize = 20;
+            int pageSize = 10;
 
             var query = _context.ItemRequests
                 .Include(mc => mc.MachineCategories)
@@ -42,6 +43,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                 .ToListAsync();
 
             ViewBag.ModalData = modalData;
+            ViewBag.PageSize = pageSize;
             ViewBag.CurrentStatus = "Maspro";
 
             return View(paginatedData);
@@ -65,7 +67,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             {
                 "Request" => PartialView("~/Views/modals/Requestor/ListProduct/RepeatOrderModal.cshtml", data),
                 "Edit" => PartialView("~/Views/modals/Requestor/ListProduct/EditModal.cshtml", data),
-                "Detail" => PartialView("~/Views/modals/Requestor/ListProduct/DetailModal.cshtml", data),
+               "Detail" => PartialView("~/Views/modals/General/DetailRequest/ItemRequestDetailModal.cshtml", data),
                 "Status" => PartialView("~/Views/modals/General/DetailStatus/StatusRequestModal.cshtml", data),
                 _ => BadRequest("Unknown modal type")
             };
@@ -112,7 +114,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     r.FabricationTime,
                     r.RawMaterialId,
                     r.MachineCategoryId,
-                    CategoryName = r.MachineCategories.CategoryName,
+                    r.MachineCategories.CategoryName,
                     Requestor = r.Users.Name,
                     r.CRD,
                     r.Status,
@@ -148,6 +150,19 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
 
             _context.RepeatOrders.Add(data);
             await _context.SaveChangesAsync();
+
+            var repeatOrder = await _context.RepeatOrders
+                .Include(ro => ro.ItemRequests)
+                    .ThenInclude(ir => ir.Users)
+                .FirstOrDefaultAsync(ro => ro.Id == data.Id);
+
+            if (repeatOrder == null)
+            {
+                TempData["Error"] = "Repeat order tidak ditemukan.";
+                return RedirectToAction("Index");
+            }
+            // kirim email
+            await _emailService.SendNewRequestEmail(repeatOrder.ItemRequests, true, data.QuantityReq, data.CRD, data.Description);
 
             TempData["Success"] = "Request has been created.";
             return RedirectToAction("index");

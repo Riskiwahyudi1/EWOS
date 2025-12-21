@@ -32,10 +32,13 @@
         let html = "";
 
         data.forEach((w, idx) => {
+
+            const rowNumber = (currentPage - 1) * pageSize + idx + 1;
+
             html += `
               <tr>
-                <td class="text-center">${idx + 1}</td>
-                <td>${w.week}</td>
+                <td class="text-center">${rowNumber}</td>
+                <td>Week ${w.week}</td>
                 <td>${w.dayCount}</td>
                 <td>${w.startDate}</td>
                 <td>${w.endDate}</td>

@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentPage = 1;
     let totalPages = 1;
-    const pageSize = 20;
+    const pageSize = 10;
 
     let currentStatusList = ['Maspro'];
     let debounceTimer = null;
@@ -33,12 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let html = "";
         const canEdit = window.canEdit === true;
-
         data.forEach((rq, idx) => {
             const id = rq.id ?? '';
+            const rowNumber = (currentPage - 1) * pageSize + idx + 1;
             let buttons = `
                 <div class="dropstart d-inline-block">
-                    <button class="btn btn-secondary btn-sm dropdown-toggle"
+                    <button class="btn btn-info btn-sm dropdown-toggle"
                             type="button"
                             data-bs-toggle="dropdown">
                         Actions
@@ -47,42 +47,42 @@ document.addEventListener('DOMContentLoaded', () => {
                     <ul class="dropdown-menu p-2" style="min-width:160px">
                 `;
 
-                            // === Request (hanya status Maspro)
-                            if (rq.status === "Maspro") {
-                                buttons += `
+            // === Request (hanya status Maspro)
+            if (rq.status === "Maspro") {
+                buttons += `
                         <li>
                             <button class="btn btn-success btn-sm w-100 text-center open-modal"
-                                    data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Request">
+                                    data-url="/ListProduct/LoadData?Id=${id}&type=Request">
                                 Request
                             </button>
                         </li>
                     `;
-                            }
+            }
 
-                            // === Edit (role)
-                            if (canEdit) {
-                                buttons += `
+            // === Edit (role)
+            if (canEdit) {
+                buttons += `
                         <li class="mt-1">
                             <button class="btn btn-warning btn-sm w-100 text-center open-modal"
-                                    data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Edit">
+                                    data-url="/ListProduct/LoadData?Id=${id}&type=Edit">
                                 Edit
                             </button>
                         </li>
                     `;
-                            }
+            }
 
-                            // === Detail (selalu ada)
-                            buttons += `
+            // === Detail (selalu ada)
+            buttons += `
                         <li class="mt-1">
                             <button class="btn btn-secondary btn-sm w-100 text-center open-modal"
-                                    data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Detail">
+                                    data-url="/ListProduct/LoadData?Id=${id}&type=Detail">
                                 Detail
                             </button>
                         </li>
 
                         <li class="mt-1">
                             <button class="btn btn-info btn-sm w-100 text-center open-modal"
-                                    data-url="/Requestor/ListProduct/LoadData?Id=${id}&type=Status">
+                                    data-url="/ListProduct/LoadData?Id=${id}&type=Status">
                                 Status
                             </button>
                         </li>
@@ -90,10 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 `;
 
-
             html += `
                 <tr>
-                    <td class="text-center">${idx + 1}</td>
+                    <td class="text-center">${rowNumber}</td>
                     <td>${rq.id ?? '-'}</td>
                     <td>${rq.requestor ?? '-'}</td>
                     <td style=" max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ">${rq.partName ?? '-'}</td>
@@ -219,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Create URL
-            const url = new URL("/Requestor/ListProduct/Search", window.location.origin);
+            const url = new URL("/ListProduct/Search", window.location.origin);
             if (keyword) url.searchParams.append("keyword", keyword);
             if (categoryId && categoryId !== "0") url.searchParams.append("categoryId", categoryId);
             currentStatusList.forEach(s => url.searchParams.append("status", s.trim()));

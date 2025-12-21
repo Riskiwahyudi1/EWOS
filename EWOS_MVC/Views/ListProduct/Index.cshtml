@@ -1,13 +1,13 @@
 ﻿﻿@using EWOS_MVC.Services
 @model PaginatedHelper<EWOS_MVC.Models.ItemRequestModel>
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "List Product";
 }
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h5 class="my-3">List Item Inhouse Fabriaction</h5>
+<h5 class="">List Item Inhouse Fabriaction</h5>
 
 <div class="d-flex align-items-center mb-3 gap-2">
     <div class="col-2 col-sm-2">
@@ -40,7 +40,7 @@
                 data-status="WaitingApproval,FabricationApproval,WaitingFabrication,InFabrication,WaitingBuyoff,Fail"
                 type="button"
                 role="tab">
-            Evalution
+            Evaluation
 
         </button>
     </li>
@@ -60,7 +60,7 @@
     </thead>
     <tbody>
         @{
-            int index = 1;
+            int index = (Model.PageIndex - 1) * ViewBag.PageSize + 1;
         }
 
         @if (Model == null || !Model.Any())
@@ -93,7 +93,7 @@
                         </script>
 
                         <div class="dropstart d-inline-block">
-                            <button class="btn btn-secondary btn-sm dropdown-toggle"
+                            <button class="btn btn-info btn-sm dropdown-toggle"
                                     type="button"
                                     data-bs-toggle="dropdown">
                                 Actions
@@ -104,7 +104,7 @@
                                 <!-- Request -->
                                 <li>
                                     <button class="btn btn-success btn-sm w-100 text-center open-modal"
-                                            data-url="/Requestor/ListProduct/LoadData?Id=@rm.Id&type=Request">
+                                            data-url="/ListProduct/LoadData?Id=@rm.Id&type=Request">
                                         Request
                                     </button>
                                 </li>
@@ -114,7 +114,7 @@
                                 {
                                     <li class="mt-1">
                                         <button class="btn btn-warning btn-sm w-100 text-center open-modal"
-                                                data-url="/Requestor/ListProduct/LoadData?Id=@rm.Id&type=Edit">
+                                                data-url="/ListProduct/LoadData?Id=@rm.Id&type=Edit">
                                             Edit
                                         </button>
                                     </li>
@@ -123,7 +123,7 @@
                                 <!-- Detail -->
                                 <li class="mt-1">
                                     <button class="btn btn-secondary btn-sm w-100 text-center open-modal"
-                                            data-url="/Requestor/ListProduct/LoadData?Id=@rm.Id&type=Detail">
+                                            data-url="/ListProduct/LoadData?Id=@rm.Id&type=Detail">
                                         Detail
                                     </button>
                                 </li>
@@ -131,7 +131,7 @@
                                 <!-- Status -->
                                 <li class="mt-1">
                                     <button class="btn btn-info btn-sm w-100 text-center open-modal"
-                                            data-url="/Requestor/ListProduct/LoadData?Id=@rm.Id&type=Status">
+                                            data-url="/ListProduct/LoadData?Id=@rm.Id&type=Status">
                                         Status
                                     </button>
                                 </li>
@@ -139,7 +139,6 @@
                             </ul>
                         </div>
                     </td>
-
 
 
                 </tr>
@@ -153,9 +152,9 @@
 
 <!-- Pagination Razor (default) -->
 <div id="pagination-server">
-    @if (Model.TotalPages > 1)
+    @if (Model?.TotalPages > 1)
     {
-        int maxPagesToShow = 3;
+        int maxPagesToShow = 5;
         int startPage = Model.PageIndex - 2;
         int endPage = Model.PageIndex + 2;
 

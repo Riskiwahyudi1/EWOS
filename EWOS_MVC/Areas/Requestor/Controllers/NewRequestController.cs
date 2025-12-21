@@ -10,9 +10,11 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
     public class NewRequestController : BaseController
     {
         private readonly AppDbContext _context;
-        public NewRequestController(AppDbContext context)
+        private readonly EmailService _emailService;
+        public NewRequestController(AppDbContext context, EmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
         //view form
         [HttpGet]
@@ -129,6 +131,22 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
 
             _context.ItemRequests.Add(itemRequest);
             await _context.SaveChangesAsync();
+
+            // Ambil Fabrication Team dari database
+            var fabTeam = await _context.Users
+                .Include(u => u.UserRoles)
+                .Where(u => u.UserRoles.Any(ur => ur.RoleId == 2))
+                .ToListAsync();
+
+            // Ambil Engineer/Admin dari database
+            var fabEngineer = await _context.Users
+                .Include(u => u.UserRoles)
+                .Where(u => u.UserRoles.Any(ur => ur.RoleId == 3))
+                .FirstOrDefaultAsync();
+
+            // Panggil method email
+            await _emailService.SendNewRequestEmail(itemRequest, false, 1, itemRequest.CRD, itemRequest.Description);
+
 
             TempData["Success"] = "Request has been created.";
             return RedirectToAction("Index");

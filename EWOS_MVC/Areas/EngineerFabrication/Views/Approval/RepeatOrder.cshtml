@@ -1,12 +1,12 @@
 ﻿@model List<EWOS_MVC.Models.RepeatOrderModel>
 @{
-    ViewData["Title"] = "Approval";
+    ViewData["Title"] = "Approval Engineer";
 }
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h5 class="my-3">Waiting Approval</h5>
+<h5 class="">Waiting Approval</h5>
 
 @if (TempData["Error"] != null)
 {
@@ -89,13 +89,33 @@
                     <td>@ir.ItemRequests.MachineCategories?.CategoryName</td>
                     <td>@ir.CreatedAt</td>
                     <td class="text-center">
-                        <button class="btn btn-success btn-sm open-modal" data-url="/EngineerFabrication/Approval/LoadDataRo?id=@ir.Id&amp;type=Approve">
-                            Approve
-                        </button>
-                        <button class="btn btn-warning btn-sm open-modal" data-url="/EngineerFabrication/Approval/LoadDataRo?id=@ir.Id&amp;type=Detail">
-                            Detail
-                        </button>
+                        <div class="dropstart d-inline-block">
+                            <button class="btn btn-info btn-sm dropdown-toggle"
+                                    type="button"
+                                    data-bs-toggle="dropdown">
+                                Actions
+                            </button>
+
+                            <ul class="dropdown-menu p-2" style="min-width:170px">
+
+                                <li>
+                                    <button class="btn btn-success btn-sm w-100 text-center open-modal"
+                                            data-url="/EngineerFabrication/Approval/LoadDataRo?id=@ir.Id&type=Approve">
+                                        Approve
+                                    </button>
+                                </li>
+
+                                <li class="mt-1">
+                                    <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                            data-url="/EngineerFabrication/Approval/LoadDataRo?id=@ir.Id&type=Detail">
+                                        Detail
+                                    </button>
+                                </li>
+
+                            </ul>
+                        </div>
                     </td>
+
                 </tr>
                 index++;
             }

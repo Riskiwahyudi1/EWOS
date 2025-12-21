@@ -1,12 +1,12 @@
 ﻿@model List<EWOS_MVC.Models.ItemRequestModel>
 @{
-    ViewData["Title"] = "Request List";
+    ViewData["Title"] = "Evaluation";
 }
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h5 class="my-3">Request List</h5>
+<h5 class="">Request List</h5>
 @if (TempData["Error"] != null || TempData["ErrorMessage"] != null)
 {
     <div class="alert alert-danger">
@@ -18,13 +18,13 @@
         @await Component.InvokeAsync("MachineCategories")
     </div>
     <div class="col-4 col-sm-4">
-        <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search">
+        <input type="text" id="searchBox" class="form-control" placeholder="Search..." aria-label="Search" style="max-width: 300px;">
     </div>
 </div>
 
 
 <div class="tab-wrapper">
-    
+
     @{
         var summary = ViewBag.StatusSummary as Dictionary<string, int>;
         int GetCount(string status) => summary != null && summary.ContainsKey(status) ? summary[status] : 0;
@@ -149,55 +149,73 @@
                     <td>@rq.CRD.ToString("dd/MM/yyyy")</td>
                     <td>@rq.CreatedAt</td>
                     <td class="text-center">
-                        @if (rq.Status == "ApprovalFabrication")
-                        {
-
-                            <button class="btn btn-success btn-sm open-modal"
-                                    data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Approve">
-                                Approve
+                        <div class="dropstart d-inline-block">
+                            <button class="btn btn-info btn-sm dropdown-toggle"
+                                    type="button"
+                                    data-bs-toggle="dropdown">
+                                Actions
                             </button>
-                            <button class="btn btn-danger btn-sm open-modal"
-                                    data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Reject">
-                                Reject
-                            </button>
-                        }
 
-                        else if (rq.Status == "WaitingFabrication")
-                        {
-                            var externalCost = rq.ExternalFabCost == null;
-                            var FabTime = rq.FabricationTime == null;
-                            var rawMaterial = rq.RawMaterialId == null;
-                            var weight = rq.Weight == null;
+                            <ul class="dropdown-menu p-2" style="min-width: 170px">
 
-                            if (rq.MachineCategoryId == 1)
-                            {
+                               
+                                @if (rq.Status == "ApprovalFabrication")
+                                {
+                                    <li>
+                                        <button class="btn btn-success btn-sm w-100 text-center open-modal"
+                                                data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&type=Approve">
+                                            Approve
+                                        </button>
+                                    </li>
 
-                                <button class="btn btn-primary btn-sm open-modal @(externalCost || FabTime || rawMaterial ? "disabled" : "")"
-                                        data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Fabrikasi">
-                                    Fabrikasi
-                                </button>
+                                    <li class="mt-1">
+                                        <button class="btn btn-danger btn-sm w-100 text-center open-modal"
+                                                data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&type=Reject">
+                                            Reject
+                                        </button>
+                                    </li>
+                                }
 
-                            }
-                            else if (rq.MachineCategoryId == 2)
-                            {
-                                <button class="btn btn-primary btn-sm open-modal @(externalCost || FabTime || rawMaterial || weight ? "disabled" : "")"
-                                        data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Fabrikasi">
-                                    Fabrikasi
-                                </button>
+                                
+                                else if (rq.Status == "WaitingFabrication")
+                                {
+                                    var externalCost = rq.ExternalFabCost == null;
+                                    var fabTime = rq.FabricationTime == null;
+                                    var rawMaterial = rq.RawMaterialId == null;
+                                    var weight = rq.Weight == null;
 
-                            }
-                            <button class="btn btn-warning btn-sm open-modal"
-                                    data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Edit">
-                                Edit
-                            </button>
-                        }
+                                    bool disableFabrikasi =
+                                    rq.MachineCategoryId == 1
+                                    ? (externalCost || fabTime || rawMaterial)
+                                    : (externalCost || fabTime || rawMaterial || weight);
 
-                        <button class="btn btn-info btn-sm open-modal"
-                                data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&amp;type=Detail">
-                            Detail
-                        </button>
+                                    <li>
+                                        <button class="btn btn-primary btn-sm w-100 text-center open-modal @(disableFabrikasi ? "disabled" : "")"
+                                                data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&type=Fabrikasi">
+                                            Fabrikasi
+                                        </button>
+                                    </li>
 
+                                    <li class="mt-1">
+                                        <button class="btn btn-warning btn-sm w-100 text-center open-modal"
+                                                data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&type=Edit">
+                                            Edit
+                                        </button>
+                                    </li>
+                                }
+
+                         
+                                <li class="mt-1">
+                                    <button class="btn btn-info btn-sm w-100 text-center open-modal"
+                                            data-url="/AdminFabrication/Request/LoadData?id=@rq.Id&type=Detail">
+                                        Detail
+                                    </button>
+                                </li>
+
+                            </ul>
+                        </div>
                     </td>
+
 
                 </tr>
                 index++;

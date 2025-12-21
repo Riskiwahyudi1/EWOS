@@ -68,12 +68,12 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 .ToListAsync();
 
             var statusSummary = await _context.RepeatOrders
-               .Where(qty => qty.QuantityDone + qty.QtyOnFab != qty.QuantityReq)
+               .Where(qty => (qty.QuantityDone ?? 0) + (qty.QtyOnFab ?? 0) != qty.QuantityReq)
                .GroupBy(r => r.Status ?? "Unknown")
                .ToDictionaryAsync(g => g.Key, g => g.Count());
 
             ViewBag.StatusSummary = statusSummary;
-            ViewBag.CurrentStatus = "FabricationApproval"; //!!
+            ViewBag.CurrentStatus = "FabricationApproval";
             return View(requestList);
         }
 
@@ -83,6 +83,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
         {
             var data = _context.ItemRequests
                 .Include(mc => mc.MachineCategories)
+                .Include(rm => rm.RawMaterials)
                 .Include(u => u.Users)
                 .FirstOrDefault(i => i.Id == id);
 
@@ -204,7 +205,7 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                     partName = r.ItemRequests.PartName,
                     CategoryName = r.ItemRequests.MachineCategories.CategoryName,
                     machineCategoryId = r.ItemRequests.MachineCategories.Id,
-                    Users = r.Users.Name,
+                    Users = r.Users != null ? r.Users.Name : "-",
                     r.QuantityReq,
                     r.QuantityDone,
                     r.CRD,
@@ -346,7 +347,6 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
             }
 
             var existingData = await _context.ItemRequests.FindAsync(itemRequest.Id);
-            var cekPartcode = _context.ItemRequests.FirstOrDefault(x => x.PartCode == itemRequest.PartCode && x.Id != itemRequest.Id);
 
             if (existingData == null)
             {
@@ -358,11 +358,25 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
                 return RedirectToAction("Index");
             }
 
-            if(cekPartcode != null)
+            // cek duplikat part code
+            if (!string.IsNullOrWhiteSpace(itemRequest.PartCode))
             {
-                TempData["Error"] = "Part Code sudah di gunakan.";
-                return Redirect(RedirectBack);
+                var partCode = itemRequest.PartCode.Trim();
+
+                var isPartCodeExist = await _context.ItemRequests
+                    .AnyAsync(x =>
+                        x.PartCode != null &&
+                        x.PartCode.Trim() == partCode &&
+                        x.Id != itemRequest.Id
+                    );
+
+                if (isPartCodeExist)
+                {
+                    TempData["Error"] = $"Part Code {partCode} sudah digunakan.";
+                    return Redirect(RedirectBack);
+                }
             }
+
 
             async Task<string?> SaveFileAsync(IFormFile? file, string folderName, string allowedExt, long maxSizeBytes)
             {
@@ -457,7 +471,8 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddFabrikasiNew(int MachineId, long ItemRequestId)
         {
-            int userId = CurrentUser.Id;
+            int userId = CurrentUser?.Id ?? 0;
+
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Data tidak valid: " +
@@ -559,8 +574,8 @@ namespace EWOS_MVC.Areas.AdminFabrication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddFabrikasiRo(int MachineId, long ItemRequestId, long? RepeatOrderId, int Quantity)
         {
-           
-            int userId = CurrentUser.Id;
+
+            int userId = CurrentUser?.Id ?? 0;
 
             if (!ModelState.IsValid)
             {

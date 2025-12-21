@@ -1,13 +1,13 @@
 ﻿﻿@using EWOS_MVC.Services
 @model PaginatedHelper<EWOS_MVC.Models.ItemRequestModel>
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "My Request";
 }
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h5 class="my-3">Riwayat Request</h5>
+<h5 class="">Riwayat Request</h5>
 
 <div class="d-flex align-items-center mb-3 gap-2">
     <div class="col-2 col-sm-2">
@@ -23,18 +23,18 @@
 
 <ul class="nav nav-tabs justify-content-center" id="statusTabs" role="tablist">
 
-
+   
     <li class="nav-item" role="presentation">
         @{
             int waitingAppCount = GetCount("WaitingApproval") + GetCount("FabricationApproval");
         }
         <button class="nav-link active"
-        id="waitingapproval-tab"
-        data-bs-toggle="tab"
-        data-bs-target="#waitingapproval"
-        data-status="WaitingApproval,FabricationApproval"
-        type="button"
-        role="tab">
+                id="waitingapproval-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#waitingapproval"
+                data-status="WaitingApproval,FabricationApproval"
+                type="button"
+                role="tab">
             Waiting Approval
             @if (waitingAppCount > 0)
             {
@@ -45,12 +45,12 @@
 
     <li class="nav-item" role="presentation">
         <button class="nav-link"
-        id="waitingfabrication-tab"
-        data-bs-toggle="tab"
-        data-bs-target="#waitingfabrication"
-        data-status="WaitingFabrication"
-        type="button"
-        role="tab">
+                id="waitingfabrication-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#waitingfabrication"
+                data-status="WaitingFabrication"
+                type="button"
+                role="tab">
             Waiting Fabrication
             @if (GetCount("WaitingFabrication") > 0)
             {
@@ -61,12 +61,12 @@
 
     <li class="nav-item" role="presentation">
         <button class="nav-link"
-        id="onfabrication-tab"
-        data-bs-toggle="tab"
-        data-bs-target="#onfabrication"
-        data-status="InFabrication"
-        type="button"
-        role="tab">
+                id="onfabrication-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#onfabrication"
+                data-status="InFabrication"
+                type="button"
+                role="tab">
             In Fabrication
             @if (GetCount("InFabrication") > 0)
             {
@@ -77,12 +77,12 @@
 
     <li class="nav-item" role="presentation">
         <button class="nav-link"
-        id="WaitingBuyoff-tab"
-        data-bs-toggle="tab"
-        data-bs-target="#WaitingBuyoff"
-        data-status="WaitingBuyoff"
-        type="button"
-        role="tab">
+                id="WaitingBuyoff-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#WaitingBuyoff"
+                data-status="WaitingBuyoff"
+                type="button"
+                role="tab">
             Waiting Buyoff
             @if (GetCount("WaitingBuyoff") > 0)
             {
@@ -92,12 +92,12 @@
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link "
-        id="history-tab"
-        data-bs-toggle="tab"
-        data-bs-target="#history"
-        data-status="Maspro,Fail"
-        type="button"
-        role="tab">
+                id="history-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#history"
+                data-status="Maspro,Fail"
+                type="button"
+                role="tab">
             Finish
             @{
                 int historyCount = GetCount("Maspro") + GetCount("Fail");
@@ -110,12 +110,12 @@
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link"
-        id="reject-tab"
-        data-bs-toggle="tab"
-        data-bs-target="#reject"
-        data-status="Reject"
-        type="button"
-        role="tab">
+                id="reject-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#reject"
+                data-status="Reject"
+                type="button"
+                role="tab">
             Reject
             @if (GetCount("Reject") > 0)
             {
@@ -132,6 +132,7 @@
             <th class="text-center">No</th>
             <th>ID Request</th>
             <th style="width : 400px;">Item Name</th>
+            <th >Quantity</th>
             <th>Category</th>
             <th>Request Date</th>
             <th class="text-center">Action</th>
@@ -139,7 +140,7 @@
     </thead>
     <tbody>
         @{
-            int index = 1;
+            int index = (Model.PageIndex - 1) * ViewBag.PageSize + 1;
         }
 
         @if (Model == null || !Model.Any())
@@ -156,11 +157,12 @@
                     <td class="text-center">@index</td>
                     <td>@ir.Id</td>
                     <td style=" max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ">@ir.PartName</td>
+                    <td>1 @ir.Unit</td>
                     <td>@ir.MachineCategories?.CategoryName</td>
                     <td>@ir.CreatedAt</td>
                     <td class="text-center">
                         <div class="dropstart d-inline-block">
-                            <button class="btn btn-secondary btn-sm dropdown-toggle"
+                            <button class="btn btn-info btn-sm dropdown-toggle"
                                     type="button"
                                     data-bs-toggle="dropdown">
                                 Actions
@@ -213,7 +215,6 @@
                             </ul>
                         </div>
                     </td>
-
                 </tr>
                 index++;
             }
@@ -224,9 +225,9 @@
 
 <!-- Pagination Razor (default) -->
 <div id="pagination-server">
-    @if (Model.TotalPages > 1)
+    @if (Model?.TotalPages > 1)
     {
-        int maxPagesToShow = 3;
+        int maxPagesToShow = 5;
         int startPage = Model.PageIndex - 2;
         int endPage = Model.PageIndex + 2;
 

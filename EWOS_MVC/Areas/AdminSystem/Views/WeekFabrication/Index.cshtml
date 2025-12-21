@@ -4,7 +4,9 @@
 @{
     Layout = "~/Views/Shared/_LayoutAdminSystem.cshtml";
 }
-
+@{
+    ViewData["Title"] = "Weeks Fabrication";
+}
 <h5 class="mb-2">Weeks Fabrication</h5>
 @if (TempData["Error"] != null)
 {
@@ -41,7 +43,7 @@
     </thead>
     <tbody>
         @{
-            int index = 1;
+            int index = (Model?.PageIndex - 1) * ViewBag.PageSize + 1;
         }
 
         @if (Model == null || !Model.Any())
@@ -56,7 +58,7 @@
             {
                 <tr>
                     <td class="text-center">@index</td>
-                    <td>@week.Week</td>
+                    <td>Week @week.Week</td>
                     <td>@week.WorkingDays</td>
                     <td>@week.StartDate</td>
                     <td>@week.EndDate</td>
@@ -119,7 +121,7 @@
 
 <!-- Pagination Razor (default) -->
 <div id="pagination-server">
-    @if (Model.TotalPages > 1)
+    @if (Model?.TotalPages > 1)
     {
         int maxPagesToShow = 5;
         int startPage = Model.PageIndex - 2;
