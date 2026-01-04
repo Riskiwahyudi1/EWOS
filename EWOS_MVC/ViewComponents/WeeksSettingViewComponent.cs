@@ -33,6 +33,14 @@ namespace EWOS_MVC.ViewComponents
             // Ambil minggu berdasarkan helper
             var weeks = await _weekHelper.GetMingguByTahunBulanAsync(year, month);
 
+            var today = DateTime.Today;
+
+            // filter sampai week dengan tanggak sekarangg
+            weeks = weeks
+                .Where(w => w.StartDate.Date <= today)
+                .OrderBy(w => w.StartDate)
+                .ToList();
+
             // Jika belum memilih week → otomatis ambil minggu aktif
             if (SelectedId == null)
             {
@@ -44,6 +52,7 @@ namespace EWOS_MVC.ViewComponents
             }
 
             ViewData["SelectedId"] = SelectedId;
+            ViewData["SelectedYear"] = YearSettingId;
 
             return View(weeks);
         }

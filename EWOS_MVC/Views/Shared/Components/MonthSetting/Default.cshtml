@@ -1,21 +1,25 @@
-﻿﻿@{
-var currentMonth = DateTime.Now.Month;
+﻿@{
+    int currentMonth = DateTime.Now.Month;
+    int currentYear = DateTime.Now.Year;
+    int? selectedYear = ViewData["SelectedYear"] as int?;
+
+    int maxMonth = selectedYear == null ? currentMonth : 12;
 }
 
-<select name="MonthSelect" class="form-select" aria-label="Default select example" required>
-    <option value="" disabled>-- Pilih Bulan --</option>
-
-    @for (int i = 1; i <= 12; i++)
+<select name="MonthSelect" class="form-select" required>
+    @if (selectedYear != null)
     {
-        var monthName = new DateTime(2025, i, 1).ToString("MMMM");
+        <option value="" selected>-- Pilih Bulan --</option>
+    }
 
-        if (i == currentMonth)
-        {
-            <option value="@i" selected>@monthName</option>
-        }
-        else
-        {
-            <option value="@i">@monthName</option>
-        }
+    @for (int i = 1; i <= maxMonth; i++)
+    {
+        var monthName = new DateTime(currentYear, i, 1)
+        .ToString("MMMM");
+
+        <option value="@i"
+                selected="@(selectedYear == null && i == currentMonth ? "selected" : null)">
+            @monthName
+        </option>
     }
 </select>

@@ -33,10 +33,52 @@
         } catch (error) {
             console.error("Gagal memuat minggu:", error);
         }
+    }// -------------------------------
+    // Helper: filter mesin fabrikasi
+    // -------------------------------
+
+    async function loadMachine() {
+        const MachineCategoryId = categoryFilter?.value;
+
+        if (!MachineCategoryId) return;
+
+        try {
+            mcFilter.innerHTML = '<option value="">-- Pilih Mesin --</option>';
+            const response = await fetch(`/MachineList?MachineCategoryId=${MachineCategoryId}`);
+
+            if (!response.ok) throw new Error("Gagal fetch view component");
+            const html = await response.text();
+            mcFilter.innerHTML = html;
+            await performSearch();
+        } catch (error) {
+            console.error("Gagal memuat minggu:", error);
+        }
     }
 
 
     // -------------------------------
+    // Helper: filter month fabrikasi
+    // -------------------------------
+
+    async function loadMonth() {
+        const YearSettingId = yearFab?.value;
+
+        if (!YearSettingId) return;
+
+
+        try {
+            const response = await fetch(`/MonthSetting?YearSettingId=${YearSettingId}`);
+
+            if (!response.ok) throw new Error("Gagal fetch view component");
+            const html = await response.text();
+
+            monthSelect.innerHTML = html;
+
+        } catch (error) {
+            console.error("Gagal memuat Month:", error);
+        }
+    }
+
     // Helper: filter week fabrikasi
     // -------------------------------
 
@@ -266,6 +308,7 @@
     yearFab.addEventListener('change', performSearch);
 
     yearFab?.addEventListener("change", loadWeeks);
+    yearFab?.addEventListener("change", loadMonth);
     monthSelect?.addEventListener("change", loadWeeks);
 
     categoryFilter?.addEventListener("change", loadMachine);

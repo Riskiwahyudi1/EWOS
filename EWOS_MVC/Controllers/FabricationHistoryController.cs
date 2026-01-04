@@ -512,7 +512,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
                     if (requestDataRo.QuantityReq == calculateFabrication)
                     {
                         requestDataRo.Status = "Done";
-                        await _emailService.SendConfirmationDoneEmail(requestDataRo.ItemRequests, requestDataRo.QuantityReq, requestDataRo.Id);
+                        //await _emailService.SendConfirmationDoneEmail(requestDataRo.ItemRequests, requestDataRo.QuantityReq, requestDataRo.Id);
                     }
                     _context.RepeatOrders.Update(requestDataRo);
 

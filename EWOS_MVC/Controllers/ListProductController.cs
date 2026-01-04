@@ -162,7 +162,7 @@ namespace EWOS_MVC.Controllers
                 return RedirectToAction("Index");
             }
             // kirim email
-            await _emailService.SendNewRequestEmail(repeatOrder.ItemRequests, true, data.QuantityReq, data.CRD, data.Description);
+            //await _emailService.SendNewRequestEmail(repeatOrder.ItemRequests, true, data.QuantityReq, data.CRD, data.Description);
 
             TempData["Success"] = "Request has been created.";
             return RedirectToAction("index");

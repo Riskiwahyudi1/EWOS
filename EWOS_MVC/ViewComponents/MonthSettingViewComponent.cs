@@ -1,17 +1,24 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Threading.Tasks;
 
 namespace EWOS_MVC.ViewComponents
 {
     public class MonthSettingViewComponent : ViewComponent
     {
-        public async Task<IViewComponentResult> InvokeAsync()
+        public IViewComponentResult Invoke(int? SelectedYear)
         {
-            var currentMonth = DateTime.Now.Month;
-            ViewBag.CurrentMonth = currentMonth;
+            int currentYear = DateTime.Now.Year;
+            int currentMonth = DateTime.Now.Month;
 
-            return View("Default");
+            // Tentukan batas bulan
+            int maxMonth = (SelectedYear != null && SelectedYear == currentYear)
+                ? currentMonth
+                : 12;
+
+            ViewData["MaxMonth"] = maxMonth;
+            ViewData["SelectedYear"] = SelectedYear;
+
+            return View();
         }
     }
 }
