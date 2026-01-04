@@ -152,7 +152,7 @@
                             size: '30%',
                             background: 'transparent',
                         },
-                        track: {   
+                        track: {
                             background: '#e0e0e0',
                             strokeWidth: '100%',   // tebal track
                             margin: 5,             // jarak track dengan bar
@@ -204,14 +204,7 @@
                 fabricationCount
             );
             window.fabricationChart.render();
-                    console.log({
-            percentReject,
-            percentWaiting,
-            percentDone,
-            totalRequestReject,
-            totalWaiting,
-            totalRequestDone
-        });
+
 
 
             // =============================
@@ -247,69 +240,96 @@
              // =============================
             // 4. CALCULATION SAVING/MONTH
             // =============================
-            const monthSaving = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.monthLabels));
-            const savingByMonth = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.savingByMonth));
-            const savingByCategory = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.savingByCategory));
-            const savingCumulative = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.cumulative));
-            const potentialSaving = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.potentialSaving));
+                const monthSaving = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.monthLabels));
+                const savingByMonth = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.savingByMonth));
+                const savingByCategory = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.savingByCategory));
+                const savingCumulative = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.cumulative));
+                const potentialSaving = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.potentialSaving));
 
-            var savingData = {
+                console.log(savingByCategory)
+
+                const usdFormatter = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD'
+                });
+
+                var savingData = {
                     series: [
-                    {
-                        name: 'CNC Milling',
-                        type: 'column',
-                        data: savingByCategory["1"]
-                    },{
-                        name: '3D Printing',
-                        type: 'column',
-                        data: savingByCategory["2"]
-                    },
-                    {
-                        name: 'Kumulatif (Line)',
-                        type: 'line',
-                        data: savingCumulative
-
-                    }
+                        {
+                            name: 'CNC Milling',
+                            type: 'column',
+                            data: savingByCategory["1"]
+                        },
+                        {
+                            name: '3D Printing',
+                            type: 'column',
+                            data: savingByCategory["2"]
+                        },
+                        {
+                            name: 'Kumulatif (Line)',
+                            type: 'line',
+                            data: savingCumulative
+                        }
                     ],
                     chart: {
-                    height: 350,
-                    type: 'line',
+                        height: 350,
+                        type: 'line'
                     },
                     stroke: {
-                    width: [0, 0, 3],
-                    curve: ['straight', 'smooth', 'smooth']
+                        width: [0, 0, 3],
+                        curve: ['straight', 'smooth', 'smooth']
                     },
                     dataLabels: {
-                    enabled: true,
-                    enabledOnSeries: [0, 1, 2],
-                    formatter: function (val) {
-                        return val;
-                    }
+                        enabled: true,
+                        enabledOnSeries: [0, 1, 2],
+                        formatter: function (val) {
+                            return usdFormatter.format(val);
+                        }
                     },
                     labels: monthSaving,
                     yaxis: [
-                    {
-                        title: {
-                        text: 'Aktual ($USD)',
+                        {
+                            title: {
+                                text: 'Aktual (USD)'
+                            },
+                            labels: {
+                                formatter: function (val) {
+                                    return usdFormatter.format(val);
+                                }
+                            }
                         },
-                    },
-                    {
-                        opposite: true,
-                        title: {
-                        text: 'Kumulatif ($USD)'
+                        {
+                            opposite: true,
+                            title: {
+                                text: 'Kumulatif (USD)'
+                            },
+                            labels: {
+                                formatter: function (val) {
+                                    return usdFormatter.format(val);
+                                }
+                            }
                         }
-                    }
                     ],
                     tooltip: {
-                    shared: true,
-                    intersect: false,
+                        shared: true,
+                        intersect: false,
+                        y: {
+                            formatter: function (val) {
+                                return usdFormatter.format(val);
+                            }
+                        }
                     },
                     legend: {
-                    position: 'bottom',
+                        position: 'bottom'
                     }
                 };
-                window.savingChart = new ApexCharts(document.querySelector("#savingChart"), savingData);
+
+                window.savingChart = new ApexCharts(
+                    document.querySelector("#savingChart"),
+                    savingData
+                );
                 window.savingChart.render();
+
 
              // =============================
             // 5. MACHINE UTILIZATION/WEEK
@@ -412,11 +432,10 @@
             try {
                 const response = await fetch(`/Dashboard/Filter?year=${year}&categoryId=${categoryId}`);
                 const data = await response.json();
-
-            const totalRequest      = data.totalRequest ?? 0;
-            const totalRequestDone  = data.totalRequestDone ?? 0;
-            const totalReject  = data.totalReqReject ?? 0;
-            const totalWaiting      = totalRequest - totalRequestDone - totalReject;
+                const totalRequest      = data.totalRequest ?? 0;
+                const totalRequestDone  = data.totalRequestDone ?? 0;
+                const totalReject  = data.totalReqReject ?? 0;
+                const totalWaiting      = totalRequest - totalRequestDone - totalReject;
 
             // Hindari division by zero
             const safeDiv = totalRequest === 0 ? 1 : totalRequest;
@@ -519,13 +538,14 @@
 
                     const sbc = data.savingByCategory || {};
                     const cumulative = data.cumulative || [];
-                    const months = data.monthSaving || [];
+                    const months = data.monthLabels || [];
                     const potential = data.potentialSaving ?? 0;
-                    console.log(data)
                     // kategori yang dipilih user
                     const selectedCat = categoryId.toString();
                     const selectedData = sbc[selectedCat] || [];
 
+                    console.log(data)
+                    console.log(selectedData)
                     window.savingChart.updateSeries([
                         {
                             name: selectedCat === "1" ? 'CNC Milling' : '3D Printing',

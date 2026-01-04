@@ -19,10 +19,11 @@ namespace EWOS_MVC.Controllers
         }
         public async Task<IActionResult> Index()
         {
+            int tahunSekarang = DateTime.Now.Year;
             // 1. Hitung jumlah ItemRequest per bulan
-            var allDataItemnewReq = await _context.ItemRequests.ToListAsync();
-            var allDataItemRO = await _context.RepeatOrders.ToListAsync();
-            var allItemFabrication = await _context.ItemFabrications.ToListAsync();
+            var allDataItemnewReq = await _context.ItemRequests.Where(x => x.CreatedAt.Year == tahunSekarang).ToListAsync();
+            var allDataItemRO = await _context.RepeatOrders.Where(x => x.CreatedAt.Year == tahunSekarang).ToListAsync();
+            var allItemFabrication = await _context.ItemFabrications.Where(x => x.CreatedAt.Year == tahunSekarang).ToListAsync();
             var allWeeks = await _context.WeeksSetting.ToListAsync();
             var totalMachine = await _context.Machines.Where(mc => mc.MachineCategoryId != 3).CountAsync();
 

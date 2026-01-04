@@ -31,7 +31,7 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
             if (getTahun == null)
             {
                 TempData["Error"] = "Tahun Fabrikasi sekarang belum tersedia, minta admin sistem menambahkan!! ";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", "ListProduct");
             }
 
             //ambil week sekarang
@@ -43,8 +43,8 @@ namespace EWOS_MVC.Areas.Requestor.Controllers
 
             if (mingguSekarang == null)
             {
-                TempData["Error"] = "Minggu aktif tidak ditemukan.";
-                return RedirectToAction("Index");
+                TempData["Error"] = "Minggu aktif belum tersedia, minta admin sistem menambahkan!!";
+                return RedirectToAction("Index", "ListProduct");
             }
 
             //ambil list data fabrikasi
