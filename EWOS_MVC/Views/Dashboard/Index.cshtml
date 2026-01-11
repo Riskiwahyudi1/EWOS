@@ -1,4 +1,5 @@
-﻿@{
+﻿@using System.Globalization
+@{
     ViewData["Title"] = "Dashboard";
 }
 @{
@@ -41,7 +42,7 @@
         </div>
 
         <div style="flex: 1; min-width: 300px; max-width: 600px;" class="bg-light p-3 rounded shadow-sm">
-            <h6 class="mb-4">Tren Request Fabrikasi</h6>
+            <h6 class="mb-4">Trend Request Fabrikasi</h6>
             <div id="barChart" style="width: 100%; height: 260px;" class=""></div>
         </div>
 
@@ -55,7 +56,7 @@
         <div style="flex: 1; min-width: 300px; " class="bg-white shadow-sm">
             <div class="d-flex flex-row justify-content-between py-3 px-3">
                 <h6>Saving Cost Monitoring</h6>
-                <h6 id="potentialSavingText">Potential Saving @currenYear : <b>USD @Model.potentialSaving.ToString("N2")</b> </h6>
+                <h6>Potential Saving : <b><span id="potentialSavingText">@Model.potentialSaving.ToString("C2", new CultureInfo("en-US"))</b> </h6>
             </div>
 
             <div id="savingChart"></div>
@@ -246,8 +247,6 @@
                 const savingCumulative = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.cumulative));
                 const potentialSaving = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.potentialSaving));
 
-                console.log(savingByCategory)
-
                 const usdFormatter = new Intl.NumberFormat('en-US', {
                     style: 'currency',
                     currency: 'USD'
@@ -436,7 +435,6 @@
                 const totalRequestDone  = data.totalRequestDone ?? 0;
                 const totalReject  = data.totalReqReject ?? 0;
                 const totalWaiting      = totalRequest - totalRequestDone - totalReject;
-
             // Hindari division by zero
             const safeDiv = totalRequest === 0 ? 1 : totalRequest;
 
@@ -534,31 +532,52 @@
                 // =============================
                 // 4. UPDATE SAVING BAR (savingData)
                 // =============================
-                if (window.savingChart) {
+                  if (window.savingChart) {
 
                     const sbc = data.savingByCategory || {};
                     const cumulative = data.cumulative || [];
                     const months = data.monthLabels || [];
                     const potential = data.potentialSaving ?? 0;
-                    // kategori yang dipilih user
-                    const selectedCat = categoryId.toString();
-                    const selectedData = sbc[selectedCat] || [];
 
-                    console.log(data)
-                    console.log(selectedData)
-                    window.savingChart.updateSeries([
-                        {
-                            name: selectedCat === "1" ? 'CNC Milling' : '3D Printing',
+                    let series = [];
+
+                    if (!categoryId) {
+                        // jika user belum memilih category, tampilkan semua category
+                        for (const [cat, catData] of Object.entries(sbc)) {
+                            const label = cat === "1" ? 'CNC Milling' :
+                                          cat === "2" ? '3D Printing' : `Category ${cat}`;
+
+                            series.push({
+                                name: label,
+                                type: 'column',
+                                data: catData
+                            });
+                        }
+                    } else {
+                        // jika ada category yang dipilih, tampilkan cuma kategori itu
+                        const selectedCat = categoryId.toString();
+                        const selectedData = sbc[selectedCat] || [];
+                        const label = selectedCat === "1" ? 'CNC Milling' :
+                                      selectedCat === "2" ? '3D Printing' : `Category ${selectedCat}`;
+
+                        series.push({
+                            name: label,
                             type: 'column',
                             data: selectedData
-                        },
-                        {
-                            name: 'Kumulatif (Line)',
-                            type: 'line',
-                            data: cumulative
-                        }
-                    ]);
+                        });
+                    }
 
+                    // series kumulatif selalu ditampilkan
+                    series.push({
+                        name: 'Kumulatif (Line)',
+                        type: 'line',
+                        data: cumulative
+                    });
+
+                    // update chart series
+                    window.savingChart.updateSeries(series);
+
+                    // update chart options
                     window.savingChart.updateOptions({
                         stroke: {
                             width: [0, 3],
@@ -567,45 +586,43 @@
                         labels: months
                     });
 
-                    // Update potential saving text
+                    // update potential saving text
                     const formatted = potential.toLocaleString("en-US", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
+                    document.getElementById("potentialSavingText").innerText = `${formatted}`;
+                }
 
-
-                    document.getElementById("potentialSavingText").innerText = `USD $${formatted}`;
-                    }
 
                  // =============================
                 // 5. UPDATE MACHINE UTILIZATION
                // =============================
-                if (window.machineUtilChart) {
+                        if (window.machineUtilChart) {
+                            const util = data.machineUtilization || [];
+                            // labels week
+                            const weeks = util.map(x => `Week ${x.week}`);
 
-                    const util = data.machineUtilization || [];
+                            // data persen
+                            const percents = util.map(x => x.percent ?? 0);
 
-                    // Filter by category (mesin)
-                    const selectedMachine = categoryId.toString();
-                    const filtered = util.filter(x => x.Machine == selectedMachine);
+                            // update chart series
+                            window.machineUtilChart.updateSeries([
+                                {
+                                    name: 'Machine Utilization',
+                                    data: percents
+                                }
+                            ]);
 
-                    const weeks = util.map(x => `Week ${x.week}`);
-                    const percents = util.map(x => x.percent ?? 0);
-
-                    // Update Series
-                    window.machineUtilChart.updateSeries([
-                        {
-                            name: selectedMachine === "1" ? "CNC Milling" : "3D Printing",
-                            data: percents
+                            // update x-axis
+                            window.machineUtilChart.updateOptions({
+                                xaxis: {
+                                    categories: weeks
+                                }
+                            });
                         }
-                    ]);
 
-                    // Update X-axis
-                    window.machineUtilChart.updateOptions({
-                        xaxis: {
-                            categories: weeks
-                        }
-                    });
-                }
+
 
             } catch (error) {
                 console.error("Error loading chart data:", error);
@@ -622,3 +639,4 @@
     });
 </script>
 
+       

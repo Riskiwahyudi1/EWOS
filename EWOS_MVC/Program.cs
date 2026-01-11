@@ -38,6 +38,7 @@ builder.Services.AddScoped<AdUserService>();
 builder.Services.AddScoped<WeekHelper>();
 builder.Services.AddScoped<YearsHelper>();
 builder.Services.AddScoped<CalculateSavingHelper>();
+builder.Services.AddScoped<DashboardService>();
 
 builder.Services.AddScoped<EmailContextHelper>();
 // Tambahkan memory cache 
